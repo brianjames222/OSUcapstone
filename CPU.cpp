@@ -11,9 +11,9 @@ public:
     uint8_t A = 0x00;        // Accumulator
     uint8_t X = 0x00;        // X Register
     uint8_t Y = 0x00;        // Y Register
-    uint8_t S = 0x00;        // Stack Pointer
-    uint16_t PC = 0x0000;    // Program Counter
-    uint8_t P = 0x00;        // Status Flags Register
+    uint8_t S = 0xFD;        // Stack Pointer, start at 0xFD
+    uint16_t PC = 0xFFFC;    // Program Counter, start at 0xFFFC;
+    uint8_t P = FLAGS::I;        // Status Flags Register, start with I
 
     // RAM for CPU
     std::array<uint8_t, 2 * 1024> memory{};
@@ -76,7 +76,14 @@ public:
             }
         }
     }
-    
+
+    // Set the CPU registers as specified by a console reset
+    void reset() {
+      PC = 0xFFFC;
+      S -= 3;
+      setFlag(FLAGS::I, 1);
+    }
+
     // sample few opcodes
     void instruction(uint8_t opcode) {
 	switch (opcode) {
