@@ -2,15 +2,15 @@
 // Created by ethan on 12/2/24.
 //
 
-#include "imgui.h"
-#include "imgui_impl_sdl2.h"
-#include "imgui_impl_opengl3.h"
+#include "../../imgui.h"
+#include "../../backends/imgui_impl_sdl2.h"
+#include "../../backends/imgui_impl_opengl3.h"
 #include <stdio.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <SDL_opengles2.h>
 #else
-#include <SDL_opengl.h>
+#include <SDL2/SDL_opengl.h>
 #endif
 // System includes
 #include <stdint.h>     // intptr_t
