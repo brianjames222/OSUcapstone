@@ -6,6 +6,11 @@ int main() {
 
     // CPU testing
     CPU cpu;
+
+    // Check start up values
+    cpu.printRegisters();
+
+    // Check write
     cpu.writeMemory(0x10, 0xAB);
     cpu.writeMemory(0x0000, 0xAB);
     cpu.printMemory();
@@ -100,6 +105,19 @@ int main() {
     cpu.printRegisters();
     std::cout << "Opcode tests passed!\n";
 
+    // Check reset function
+    std::cout << "\nReset test:\n\nCurrent values:\n";
+    cpu.printRegisters();
+    cpu.setFlag(CPU::FLAGS::Z, 1);
+    cpu.setFlag(CPU::FLAGS::V, 1);
+    cpu.setFlag(CPU::FLAGS::I, 0);
+    cpu.PC = 0x0000;
+    cpu.S = 0xAA;
+    std::cout << "\nUpdated values:\n";
+    cpu.printRegisters();
+    cpu.reset();
+    std::cout << "\nAfter reset:\n";
+    cpu.printRegisters();
 
     return 0;
 }
