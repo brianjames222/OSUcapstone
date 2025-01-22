@@ -98,6 +98,45 @@ int main() {
     std::cout << "\nAfter reset:\n";
     cpu.printRegisters();
 
+    // Check Stack functions
+    uint16_t starting_stack_address = 0x0100 + cpu.S;
+    cpu.stack_push(0xBC);
+    uint16_t current_stack_address = 0x0100 + cpu.S;
+    assert(cpu.memory[current_stack_address] == 0xBC);
+    uint8_t stack_top = cpu.stack_pop();
+    assert(stack_top == 0xBC);
+    current_stack_address = 0x0100 + cpu.S;
+    assert(current_stack_address == starting_stack_address);
+    cpu.stack_push16(0xABCD);
+    current_stack_address = 0x0100 + cpu.S;
+    assert(cpu.memory[current_stack_address] == 0xAB);
+    assert(cpu.memory[current_stack_address + 1] == 0xCD);
+    stack_top = cpu.stack_pop();
+    assert(stack_top == 0xAB);
+    stack_top = cpu.stack_pop();
+    assert(stack_top == 0xCD);
+    current_stack_address = 0x0100 + cpu.S;
+    assert(current_stack_address == starting_stack_address);
+
+    std::cout << "Stack function tests passed!\n";
+
+    // Check NMI Interrupt function
+    starting_stack_address = 0x0100 + cpu.S;
+    cpu.nmi_interrupt();
+    current_stack_address = 0x0100 + cpu.S;
+    assert(current_stack_address == starting_stack_address - 3);
+    assert(cpu.PC == 0xFFFA);
+
+    std::cout << "NMI Interrupt function tests passed!\n";
+
+    // Check IRQ Interrupt function
+    cpu.irq_interrupt();
+    current_stack_address = 0x0100 + cpu.S;
+    assert(current_stack_address == starting_stack_address - 6);
+    assert(cpu.PC == 0xFFFE);
+
+    std::cout << "IRQ Interrupt function tests passed!\n";
+
     return 0;
 }
 
