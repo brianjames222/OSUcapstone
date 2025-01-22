@@ -153,7 +153,7 @@ public:
 		uint8_t starting_stack_address = 0x0100 + cpu.S;
 	    cpu.irq_interrupt();
 		uint8_t current_stack_address = 0x0100 + cpu.S;
-		assert(current_stack_address == starting_stack_address - 6);
+		assert(current_stack_address == starting_stack_address - 3);
 		assert(cpu.PC == 0xFFFE);
 
 		std::cout << "---------------------------\nIRQ Interrupt function tests passed!\n";
