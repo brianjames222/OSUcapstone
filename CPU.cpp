@@ -84,6 +84,49 @@ public:
       setFlag(FLAGS::I, 1);
     }
 
+	// Push to the stack (8 bits)
+	void stack_push(uint8_t value) {
+		S -= 1;
+		uint16_t stack_address = 0x0100 + S;
+		writeMemory(stack_address, value);
+	}
+
+	// Push to the stack (16 bits)
+	void stack_push16(uint16_t value) {
+		uint8_t low_byte = value & 0xFF;
+		uint8_t high_byte = value >> 8;
+		S -= 1;
+		uint16_t stack_address = 0x0100 + S;
+		writeMemory(stack_address, low_byte);
+		stack_address -= 1;
+		S -= 1;
+		writeMemory(stack_address, high_byte);
+	}
+
+	// Pop from the stack
+	uint8_t stack_pop() {
+		uint16_t stack_address = 0x0100 + S;
+		uint8_t stack_top_value = readMemory(stack_address);
+		S += 1;
+		return stack_top_value;
+	}
+
+	// CPU Handling of an NMI Interrupt
+	void nmi_interrupt() {
+		stack_push16(PC);
+		stack_push(P);
+		setFlag(FLAGS::I, 1);
+		PC = 0xFFFA;
+	}
+
+	// CPU Handling of an IRQ Interrupt
+	void irq_interrupt() {
+		stack_push16(PC);
+		stack_push(P);
+		setFlag(FLAGS::I, 1);
+		PC = 0xFFFE;
+	}
+
     // sample few opcodes
     void instruction(uint8_t opcode) {
 	switch (opcode) {
