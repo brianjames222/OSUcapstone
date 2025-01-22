@@ -1,3 +1,6 @@
+#ifndef CPU_CPP
+#define CPU_CPP
+
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
@@ -241,4 +244,5 @@ public:
         PC = 0xFFFE;
     }
 };
+#endif
 
