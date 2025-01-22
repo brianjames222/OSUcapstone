@@ -84,76 +84,119 @@ public:
       setFlag(FLAGS::I, 1);
     }
 
-    // sample few opcodes
-    void instruction(uint8_t opcode) {
-	switch (opcode) {
-		// Load A: Zero Page
-		case 0xA5:
-			A = memory[PC];
-			break;
-		// Store A: Zero Page
-		case 0x85:
-			memory[PC] = A;
-			break;
-		// Load X: Zero Page
-		case 0xA6:
-			X = memory[PC];
-			break;
-		// Store X: Zero Page
-		case 0x86:
-			memory[PC] = X;
-			break;
-		// Load Y: Zero Page
-		case 0xA4:
-			Y = memory[PC];
-			break;
-		// Store Y: Zero Page
-		case 0x84:
-			memory[PC] = Y;
-			break;
-		// Transfer A to X
-		case 0xAA:
-			X = A;
-			break;
-		// Transfer X to A
-		case 0x8A:
-			A = X;
-			break;
-		// Transfer A to Y
-		case 0xA8:
-			Y = A;
-			break;
-		// Transfer Y to A
-		case 0x98:
-			A = Y;
-			break;
-		// Increment: Zero Page
-		case 0xE6:
-			memory[PC]++;
-			break;
-		// Decrement: Zero Page
-		case 0xC6:
-			memory[PC]--;
-			break;
-		// Increment X
-		case 0xE8:
-			X++;
-			break;
-		// Decrement X
-		case 0xCA:
-			X--;
-			break;
-		// Increment Y
-		case 0xC8:
-			Y++;
-			break;
-		// Decrement Y
-		case 0x88:
-			Y--;
-			break;
-		default:
-			std::cerr << "Error: Instruction not valid: " << opcode << '\n';
-	}
+    // Read and execute the next instruction
+    void execute() {
+      // Read the opcode
+      uint8_t opcode = readMemory(PC++);
+
+      // Get the address mode and instruction type from the opcode
+      //std::cout << "Opcode: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(opcode) << std::endl;
+      Instruction opcodeInstr = instructionTable[opcode];
+      if (opcodeInstr.operation == nullptr || opcodeInstr.addressingMode == nullptr) {
+        std::cout << "Error: Invalid opcode"; 
+      }
+
+      // Find the address
+      uint16_t address = (this->*opcodeInstr.addressingMode)();
+
+      // Execute the instruction
+      (this->*opcodeInstr.operation)(address);
+
     }
+
+    // Instruction struct for storing addressingMode and operation
+    struct Instruction {
+      void (CPU::*operation)(uint16_t);
+      uint16_t (CPU::*addressingMode)();
+    };
+
+    // Intialize instructionTable with null values
+    Instruction instructionTable[256];
+
+    void initInstructionTable() {
+      for (int i = 0; i < 256; i++) {
+        instructionTable[i] = {nullptr, nullptr};
+      };
+
+      // Add instructions
+      instructionTable[0xA9] = {&CPU::LDA, &CPU::Immediate};
+      instructionTable[0xA5] = {&CPU::LDA, &CPU::ZeroPage};
+      instructionTable[0xB5] = {&CPU::LDA, &CPU::ZeroPageX};
+      instructionTable[0xAD] = {&CPU::LDA, &CPU::Absolute};
+      instructionTable[0xBD] = {&CPU::LDA, &CPU::AbsoluteX};
+      instructionTable[0xB9] = {&CPU::LDA, &CPU::AbsoluteY};
+      instructionTable[0xA1] = {&CPU::LDA, &CPU::IndirectX};
+      instructionTable[0xB1] = {&CPU::LDA, &CPU::IndirectY};
+    }
+
+    // Instructions
+    // Load value into A
+    // Still needs to update flags!!! Barebones for testing addressing mode only
+    void LDA(uint16_t address) {
+      uint8_t value = readMemory(address);
+      A = value;
+    };
+
+    // Addressing Modes
+    // No address, return the next PC
+    uint16_t Immediate() {
+      return PC++;
+    };
+
+    // Return address from zero page memory
+    uint16_t ZeroPage() {
+      return readMemory(PC++);
+    }
+
+    // Reuturn address + X from zero page memory, wrapped
+    uint16_t ZeroPageX() {
+      return readMemory(PC++) + X & 0xFF;
+    }
+
+    // Reuturn address + X from zero page memory, wrapped
+    uint16_t ZeroPageY() {
+      return readMemory(PC++) + Y & 0xFF;
+    }
+
+    // Return a full 16 bit address from the next two PC
+    uint16_t Absolute() {
+      uint16_t addr = readMemory(PC) | readMemory(PC + 1) << 8;
+      PC += 2;
+      return addr;
+    }
+
+    // Return a full 16 bit address from the next two PC + X
+    uint16_t AbsoluteX() {
+      uint16_t addr = readMemory(PC) | readMemory(PC + 1) << 8;
+      PC += 2;
+      return addr + X;
+    }
+
+    // Return a full 16 bit address from the next two PC + Y
+    uint16_t AbsoluteY() {
+      uint16_t addr = readMemory(PC) | readMemory(PC + 1) << 8;
+      PC += 2;
+      return addr + Y;
+    }
+
+    // Return a full 16 bit address from a pointer in the zero page + X
+    uint16_t IndirectX() {
+      uint16_t ptrAddr = (readMemory(PC++) + X) & 0xFF;
+      uint16_t addr = readMemory(ptrAddr) | (readMemory(ptrAddr + 1) & 0xFF) << 8;
+      return addr;
+    }
+
+    // Return a full 16 bit address from a pointer in the zero page + Y
+    uint16_t IndirectY() {
+      uint16_t ptrAddr = readMemory(PC++);
+      uint16_t addr = readMemory(ptrAddr) | (readMemory(ptrAddr + 1) & 0xFF) << 8;
+      return addr + Y;
+    }
+
+    // Constructor
+    CPU() {
+      initInstructionTable();
+    }
+
 };
 
