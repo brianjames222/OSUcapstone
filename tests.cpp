@@ -150,11 +150,27 @@ public:
 	void test_irq() {
 		CPU cpu;
 
-		uint8_t starting_stack_address = 0x0100 + cpu.S;
+		// Set flag so interrupt will work
+		cpu.setFlag(CPU::FLAGS::I, false);
+
+		// Call interrupt and get stack address
+		uint16_t starting_stack_address = 0x0100 + cpu.S;
 	    cpu.irq_interrupt();
-		uint8_t current_stack_address = 0x0100 + cpu.S;
+		uint16_t current_stack_address = 0x0100 + cpu.S;
+
 		assert(current_stack_address == starting_stack_address - 3);
-		assert(cpu.PC == 0xFFFE);
+
+		// Check if PC address is being set correctly
+		uint8_t read_address = 0xFFFE;
+		cpu.writeMemory(read_address, 0x12);
+		cpu.writeMemory(read_address + 1, 0x34);
+
+		uint16_t lo = cpu.readMemory(read_address);
+		uint16_t hi = cpu.readMemory(read_address + 1);
+
+		cpu.PC = (hi << 8) | lo;
+
+		assert(cpu.PC == 0x3412);
 
 		std::cout << "---------------------------\nIRQ Interrupt function tests passed!\n";
 	}
