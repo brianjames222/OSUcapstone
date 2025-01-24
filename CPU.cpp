@@ -19,7 +19,7 @@ public:
     uint8_t P = FLAGS::I;        // Status Flags Register, start with I
 
     // RAM for CPU
-    std::array<uint8_t, 2 * 1024> memory{};
+    std::array<uint8_t, 64 * 1024> memory{};
 
     // Flags
     enum FLAGS {
@@ -238,10 +238,19 @@ public:
 
     // CPU Handling of an IRQ Interrupt
     void irq_interrupt() {
-        stack_push16(PC);
-        stack_push(P);
-        setFlag(FLAGS::I, 1);
-        PC = 0xFFFE;
+        // Check if interrupt is allowed
+        if (getFlag(I) == 0) {
+            // Push PC and P to stack
+            stack_push16(PC);
+            setFlag(I, true);
+            setFlag(B, false);
+            stack_push(P);
+            // Get new PC location
+            const uint16_t read_address = 0xFFFE;
+            uint16_t lo = readMemory(read_address);
+            uint16_t hi = readMemory(read_address + 1);
+            PC = (hi << 8) | lo;
+        }
     }
 };
 #endif
