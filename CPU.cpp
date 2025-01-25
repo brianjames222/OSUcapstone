@@ -149,9 +149,10 @@ public:
     };
 
     // Addressing Modes
+    // Address is implied, returning 0xFFFF as indicator
     uint16_t Implicit() {
       return 0xFFFF;
-    }
+    };
 
     // Address is directly at the next PC
     uint16_t Immediate() {
