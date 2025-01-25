@@ -208,6 +208,16 @@ public:
       return addr + Y;
     }
 
+    // Return an address using the operand as a pointer
+    uint16_t Indirect() {
+      // Find 16 bit address from operand
+      uint16_t pointer = readMemory(PC) | readMemory(PC + 1) << 8;
+      // Find address referenced by pointer
+      uint16_t addr = readMemory(pointer) | readMemory((pointer + 1) & 0xFFFF) << 8;
+      PC += 2;
+      return addr;
+    }
+
     // Return a full 16 bit address from a pointer in the zero page + X
     uint16_t IndirectX() {
       uint16_t ptrAddr = (readMemory(PC++) + X) & 0xFF;
