@@ -100,16 +100,19 @@ public:
       // Get the address mode and instruction type from the opcode
       //std::cout << "Opcode: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(opcode) << std::endl;
       Instruction opcodeInstr = instructionTable[opcode];
-      if (opcodeInstr.operation == nullptr || opcodeInstr.addressingMode == nullptr) {
+      if (opcodeInstr.operation == nullptr && opcodeInstr.addressingMode == nullptr) {
         std::cout << "Error: Invalid opcode"; 
       }
 
       // Find the address
-      uint16_t address = (this->*opcodeInstr.addressingMode)();
-
-      // Execute the instruction
-      (this->*opcodeInstr.operation)(address);
-
+      if (opcodeInstr.operation != nullptr) {
+        uint16_t address = (this->*opcodeInstr.addressingMode)();
+        // Execute the instruction
+        (this->*opcodeInstr.operation)(address);
+      } else {
+        // Implicit addressing mode
+        (this->*opcodeInstr.operation)(0xFFFF);
+      }
     }
 
     // Instruction struct for storing addressingMode and operation
@@ -127,6 +130,9 @@ public:
       };
 
       // Add instructions
+      // For implicit, set addressing mode to nullptr
+      //    implcit instructions might want to check address == 0xFFFF
+      //    to make sure proper address mode
       instructionTable[0xA9] = {&CPU::LDA, &CPU::Immediate};
       instructionTable[0xA5] = {&CPU::LDA, &CPU::ZeroPage};
       instructionTable[0xB5] = {&CPU::LDA, &CPU::ZeroPageX};
