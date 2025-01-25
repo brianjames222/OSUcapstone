@@ -146,18 +146,24 @@ public:
     void LDA(uint16_t address) {
       uint8_t value = readMemory(address);
       A = value;
-    };
+    }
 
     // Addressing Modes
     // Address is implied, returning 0xFFFF as indicator
     uint16_t Implicit() {
       return 0xFFFF;
-    };
+    }
 
     // Address is directly at the next PC
     uint16_t Immediate() {
       return PC++;
-    };
+    }
+
+    // Address is the accumulator, returning 0xFFFF as indicator
+    // Logic to be handled in instruction
+    uint16_t Accumulator() {
+      return 0xFFFF;
+    }
 
     // Return address from zero page memory
     uint16_t ZeroPage() {
