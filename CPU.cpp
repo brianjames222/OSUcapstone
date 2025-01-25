@@ -165,6 +165,13 @@ public:
       return 0xFFFF;
     }
 
+    // Return next PC += offset, stored in PC
+    uint16_t Relative() {
+      // Offset is unsigned, at the memory location stored in PC
+      int8_t offset = static_cast<int8_t>(readMemory(PC++));
+      return PC + offset;
+    }
+
     // Return address from zero page memory
     uint16_t ZeroPage() {
       return readMemory(PC++);
