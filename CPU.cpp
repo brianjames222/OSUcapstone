@@ -105,14 +105,11 @@ public:
       }
 
       // Find the address
-      if (opcodeInstr.operation != nullptr) {
-        uint16_t address = (this->*opcodeInstr.addressingMode)();
-        // Execute the instruction
-        (this->*opcodeInstr.operation)(address);
-      } else {
-        // Implicit addressing mode
-        (this->*opcodeInstr.operation)(0xFFFF);
-      }
+      uint16_t address = (this->*opcodeInstr.addressingMode)();
+
+      // Execute the instruction
+      (this->*opcodeInstr.operation)(address);
+
     }
 
     // Instruction struct for storing addressingMode and operation
@@ -152,6 +149,10 @@ public:
     };
 
     // Addressing Modes
+    uint16_t Implicit() {
+      return 0xFFFF;
+    }
+
     // Address is directly at the next PC
     uint16_t Immediate() {
       return PC++;
