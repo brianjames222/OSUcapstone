@@ -100,7 +100,7 @@ public:
       // Get the address mode and instruction type from the opcode
       //std::cout << "Opcode: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(opcode) << std::endl;
       Instruction opcodeInstr = instructionTable[opcode];
-      if (opcodeInstr.operation == nullptr && opcodeInstr.addressingMode == nullptr) {
+      if (opcodeInstr.operation == nullptr || opcodeInstr.addressingMode == nullptr) {
         std::cout << "Error: Invalid opcode"; 
       }
 
