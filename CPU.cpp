@@ -146,7 +146,7 @@ public:
     };
 
     // Addressing Modes
-    // No address, return the next PC
+    // Address is directly at the next PC
     uint16_t Immediate() {
       return PC++;
     };
