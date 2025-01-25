@@ -128,9 +128,22 @@ public:
 		cpu.S = 0xAA;
 		std::cout << "\nUpdated values:\n";
 		cpu.printRegisters();
+
+		// Populate fixed memory address
+		cpu.writeMemory(0xFFFC, 0xA9);
+		cpu.writeMemory(0xFFFD, 0xC2);
+
+		// Reset CPU state
 		cpu.reset();
 		std::cout << "\nAfter reset:\n";
 		cpu.printRegisters();
+
+		//Check if values match reset
+		assert(cpu.P == 0x24);
+		assert(cpu.S == 0xFD);
+		assert(cpu.PC == 0xC2A9);
+
+		std::cout << "---------------------------\nReset function tests passed!\n";
 	}
 
 //----------------------------------------------------------------------------------------------------------------------------

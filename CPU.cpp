@@ -15,8 +15,8 @@ public:
     uint8_t X = 0x00;        // X Register
     uint8_t Y = 0x00;        // Y Register
     uint8_t S = 0xFD;        // Stack Pointer, start at 0xFD
-    uint16_t PC = 0xFFFC;    // Program Counter, start at 0xFFFC;
-    uint8_t P = FLAGS::I;        // Status Flags Register, start with I
+    uint16_t PC = 0x0000;    // Program Counter, read memory at 0xFFFC and 0xFFFD for start of program;
+    uint8_t P = I + U;        // Status Flags Register, start with I and U
 
     // RAM for CPU
     std::array<uint8_t, 64 * 1024> memory{};
@@ -82,9 +82,14 @@ public:
 
     // Set the CPU registers as specified by a console reset
     void reset() {
-      PC = 0xFFFC;
-      S -= 3;
-      setFlag(FLAGS::I, 1);
+        const uint16_t read_address = 0xFFFC;
+        uint16_t lo = readMemory(read_address);
+        uint16_t hi = readMemory(read_address + 1);
+        PC = (hi << 8) | lo;
+        S = 0xFD;
+        P = 0x00;
+        setFlag(I, true);
+        setFlag(U, true);
     }
 
     // Read and execute the next instruction
