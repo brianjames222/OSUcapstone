@@ -127,6 +127,9 @@ public:
       };
 
       // Add instructions
+      // For implicit, set addressing mode to nullptr
+      //    implcit instructions might want to check address == 0xFFFF
+      //    to make sure proper address mode
       instructionTable[0xA9] = {&CPU::LDA, &CPU::Immediate};
       instructionTable[0xA5] = {&CPU::LDA, &CPU::ZeroPage};
       instructionTable[0xB5] = {&CPU::LDA, &CPU::ZeroPageX};
@@ -143,13 +146,31 @@ public:
     void LDA(uint16_t address) {
       uint8_t value = readMemory(address);
       A = value;
-    };
+    }
 
     // Addressing Modes
-    // No address, return the next PC
+    // Address is implied, returning 0xFFFF as indicator
+    uint16_t Implicit() {
+      return 0xFFFF;
+    }
+
+    // Address is directly at the next PC
     uint16_t Immediate() {
       return PC++;
-    };
+    }
+
+    // Address is the accumulator, returning 0xFFFF as indicator
+    // Logic to be handled in instruction
+    uint16_t Accumulator() {
+      return 0xFFFF;
+    }
+
+    // Return next PC += offset, stored in PC
+    uint16_t Relative() {
+      // Offset is unsigned, at the memory location stored in PC
+      int8_t offset = static_cast<int8_t>(readMemory(PC++));
+      return PC + offset;
+    }
 
     // Return address from zero page memory
     uint16_t ZeroPage() {
@@ -185,6 +206,16 @@ public:
       uint16_t addr = readMemory(PC) | readMemory(PC + 1) << 8;
       PC += 2;
       return addr + Y;
+    }
+
+    // Return an address using the operand as a pointer
+    uint16_t Indirect() {
+      // Find 16 bit address from operand
+      uint16_t pointer = readMemory(PC) | readMemory(PC + 1) << 8;
+      // Find address referenced by pointer
+      uint16_t addr = readMemory(pointer) | readMemory((pointer + 1) & 0xFFFF) << 8;
+      PC += 2;
+      return addr;
     }
 
     // Return a full 16 bit address from a pointer in the zero page + X
