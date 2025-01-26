@@ -164,7 +164,6 @@ public:
       instructionTable[0x96] = {&CPU::STX, &CPU::ZeroPageY};
       instructionTable[0x8E] = {&CPU::STX, &CPU::Absolute};
 
-      
       // STY
       instructionTable[0x84] = {&CPU::STY, &CPU::ZeroPage};
       instructionTable[0x94] = {&CPU::STY, &CPU::ZeroPageX};
