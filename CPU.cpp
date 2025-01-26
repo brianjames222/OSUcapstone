@@ -150,7 +150,37 @@ public:
       instructionTable[0xAC] = {&CPU::LDY, &CPU::Absolute};
       instructionTable[0xBC] = {&CPU::LDY, &CPU::AbsoluteX};
 
+      // STA
+      instructionTable[0x85] = {&CPU::STA, &CPU::ZeroPage};
+      instructionTable[0x95] = {&CPU::STA, &CPU::ZeroPageX};
+      instructionTable[0x8D] = {&CPU::STA, &CPU::Absolute};
+      instructionTable[0x9D] = {&CPU::STA, &CPU::AbsoluteX};
+      instructionTable[0x99] = {&CPU::STA, &CPU::AbsoluteY};
+      instructionTable[0x81] = {&CPU::STA, &CPU::IndirectX};
+      instructionTable[0x91] = {&CPU::STA, &CPU::IndirectY};
+
+      // STX
+      instructionTable[0x86] = {&CPU::STX, &CPU::ZeroPage};
+      instructionTable[0x96] = {&CPU::STX, &CPU::ZeroPageY};
+      instructionTable[0x8E] = {&CPU::STX, &CPU::Absolute};
+
+      
+      // STY
+      instructionTable[0x84] = {&CPU::STY, &CPU::ZeroPage};
+      instructionTable[0x94] = {&CPU::STY, &CPU::ZeroPageX};
+      instructionTable[0x8C] = {&CPU::STY, &CPU::Absolute};
+
+      // TAX, TAY, TSX, TXA, TXS, TYA
+      instructionTable[0xAA] = {&CPU::TAX, &CPU::Implied};
+      instructionTable[0xA8] = {&CPU::TAY, &CPU::Implied};
+      instructionTable[0xBA] = {&CPU::TSX, &CPU::Implied};
+      instructionTable[0x8A] = {&CPU::TXA, &CPU::Implied};
+      instructionTable[0x9A] = {&CPU::TXS, &CPU::Implied};
+      instructionTable[0x98] = {&CPU::TYA, &CPU::Implied};
+
     }
+
+    // BRIAN INSTRUCTIONS BEGIN ------------------------------------- //
 
     // Helper function to update Z and N flags
     void updateZeroNegativeFlags(uint8_t value) {
@@ -158,45 +188,88 @@ public:
       setFlag(FLAGS::N, value & 0x80);
     }
 
-    // INSTRUCTIONS //
+    // Access Instructions
     // "LDA loads a memory value into the accumulator."
     void LDA(uint16_t address) {
-      // Reads value from address
       uint8_t value = readMemory(address);
-
-      // Stores value in accumulator
       A = value;
 
-      // UPDATE Z and N flags
       updateZeroNegativeFlags(A);
     }
 
     // "LDX loads a memory value into the X register."
     void LDX(uint16_t address) {
-      // Reads value from address
       uint8_t value = readMemory(address);
-
-      // Stores value in X register
       X = value;
 
-      // UPDATE Z and N flags
       updateZeroNegativeFlags(X);
     }
 
     // "LDY loads a memory value into the Y register."
     void LDY(uint16_t address) {
-      // Reads value from address
       uint8_t value = readMemory(address);
-
-      // Stores value in Y register
       Y = value;
 
-      // UPDATE Z and N flags
       updateZeroNegativeFlags(Y);
     }
 
+    // "STA stores the accumulator value into memory."
+    void STA(uint16_t address) {
+      writeMemory(address, A);
+    }
 
+    // "STX stores the X register value into memory."
+    void STX(uint16_t address) {
+      writeMemory(address, X);
+    }
 
+    // "STY stores the Y register value into memory. "
+    void STY(uint16_t address) {
+      writeMemory(address, Y);
+    } 
+
+    // Transfer Instructions
+    // "TAX copies the accumulator value to the X register."
+    void TAX() {
+      X = A;
+
+      updateZeroNegativeFlags(X);
+    }
+
+    // "TAY copies the accumulator value to the Y register."
+    void TAY() {
+      Y = A;
+
+      updateZeroNegativeFlags(Y);
+    } 
+
+    // "TSX copies the stack pointer value to the X register."
+    void TSX() {
+      X = S;
+
+      updateZeroNegativeFlags(X);
+    }
+
+    // "TXA copies the X register value to the accumulator."
+    void TXA() {
+      A = X;
+
+      updateZeroNegativeFlags(A);
+    }  
+
+    // "TXS copies the X register value to the stack pointer."
+    void TXS() {
+      S = X;
+    }
+
+    // "TYA copies the Y register value to the accumulator."
+    void TYA() {
+      A = Y;
+
+      updateZeroNegativeFlags(A);
+    } 
+
+// BRIAN INSTRUCTIONS END ------------------------------------------ //
 
     // Addressing Modes
     // No address, return the next PC
@@ -252,6 +325,11 @@ public:
       uint16_t ptrAddr = readMemory(PC++);
       uint16_t addr = readMemory(ptrAddr) | (readMemory(ptrAddr + 1) & 0xFF) << 8;
       return addr + Y;
+    }
+
+    // Implied addressing does nothing, no memory access needed (dummy value)
+    uint16_t Implied() {
+      return 0;
     }
 
     // Constructor
