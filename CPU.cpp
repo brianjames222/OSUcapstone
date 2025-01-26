@@ -399,8 +399,12 @@ public:
     void nmi_interrupt() {
         stack_push16(PC);
         stack_push(P);
-        setFlag(FLAGS::I, 1);
-        PC = 0xFFFA;
+        setFlag(I, 1);
+        // Get new PC location
+        const uint16_t read_address = 0xFFFA;
+        uint8_t lo = readMemory(read_address);
+        uint8_t hi = readMemory(read_address + 1);
+        PC = (hi << 8) | lo;
     }
 
     // CPU Handling of an IRQ Interrupt
