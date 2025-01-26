@@ -187,4 +187,65 @@ public:
 
 		std::cout << "---------------------------\nIRQ Interrupt function tests passed!\n";
 	}
+
+//----------------------------------------------------------------------------------------------------------------------------
+	void test_jmp() {
+		CPU cpu;
+		cpu.reset();
+		uint16_t test_memory = 0x0000;
+
+		// Test JMP, JSR, RTS
+		cpu.JMP(0xFFFA);
+		assert(cpu.PC == 0xFFFA);
+
+		cpu.JSR(0x1234);
+		assert(cpu.PC == 0x1234);
+
+		cpu.RTS(test_memory);
+		assert(cpu.PC == 0xFFFA + 3);
+
+		// Test BRK, RTI
+		cpu.PC = 0x1973;
+		cpu.setFlag(CPU::FLAGS::Z, 1);
+		cpu.setFlag(CPU::FLAGS::C, 1);
+		cpu.setFlag(CPU::FLAGS::V, 1);
+
+		cpu.BRK(test_memory);
+		cpu.RTI(test_memory);
+
+		assert(cpu.PC == 0x1975);
+		assert(cpu.P == 0x67);
+
+		// Test Indirect Jump
+
+		cpu.PC = 0x0000;
+		cpu.writeMemory(cpu.PC, 0x34);
+		cpu.writeMemory(cpu.PC + 1, 0x12);
+
+		cpu.writeMemory(0x1234, 0x78);
+		cpu.writeMemory(0x1235, 0x56);
+
+		cpu.JMP(cpu.IndirectJMP());
+
+		assert(cpu.PC == 0x5678);
+
+		std::cout << "---------------------------\nJump functions tests passed!\n";
+	}
+//----------------------------------------------------------------------------------------------------------------------------
+	void test_stack_instructions() {
+		CPU cpu;
+		cpu.reset();
+		uint16_t test_memory = 0x0000;
+		cpu.A = 0x34;
+		// Test PHA and PLA
+		cpu.PHA(test_memory);
+		cpu.PLA(test_memory);
+
+		assert(cpu.A == 0x34);
+		// Test PHP and PLP
+		cpu.PHP(test_memory);
+		cpu.PLP(test_memory);
+
+		assert(cpu.P == 0x24);
+	}
 };

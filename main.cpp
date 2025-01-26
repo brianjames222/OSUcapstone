@@ -12,7 +12,8 @@ int main() {
     tests.test_reset();
 	tests.test_nmi();
 	tests.test_irq();
-
+	tests.test_jmp();
+	tests.test_stack_instructions();
     return 0;
 }
 
