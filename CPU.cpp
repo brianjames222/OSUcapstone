@@ -126,7 +126,7 @@ public:
         instructionTable[i] = {nullptr, nullptr};
       };
 
-      // Add instructions
+      // LDA
       instructionTable[0xA9] = {&CPU::LDA, &CPU::Immediate};
       instructionTable[0xA5] = {&CPU::LDA, &CPU::ZeroPage};
       instructionTable[0xB5] = {&CPU::LDA, &CPU::ZeroPageX};
@@ -135,6 +135,21 @@ public:
       instructionTable[0xB9] = {&CPU::LDA, &CPU::AbsoluteY};
       instructionTable[0xA1] = {&CPU::LDA, &CPU::IndirectX};
       instructionTable[0xB1] = {&CPU::LDA, &CPU::IndirectY};
+
+      // LDX
+      instructionTable[0xA2] = {&CPU::LDX, &CPU::Immediate};
+      instructionTable[0xA6] = {&CPU::LDX, &CPU::ZeroPage};
+      instructionTable[0xB6] = {&CPU::LDX, &CPU::ZeroPageY};
+      instructionTable[0xAE] = {&CPU::LDX, &CPU::Absolute};
+      instructionTable[0xBE] = {&CPU::LDX, &CPU::AbsoluteY};
+
+      // LDY
+      instructionTable[0xA0] = {&CPU::LDY, &CPU::Immediate};
+      instructionTable[0xA4] = {&CPU::LDY, &CPU::ZeroPage};
+      instructionTable[0xB4] = {&CPU::LDY, &CPU::ZeroPageX};
+      instructionTable[0xAC] = {&CPU::LDY, &CPU::Absolute};
+      instructionTable[0xBC] = {&CPU::LDY, &CPU::AbsoluteX};
+
     }
 
     // Helper function to update Z and N flags
@@ -154,7 +169,7 @@ public:
 
       // UPDATE Z and N flags
       updateZeroNegativeFlags(A);
-    };
+    }
 
     // "LDX loads a memory value into the X register."
     void LDX(uint16_t address) {
@@ -166,19 +181,19 @@ public:
 
       // UPDATE Z and N flags
       updateZeroNegativeFlags(X);
-    };
+    }
 
-    // "LDX loads a memory value into the Y register."
+    // "LDY loads a memory value into the Y register."
     void LDY(uint16_t address) {
       // Reads value from address
       uint8_t value = readMemory(address);
 
-      // Stores value in accumulator
+      // Stores value in Y register
       Y = value;
 
       // UPDATE Z and N flags
       updateZeroNegativeFlags(Y);
-    };
+    }
 
 
 
@@ -187,7 +202,7 @@ public:
     // No address, return the next PC
     uint16_t Immediate() {
       return PC++;
-    };
+    }
 
     // Return address from zero page memory
     uint16_t ZeroPage() {
