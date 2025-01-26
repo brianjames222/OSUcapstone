@@ -231,6 +231,7 @@ public:
 
 		std::cout << "---------------------------\nJump functions tests passed!\n";
 	}
+
 //----------------------------------------------------------------------------------------------------------------------------
 	void test_stack_instructions() {
 		CPU cpu;
@@ -247,5 +248,62 @@ public:
 		cpu.PLP(test_memory);
 
 		assert(cpu.P == 0x24);
+	}
+
+//----------------------------------------------------------------------------------------------------------------------------
+	void test_branch() {
+		CPU cpu;
+		
+		uint16_t test_memory = 0x0000;
+		cpu.writeMemory(test_memory, 0x78);
+		
+		// branch if Zero set
+		cpu.setFlag(CPU::FLAGS::Z, 1);
+		cpu.BEQ(test_memory);
+		assert(cpu.PC == 0x7A);
+
+		// branch if Zero clear
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::Z, 0);
+		cpu.BNE(test_memory);
+		assert(cpu.PC == 0x7A);
+		
+		// branch if Carry set
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::C, 1);
+		cpu.BCS(test_memory);
+		assert(cpu.PC == 0x7A);
+
+		// branch if Carry clear
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::C, 0);
+		cpu.BCC(test_memory);
+		assert(cpu.PC == 0x7A);
+		
+		// branch if Negative set
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::N, 1);
+		cpu.BMI(test_memory);
+		assert(cpu.PC == 0x7A);
+
+		// branch if Negative clear
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::N, 0);
+		cpu.BPL(test_memory);
+		assert(cpu.PC == 0x7A);
+		
+		// branch if oVerflow set
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::V, 1);
+		cpu.BVS(test_memory);
+		assert(cpu.PC == 0x7A);
+
+		// branch if oVerflow clear
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::V, 0);
+		cpu.BVC(test_memory);
+		assert(cpu.PC == 0x7A);	
+		
+		std::cout << "---------------------------\nBranch functions tests passed!\n";
 	}
 };

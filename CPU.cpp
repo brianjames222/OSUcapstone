@@ -148,6 +148,16 @@ public:
         instructionTable[0x28] = {&CPU::PLP, &CPU::Implied};
         instructionTable[0x58] = {&CPU::CLI, &CPU::Implied};
         instructionTable[0x78] = {&CPU::SEI, &CPU::Implied};
+        instructionTable[0xF0] = {&CPU::BEQ, &CPU::Relative};
+        instructionTable[0xD0] = {&CPU::BNE, &CPU::Relative};
+        instructionTable[0x90] = {&CPU::BCC, &CPU::Relative};
+        instructionTable[0xB0] = {&CPU::BCS, &CPU::Relative};
+        instructionTable[0x30] = {&CPU::BMI, &CPU::Relative};
+        instructionTable[0x10] = {&CPU::BPL, &CPU::Relative};
+        instructionTable[0x50] = {&CPU::BVC, &CPU::Relative};
+        instructionTable[0x70] = {&CPU::BVS, &CPU::Relative};
+        instructionTable[0x18] = {&CPU::CLC, &CPU::Implicit};
+        instructionTable[0x38] = {&CPU::SEC, &CPU::Implicit};
     }
 
     // --------------------------------------  Instructions
@@ -257,6 +267,86 @@ public:
       uint8_t value = readMemory(address);
       A = value;
     }
+    
+    
+    // Branch Instructions (8 count)
+	// these are signed, hence int8_t instead of uint8_t
+
+	// branch if Zero flag is set
+	void BEQ(uint16_t address) {
+		if (getFlag(Z)) {
+			int8_t value = readMemory(address);
+			PC = PC + 2 + value;
+		}
+	}
+
+	// branch if Zero flag is not set
+	void BNE(uint16_t address) {
+		if (!getFlag(Z)) {
+			int8_t value = readMemory(address);
+			PC = PC + 2 + value;
+		}
+	}
+
+	// branch if Carry flag is set
+	void BCS(uint16_t address) {
+		if (getFlag(C)) {
+			int8_t value = readMemory(address);
+			PC = PC + 2 + value;
+		}
+	}
+	
+	// branch if Carry flag is not set
+	void BCC(uint16_t address) {
+		if (!getFlag(C)) {
+			int8_t value = readMemory(address);
+			PC = PC + 2 + value;
+		}
+	}
+
+	// branch if Negative flag is set (Minus)
+	void BMI(uint16_t address) {
+		if (getFlag(N)) {
+			int8_t value = readMemory(address);
+			PC = PC + 2 + value;
+		}
+	}
+
+	// branch if Negative flag is not set (Plus)
+	void BPL(uint16_t address) {
+		if (!getFlag(N)) {
+			int8_t value = readMemory(address);
+			PC = PC + 2 + value;
+		}
+	}
+
+	// branch if oVerflow flag is set
+	void BVS(uint16_t address) {
+		if (getFlag(V)) {
+			int8_t value = readMemory(address);
+			PC = PC + 2 + value;
+		}
+	}
+	
+	// branch if oVerflow flag is not set
+	void BVC(uint16_t address) {
+		if (!getFlag(V)) {
+			int8_t value = readMemory(address);
+			PC = PC + 2 + value;
+		}
+	}
+
+	// Carry Flag Instructions (2 count)
+	
+	//set the carry flag
+	void SEC(uint16_t address) {
+		setFlag(C, true);
+	}
+	
+	// clear the carry flag
+	void CLC(uint16_t address) {
+		setFlag(C, false);
+	}
 
 
     // --------------------------------------  Addressing Modes
