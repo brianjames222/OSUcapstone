@@ -142,11 +142,19 @@ public:
         instructionTable[0x60] = {&CPU::RTS, &CPU::Implied};
         instructionTable[0x00] = {&CPU::BRK, &CPU::Implied};
         instructionTable[0x40] = {&CPU::RTI, &CPU::Implied};
+        instructionTable[0x48] = {&CPU::PHA, &CPU::Implied};
+        instructionTable[0x68] = {&CPU::PLA, &CPU::Implied};
+        instructionTable[0x08] = {&CPU::PHP, &CPU::Implied};
+        instructionTable[0x28] = {&CPU::PLP, &CPU::Implied};
+        instructionTable[0x58] = {&CPU::CLI, &CPU::Implied};
+        instructionTable[0x78] = {&CPU::SEI, &CPU::Implied};
     }
 
     // --------------------------------------  Instructions
 
     // Ethan's instructions
+
+    //Jump instructions
 
     // Jump to address
     void JMP(uint16_t address) {
@@ -199,6 +207,47 @@ public:
         uint8_t hi = stack_pop();
         uint8_t lo = stack_pop();
         PC = (hi << 8) | lo;
+    }
+
+    // Stack instructions
+
+    // Push A register to stack
+    void PHA(uint16_t address) {
+        stack_push(A);
+    }
+
+    // Pop stack into A register
+    void PLA(uint16_t address) {
+        A = stack_pop();
+        setFlag(Z, A == 0);
+        setFlag(N, A & 0x80);
+    }
+
+    // Push status flags to stack
+    void PHP(uint16_t address) {
+        setFlag(B, true);
+        setFlag(U, true);
+        stack_push(P);
+        setFlag(B, false);
+    }
+
+    // Pop status flags
+    void PLP(uint16_t address) {
+        P = stack_pop();
+        setFlag(U, true);
+        setFlag(B, false);
+    }
+
+    // Flag instructions
+
+    // Clear Interrupt Flag
+    void CLI(uint16_t address) {
+        setFlag(I, false);
+    }
+
+    // Set Interrupt Flag
+    void SEI(uint16_t address) {
+        setFlag(I, true);
     }
 
     // Load value into A

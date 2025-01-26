@@ -231,4 +231,21 @@ public:
 
 		std::cout << "---------------------------\nJump functions tests passed!\n";
 	}
+//----------------------------------------------------------------------------------------------------------------------------
+	void test_stack_instructions() {
+		CPU cpu;
+		cpu.reset();
+		uint16_t test_memory = 0x0000;
+		cpu.A = 0x34;
+		// Test PHA and PLA
+		cpu.PHA(test_memory);
+		cpu.PLA(test_memory);
+
+		assert(cpu.A == 0x34);
+		// Test PHP and PLP
+		cpu.PHP(test_memory);
+		cpu.PLP(test_memory);
+
+		assert(cpu.P == 0x24);
+	}
 };
