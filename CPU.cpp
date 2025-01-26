@@ -137,13 +137,51 @@ public:
       instructionTable[0xB1] = {&CPU::LDA, &CPU::IndirectY};
     }
 
-    // Instructions
-    // Load value into A
-    // Still needs to update flags!!! Barebones for testing addressing mode only
+    // Helper function to update Z and N flags
+    void updateZeroNegativeFlags(uint8_t value) {
+      setFlag(FLAGS::Z, value == 0);
+      setFlag(FLAGS::N, value & 0x80);
+    }
+
+    // INSTRUCTIONS //
+    // "LDA loads a memory value into the accumulator."
     void LDA(uint16_t address) {
+      // Reads value from address
       uint8_t value = readMemory(address);
+
+      // Stores value in accumulator
       A = value;
+
+      // UPDATE Z and N flags
+      updateZeroNegativeFlags(A);
     };
+
+    // "LDX loads a memory value into the X register."
+    void LDX(uint16_t address) {
+      // Reads value from address
+      uint8_t value = readMemory(address);
+
+      // Stores value in X register
+      X = value;
+
+      // UPDATE Z and N flags
+      updateZeroNegativeFlags(X);
+    };
+
+    // "LDX loads a memory value into the Y register."
+    void LDY(uint16_t address) {
+      // Reads value from address
+      uint8_t value = readMemory(address);
+
+      // Stores value in accumulator
+      Y = value;
+
+      // UPDATE Z and N flags
+      updateZeroNegativeFlags(Y);
+    };
+
+
+
 
     // Addressing Modes
     // No address, return the next PC
