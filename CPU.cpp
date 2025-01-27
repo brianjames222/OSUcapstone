@@ -232,40 +232,40 @@ public:
 
     // Transfer Instructions
     // "TAX copies the accumulator value to the X register."
-    void TAX() {
+    void TAX(uint16_t) {
       X = A;
 
       updateZeroNegativeFlags(X);
     }
 
     // "TAY copies the accumulator value to the Y register."
-    void TAY() {
+    void TAY(uint16_t) {
       Y = A;
 
       updateZeroNegativeFlags(Y);
     } 
 
     // "TSX copies the stack pointer value to the X register."
-    void TSX() {
+    void TSX(uint16_t) {
       X = S;
 
       updateZeroNegativeFlags(X);
     }
 
     // "TXA copies the X register value to the accumulator."
-    void TXA() {
+    void TXA(uint16_t) {
       A = X;
 
       updateZeroNegativeFlags(A);
     }  
 
     // "TXS copies the X register value to the stack pointer."
-    void TXS() {
+    void TXS(uint16_t) {
       S = X;
     }
 
     // "TYA copies the Y register value to the accumulator."
-    void TYA() {
+    void TYA(uint16_t) {
       A = Y;
 
       updateZeroNegativeFlags(A);
