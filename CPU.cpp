@@ -271,6 +271,12 @@ public:
       updateZeroNegativeFlags(A);
     } 
 
+    // Address mode
+    // Implied addressing does nothing, no memory access needed (dummy value)
+    uint16_t Implied() {
+      return 0;
+    }
+
 // BRIAN INSTRUCTIONS END ------------------------------------------ //
 
     // Addressing Modes
@@ -327,11 +333,6 @@ public:
       uint16_t ptrAddr = readMemory(PC++);
       uint16_t addr = readMemory(ptrAddr) | (readMemory(ptrAddr + 1) & 0xFF) << 8;
       return addr + Y;
-    }
-
-    // Implied addressing does nothing, no memory access needed (dummy value)
-    uint16_t Implied() {
-      return 0;
     }
 
     // Constructor
