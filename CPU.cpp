@@ -126,6 +126,7 @@ public:
         instructionTable[i] = {nullptr, nullptr};
       };
 
+      // Brian's Instruction Table START ---------------------------- //
       // LDA
       instructionTable[0xA9] = {&CPU::LDA, &CPU::Immediate};
       instructionTable[0xA5] = {&CPU::LDA, &CPU::ZeroPage};
@@ -176,6 +177,8 @@ public:
       instructionTable[0x8A] = {&CPU::TXA, &CPU::Implied};
       instructionTable[0x9A] = {&CPU::TXS, &CPU::Implied};
       instructionTable[0x98] = {&CPU::TYA, &CPU::Implied};
+
+      // Brian Instruction Table END -------------------------------- //
 
     }
 
