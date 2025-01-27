@@ -14,6 +14,14 @@ int main() {
 	tests.test_irq();
 	tests.test_jmp();
 	tests.test_stack_instructions();
+	tests.test_ASL();
+	tests.test_LSR();
+	tests.test_ROL();
+	tests.test_ROR();
+	tests.test_CMP();
+	tests.test_CPX();
+	tests.test_CPY();
+	tests.test_CLD_SED_CLV();
     return 0;
 }
 
