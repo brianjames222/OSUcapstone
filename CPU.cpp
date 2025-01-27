@@ -268,7 +268,8 @@ public:
       A = value;
     }
     
-    
+    // Carter's instructions--------------------------------------------------------
+
     // Branch Instructions (8 count)
 	// these are signed, hence int8_t instead of uint8_t
 
