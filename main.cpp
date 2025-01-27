@@ -10,6 +10,7 @@ int main() {
     tests.test_opcodes();
     tests.test_stack();
     tests.test_reset();
+    tests.test_ADC();
 	tests.test_nmi();
 	tests.test_irq();
 	tests.test_jmp();
