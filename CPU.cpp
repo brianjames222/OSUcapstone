@@ -158,6 +158,44 @@ public:
         instructionTable[0x70] = {&CPU::BVS, &CPU::Relative};
         instructionTable[0x18] = {&CPU::CLC, &CPU::Implicit};
         instructionTable[0x38] = {&CPU::SEC, &CPU::Implicit};
+        instructionTable[0x0A] = {&CPU::ASL, &CPU::Accumulator};
+        instructionTable[0x06] = {&CPU::ASL, &CPU::ZeroPage};
+        instructionTable[0x16] = {&CPU::ASL, &CPU::ZeroPageX};
+        instructionTable[0x0E] = {&CPU::ASL, &CPU::Absolute};
+        instructionTable[0x1E] = {&CPU::ASL, &CPU::AbsoluteX};
+        instructionTable[0x4A] = {&CPU::LSR, &CPU::Accumulator};
+        instructionTable[0x46] = {&CPU::LSR, &CPU::ZeroPage};
+        instructionTable[0x56] = {&CPU::LSR, &CPU::ZeroPageX};
+        instructionTable[0x4E] = {&CPU::LSR, &CPU::Absolute};
+        instructionTable[0x5E] = {&CPU::LSR, &CPU::AbsoluteX};
+        instructionTable[0x2A] = {&CPU::ROL, &CPU::Accumulator};
+        instructionTable[0x26] = {&CPU::ROL, &CPU::ZeroPage};
+        instructionTable[0x36] = {&CPU::ROL, &CPU::ZeroPageX};
+        instructionTable[0x2E] = {&CPU::ROL, &CPU::Absolute};
+        instructionTable[0x3E] = {&CPU::ROL, &CPU::AbsoluteX};
+        instructionTable[0x6A] = {&CPU::ROR, &CPU::Accumulator};
+        instructionTable[0x66] = {&CPU::ROR, &CPU::ZeroPage};
+        instructionTable[0x76] = {&CPU::ROR, &CPU::ZeroPageX};
+        instructionTable[0x6E] = {&CPU::ROR, &CPU::Absolute};
+        instructionTable[0x7E] = {&CPU::ROR, &CPU::AbsoluteX};
+        instructionTable[0xC9] = {&CPU::CMP, &CPU::Immediate};
+        instructionTable[0xC5] = {&CPU::CMP, &CPU::ZeroPage};
+        instructionTable[0xD5] = {&CPU::CMP, &CPU::ZeroPageX};
+        instructionTable[0xCD] = {&CPU::CMP, &CPU::Absolute};
+        instructionTable[0xDD] = {&CPU::CMP, &CPU::AbsoluteX};
+        instructionTable[0xD9] = {&CPU::CMP, &CPU::AbsoluteY};
+        instructionTable[0xC1] = {&CPU::CMP, &CPU::IndirectX};
+        instructionTable[0xD1] = {&CPU::CMP, &CPU::IndirectY};
+        instructionTable[0xE0] = {&CPU::CPX, &CPU::Immediate};
+        instructionTable[0xE4] = {&CPU::CPX, &CPU::ZeroPage};
+        instructionTable[0xEC] = {&CPU::CPX, &CPU::Absolute};
+        instructionTable[0xC0] = {&CPU::CPY, &CPU::Immediate};
+        instructionTable[0xC4] = {&CPU::CPY, &CPU::ZeroPage};
+        instructionTable[0xCC] = {&CPU::CPY, &CPU::Absolute};
+        instructionTable[0xEA] = {&CPU::NOP, &CPU::Implicit};
+        instructionTable[0xD8] = {&CPU::CLD, &CPU::Implicit};
+        instructionTable[0xF8] = {&CPU::SED, &CPU::Implicit};
+        instructionTable[0xB8] = {&CPU::CLV, &CPU::Implicit};
     }
 
     // --------------------------------------  Instructions
@@ -348,6 +386,164 @@ public:
 	void CLC(uint16_t address) {
 		setFlag(C, false);
 	}
+
+    // Zachary's Instructions
+
+    // Shift Instructions
+
+    // Arithmetic Shift Left
+    void ASL(uint16_t address) {
+      uint8_t value;
+      // Checking for accumulator mode
+      if (address == 0xFFFF) {
+        value = A;
+      } else {
+        value = readMemory(address);
+      }
+      // MSB = Most Significant Bit
+      int value_msb = (value >> 7) & 1;
+      uint8_t shifted_value = value << 1;
+      int shifted_value_msb = (shifted_value >> 7) & 1;
+      // C, N, Z flags are affected
+      setFlag(C, value_msb);
+      setFlag(N, shifted_value_msb);
+      setFlag(Z, shifted_value == 0);
+      if (address == 0xFFFF) {
+        A = shifted_value;
+      } else {
+        writeMemory(address, value);
+        writeMemory(address, shifted_value);
+      }
+    }
+
+    // Logical Shift Right
+    void LSR(uint16_t address) {
+      uint8_t value;
+      if (address == 0xFFFF) {
+        value = A;
+      } else {
+        value = readMemory(address); 
+      }
+      // LSB = Least Significant Bit
+      int value_lsb = value & 1;
+      uint8_t shifted_value = value >> 1;
+      int shifted_value_msb = (shifted_value >> 7) & 1;
+      setFlag(C, value_lsb);
+      setFlag(N, shifted_value_msb);
+      setFlag(Z, shifted_value == 0);
+      if (address == 0xFFFF) {
+        A = shifted_value;
+      } else {
+        writeMemory(address, value);
+        writeMemory(address, shifted_value);
+      }
+    }
+
+    // Rotate Left
+    void ROL(uint16_t address) {
+      uint8_t value;
+      if (address == 0xFFFF) {
+        value = A;
+      } else {
+        value = readMemory(address);
+      }
+      int value_msb = (value >> 7) & 1;
+      uint8_t shifted_value = value << 1;
+      int shifted_value_msb = (shifted_value >> 7) & 1;
+      // The value held in the Carry flag is shifted into the LSB of the new value
+      if (getFlag(C) == 1) {
+        shifted_value |= 1;
+      }
+      setFlag(C, value_msb);
+      setFlag(N, shifted_value_msb);
+      setFlag(Z, shifted_value == 0);
+      if (address == 0xFFFF) {
+        A = shifted_value;
+      } else {
+        writeMemory(address, value);
+        writeMemory(address, shifted_value);
+      }
+    }
+
+    // Rotate Right
+    void ROR(uint16_t address) {
+      uint8_t value;
+      if (address == 0xFFFF) {
+        value = A;
+      } else {
+        value = readMemory(address);
+      }
+      int value_lsb = value & 1;
+      uint8_t shifted_value = value >> 1;
+      int shifted_value_msb = (shifted_value >> 7) & 1;
+      // The value held in the Carry flag is shifted into the MSB of the new value
+      if (getFlag(C) == 1) {
+        shifted_value |= 0x80;
+      }
+      setFlag(C, value_lsb);
+      setFlag(N, shifted_value_msb);
+      setFlag(Z, shifted_value == 0);
+      if (address == 0xFFFF) {
+        A = shifted_value;
+      } else {
+        writeMemory(address, value);
+        writeMemory(address, shifted_value);
+      }
+    }
+
+    // Compare Instructions
+
+    // Compare to Accumulator
+    void CMP(uint16_t address) {
+      uint8_t value = readMemory(address);
+      uint8_t result = A - value;
+      int result_msb = (result >> 7) & 1;
+      setFlag(C, A >= value);
+      setFlag(N, result_msb);
+      setFlag(Z, A == value);
+    }
+
+    // Compare to X Register
+    void CPX(uint16_t address) {
+      uint8_t value = readMemory(address);
+      uint8_t result = X - value;
+      int result_msb = (result >> 7) & 1;
+      setFlag(C, X >= value);
+      setFlag(N, result_msb);
+      setFlag(Z, X == value);
+    }
+
+    // Compare to Y Register
+    void CPY(uint16_t address) {
+      uint8_t value = readMemory(address);
+      uint8_t result = Y - value;
+      int result_msb = (result >> 7) & 1;
+      setFlag(C, Y >= value);
+      setFlag(N, result_msb);
+      setFlag(Z, Y == value);
+    }
+
+    // No Operation
+    void NOP(uint16_t address) {
+      return;
+    }
+
+    // Flag Instructions
+
+    // Clear Decimal Flag
+    void CLD(uint16_t address) {
+      setFlag(D, 0);
+    }
+
+    // Set Decimal Flag
+    void SED(uint16_t address) {
+      setFlag(D, 1);
+    }
+
+    // Clear Overflow Flag
+    void CLV(uint16_t address) {
+      setFlag(V, 0);
+    }
 
 
     // --------------------------------------  Addressing Modes
