@@ -14,6 +14,7 @@ int main() {
 	tests.test_irq();
 	tests.test_jmp();
 	tests.test_stack_instructions();
+	tests.test_branch();
     return 0;
 }
 
