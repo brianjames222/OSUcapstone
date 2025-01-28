@@ -1,5 +1,6 @@
 #include "CPU.cpp"
 #include <cassert>
+#include "ROM.cpp"
 
 class Tests {
 public:
@@ -599,4 +600,41 @@ public:
 
         std::cout << "---------------------------\nCLD_SED_CLV Instruction tests passed!\n";
     }
+
+	void test_ROM() {
+		// path to test ROM
+		const std::string romPath = "nestest.nes";
+
+		// Initialize CPU and load ROM
+		NESROM rom;
+		rom.load(romPath);
+		CPU cpu;
+		cpu.reset();
+
+		uint16_t memory_address = 0x0000;
+		uint16_t memory_address_cpu = 0xC000;
+
+		// Write prg ROM to CPU Memory
+		for (int i = 0;i < 1024 * 16; i++) {
+			uint8_t prgByte = rom.prgRom[memory_address];
+			memory_address ++;
+			cpu.writeMemory(memory_address_cpu, prgByte);
+			memory_address_cpu ++;
+		}
+
+		// Execute CPU instructions from test rom
+		cpu.PC = 0xC000;
+		int counter = 0;
+		for (int i = 0;i < 100; i++) {
+			printf("counter %d \n", counter);
+			cpu.printRegisters();
+			cpu.execute();
+			uint8_t opcode = cpu.readMemory(cpu.PC);
+			printf("Opcode: %02X\n", opcode);
+
+			uint8_t test_passed = cpu.readMemory(0x0002);
+			printf("test_passed 0x%02X\n\n", test_passed);
+			counter++;
+		}
+	}
 };

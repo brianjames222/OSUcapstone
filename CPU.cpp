@@ -95,7 +95,8 @@ public:
     // Read and execute the next instruction
     void execute() {
       // Read the opcode
-      uint8_t opcode = readMemory(PC++);
+      uint8_t opcode = readMemory(PC);
+      PC ++;
 
       // Get the address mode and instruction type from the opcode
       //std::cout << "Opcode: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(opcode) << std::endl;
@@ -505,40 +506,40 @@ public:
 	// branch if Zero flag is set
 	void BEQ(uint16_t address) {
 		if (getFlag(Z)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 
 	// branch if Zero flag is not set
 	void BNE(uint16_t address) {
 		if (!getFlag(Z)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 
 	// branch if Carry flag is set
 	void BCS(uint16_t address) {
 		if (getFlag(C)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 	
 	// branch if Carry flag is not set
 	void BCC(uint16_t address) {
 		if (!getFlag(C)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 
 	// branch if Negative flag is set (Minus)
 	void BMI(uint16_t address) {
 		if (getFlag(N)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 
@@ -546,23 +547,23 @@ public:
 	void BPL(uint16_t address) {
 		if (!getFlag(N)) {
 			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			PC = PC + value;
 		}
 	}
 
 	// branch if oVerflow flag is set
 	void BVS(uint16_t address) {
 		if (getFlag(V)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 	
 	// branch if oVerflow flag is not set
 	void BVC(uint16_t address) {
 		if (!getFlag(V)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 
@@ -763,8 +764,9 @@ public:
     // Return next PC += offset, stored in PC
     uint16_t Relative() {
       // Offset is unsigned, at the memory location stored in PC
-      int8_t offset = static_cast<int8_t>(readMemory(PC++));
-      return PC + offset;
+      int8_t offset = static_cast<int8_t>(readMemory(PC));
+      PC++;
+      return offset;
     }
 
     // Return address from zero page memory
