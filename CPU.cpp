@@ -495,12 +495,7 @@ public:
     }
 
 
-    // Load value into A
-    // Still needs to update flags!!! Barebones for testing addressing mode only
-    void LDA(uint16_t address) {
-      uint8_t value = readMemory(address);
-      A = value;
-    }
+
 
     // Carter's instructions--------------------------------------------------------
 
@@ -848,10 +843,6 @@ public:
         return addr;
     }
 
-    uint16_t Implied() {
-        return 0;
-    }
-
     // Constructor
     CPU() {
       initInstructionTable();
@@ -898,9 +889,9 @@ public:
         if (getFlag(I) == 0) {
             // Push PC and P to stack
             stack_push16(PC);
-            setFlag(I, true);
             setFlag(B, false);
             stack_push(P);
+            setFlag(I, true);
             // Get new PC location
             const uint16_t read_address = 0xFFFE;
             uint16_t lo = readMemory(read_address);
