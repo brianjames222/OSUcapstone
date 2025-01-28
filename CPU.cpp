@@ -121,13 +121,13 @@ public:
     // Intialize instructionTable with null values
     Instruction instructionTable[256];
 
-    void initInstructionTable() {
+    void initInstructionTable(){
         for (int i = 0; i < 256; i++) {
           instructionTable[i] = {nullptr, nullptr};
         };
 
-
-        // Add instructions
+          // Brian's Instruction Table START ---------------------------- //
+        // LDA
         instructionTable[0xA9] = {&CPU::LDA, &CPU::Immediate};
         instructionTable[0xA5] = {&CPU::LDA, &CPU::ZeroPage};
         instructionTable[0xB5] = {&CPU::LDA, &CPU::ZeroPageX};
@@ -136,6 +136,52 @@ public:
         instructionTable[0xB9] = {&CPU::LDA, &CPU::AbsoluteY};
         instructionTable[0xA1] = {&CPU::LDA, &CPU::IndirectX};
         instructionTable[0xB1] = {&CPU::LDA, &CPU::IndirectY};
+
+        // LDX
+        instructionTable[0xA2] = {&CPU::LDX, &CPU::Immediate};
+        instructionTable[0xA6] = {&CPU::LDX, &CPU::ZeroPage};
+        instructionTable[0xB6] = {&CPU::LDX, &CPU::ZeroPageY};
+        instructionTable[0xAE] = {&CPU::LDX, &CPU::Absolute};
+        instructionTable[0xBE] = {&CPU::LDX, &CPU::AbsoluteY};
+
+        // LDY
+        instructionTable[0xA0] = {&CPU::LDY, &CPU::Immediate};
+        instructionTable[0xA4] = {&CPU::LDY, &CPU::ZeroPage};
+        instructionTable[0xB4] = {&CPU::LDY, &CPU::ZeroPageX};
+        instructionTable[0xAC] = {&CPU::LDY, &CPU::Absolute};
+        instructionTable[0xBC] = {&CPU::LDY, &CPU::AbsoluteX};
+
+        // STA
+        instructionTable[0x85] = {&CPU::STA, &CPU::ZeroPage};
+        instructionTable[0x95] = {&CPU::STA, &CPU::ZeroPageX};
+        instructionTable[0x8D] = {&CPU::STA, &CPU::Absolute};
+        instructionTable[0x9D] = {&CPU::STA, &CPU::AbsoluteX};
+        instructionTable[0x99] = {&CPU::STA, &CPU::AbsoluteY};
+        instructionTable[0x81] = {&CPU::STA, &CPU::IndirectX};
+        instructionTable[0x91] = {&CPU::STA, &CPU::IndirectY};
+
+        // STX
+        instructionTable[0x86] = {&CPU::STX, &CPU::ZeroPage};
+        instructionTable[0x96] = {&CPU::STX, &CPU::ZeroPageY};
+        instructionTable[0x8E] = {&CPU::STX, &CPU::Absolute};
+
+        // STY
+        instructionTable[0x84] = {&CPU::STY, &CPU::ZeroPage};
+        instructionTable[0x94] = {&CPU::STY, &CPU::ZeroPageX};
+        instructionTable[0x8C] = {&CPU::STY, &CPU::Absolute};
+
+        // TAX, TAY, TSX, TXA, TXS, TYA
+        instructionTable[0xAA] = {&CPU::TAX, &CPU::Implied};
+        instructionTable[0xA8] = {&CPU::TAY, &CPU::Implied};
+        instructionTable[0xBA] = {&CPU::TSX, &CPU::Implied};
+        instructionTable[0x8A] = {&CPU::TXA, &CPU::Implied};
+        instructionTable[0x9A] = {&CPU::TXS, &CPU::Implied};
+        instructionTable[0x98] = {&CPU::TYA, &CPU::Implied};
+
+        // Brian Instruction Table END -------------------------------- //
+
+
+        // Add instructions
         instructionTable[0x4C] = {&CPU::JMP, &CPU::Absolute};
         instructionTable[0x6C] = {&CPU::JMP, &CPU::IndirectJMP};
         instructionTable[0x20] = {&CPU::JSR, &CPU::Absolute};
@@ -207,6 +253,93 @@ public:
     }
 
     // --------------------------------------  Instructions
+    // BRIAN INSTRUCTIONS BEGIN ------------------------------------- //
+    // Helper function to update Z and N flags
+    void updateZeroNegativeFlags(uint8_t value) {
+      setFlag(FLAGS::Z, value == 0);
+      setFlag(FLAGS::N, value & 0x80);
+    }
+
+    // Access Instructions
+    // "LDA loads a memory value into the accumulator."
+    void LDA(uint16_t address) {
+      uint8_t value = readMemory(address);
+      A = value;
+
+      updateZeroNegativeFlags(A);
+    }
+
+    // "LDX loads a memory value into the X register."
+    void LDX(uint16_t address) {
+      uint8_t value = readMemory(address);
+      X = value;
+
+      updateZeroNegativeFlags(X);
+    }
+
+    // "LDY loads a memory value into the Y register."
+    void LDY(uint16_t address) {
+      uint8_t value = readMemory(address);
+      Y = value;
+
+      updateZeroNegativeFlags(Y);
+    }
+
+    // "STA stores the accumulator value into memory."
+    void STA(uint16_t address) {
+      writeMemory(address, A);
+    }
+
+    // "STX stores the X register value into memory."
+    void STX(uint16_t address) {
+      writeMemory(address, X);
+    }
+
+    // "STY stores the Y register value into memory. "
+    void STY(uint16_t address) {
+      writeMemory(address, Y);
+    } 
+
+    // Transfer Instructions
+    // "TAX copies the accumulator value to the X register."
+    void TAX(uint16_t) {
+      X = A;
+
+      updateZeroNegativeFlags(X);
+    }
+
+    // "TAY copies the accumulator value to the Y register."
+    void TAY(uint16_t) {
+      Y = A;
+
+      updateZeroNegativeFlags(Y);
+    } 
+
+    // "TSX copies the stack pointer value to the X register."
+    void TSX(uint16_t) {
+      X = S;
+
+      updateZeroNegativeFlags(X);
+    }
+
+    // "TXA copies the X register value to the accumulator."
+    void TXA(uint16_t) {
+      A = X;
+
+      updateZeroNegativeFlags(A);
+    }  
+
+    // "TXS copies the X register value to the stack pointer."
+    void TXS(uint16_t) {
+      S = X;
+    }
+
+    // "TYA copies the Y register value to the accumulator."
+    void TYA(uint16_t) {
+      A = Y;
+
+      updateZeroNegativeFlags(A);
+    } 
 
     // Justyn's Instructions
     // Arithmetic Instructions
@@ -618,6 +751,13 @@ public:
     uint16_t Immediate() {
       return PC++;
     }
+
+    // Address mode
+    // Implied addressing does nothing, no memory access needed (dummy value)
+    uint16_t Implied() {
+      return 0;
+    }
+
 
     // Address is the accumulator, returning 0xFFFF as indicator
     // Logic to be handled in instruction
