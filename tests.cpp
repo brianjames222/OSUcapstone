@@ -90,6 +90,81 @@ public:
 	}
 
 //----------------------------------------------------------------------------------------------------------------------------
+	void test_ADC() {
+		std::cout << "---------------------------\nADC Tests:\n\n";
+    CPU cpu;
+
+    // Test Program
+    cpu.writeMemory(0x00, 0x69); // Load 5
+    cpu.writeMemory(0x01, 0x05);
+    cpu.writeMemory(0x02, 0x69); // Load 0
+    cpu.writeMemory(0x03, 0x00);
+    cpu.writeMemory(0x04, 0x69); // Load 80
+    cpu.writeMemory(0x05, 0x50);
+    cpu.writeMemory(0x06, 0x69); // Load -10, signed
+    cpu.writeMemory(0x07, 0xF6);
+
+    // Test A Register
+    cpu.PC = 0x00;
+    cpu.A = 0x05;
+    cpu.execute();
+    assert(cpu.A == 0x0A);
+    std::cout << "   A Register good\n";
+
+    // Test Carry Flag
+    cpu.PC = 0x00;
+    cpu.A = 0x05;
+    cpu.setFlag(CPU::FLAGS::C, true);
+    cpu.execute();
+    assert(cpu.A == 0x0B);
+    std::cout << "   Carry flag modifier good\n";
+
+    // Test Carry Flag Value
+    cpu.PC = 0x00;
+    cpu.A = 0x05;
+    cpu.execute();
+    assert(cpu.getFlag(CPU::FLAGS::C) == false);
+    cpu.PC = 0x00;
+    cpu.A = 0xFF;
+    cpu.execute();
+    assert(cpu.getFlag(CPU::FLAGS::C) == true);
+    std::cout << "   Carry flag result good\n";
+
+    // Test Zero Flag Value
+    cpu.PC = 0x00;
+    cpu.A = 0x05;
+    cpu.execute();
+    assert(cpu.getFlag(CPU::FLAGS::Z) == false);
+    cpu.A = 0x00;
+    cpu.execute();
+    assert(cpu.getFlag(CPU::FLAGS::Z) == true);
+    std::cout << "   Zero flag good\n";
+
+    // Test Overflow Flag Value
+    cpu.PC = 0x00;
+    cpu.A = 0x05;
+    cpu.execute();
+    assert(cpu.getFlag(CPU::FLAGS::V) == false);
+    cpu.PC = 0x04;
+    cpu.A = 0x50;
+    cpu.execute();
+    assert(cpu.getFlag(CPU::FLAGS::V) == true);
+    std::cout << "   Overflow flag good\n";
+
+    // Test Negative Flag Value
+    cpu.PC = 0x00;
+    cpu.A = 0x05;
+    cpu.execute();
+      assert(cpu.getFlag(CPU::FLAGS::N) == false);
+    cpu.PC = 0x06;
+    cpu.A = 0x05;
+    cpu.execute();
+    std::cout << "   Negative flag good\n";
+
+    std::cout << "\nADC Tests passed!\n\n";
+}
+
+//----------------------------------------------------------------------------------------------------------------------------
 	void test_stack() {
 		CPU cpu;
 
@@ -154,7 +229,18 @@ public:
 		cpu.nmi_interrupt();
 		uint8_t current_stack_address = 0x0100 + cpu.S;
 		assert(current_stack_address == starting_stack_address - 3);
-		assert(cpu.PC == 0xFFFA);
+		
+		// Check if PC address is being set correctly
+        uint16_t read_address = 0xFFFA;
+        cpu.writeMemory(read_address, 0x12);
+        cpu.writeMemory(read_address + 1, 0x34);
+
+        uint8_t lo = cpu.readMemory(read_address);
+        uint8_t hi = cpu.readMemory(read_address + 1);
+
+        cpu.PC = (hi << 8) | lo;
+
+        assert(cpu.PC == 0x3412);
 		
 		std::cout << "---------------------------\nNMI Interrupt function tests passed!\n";
 	}
@@ -174,12 +260,12 @@ public:
 		assert(current_stack_address == starting_stack_address - 3);
 
 		// Check if PC address is being set correctly
-		uint8_t read_address = 0xFFFE;
+		uint16_t read_address = 0xFFFE;
 		cpu.writeMemory(read_address, 0x12);
 		cpu.writeMemory(read_address + 1, 0x34);
 
-		uint16_t lo = cpu.readMemory(read_address);
-		uint16_t hi = cpu.readMemory(read_address + 1);
+		uint8_t lo = cpu.readMemory(read_address);
+		uint8_t hi = cpu.readMemory(read_address + 1);
 
 		cpu.PC = (hi << 8) | lo;
 
@@ -187,4 +273,330 @@ public:
 
 		std::cout << "---------------------------\nIRQ Interrupt function tests passed!\n";
 	}
+
+//----------------------------------------------------------------------------------------------------------------------------
+	void test_jmp() {
+		CPU cpu;
+		cpu.reset();
+		uint16_t test_memory = 0x0000;
+
+		// Test JMP, JSR, RTS
+		cpu.JMP(0xFFFA);
+		assert(cpu.PC == 0xFFFA);
+
+		cpu.JSR(0x1234);
+		assert(cpu.PC == 0x1234);
+
+		cpu.RTS(test_memory);
+		assert(cpu.PC == 0xFFFA + 3);
+
+		// Test BRK, RTI
+		cpu.PC = 0x1973;
+		cpu.setFlag(CPU::FLAGS::Z, 1);
+		cpu.setFlag(CPU::FLAGS::C, 1);
+		cpu.setFlag(CPU::FLAGS::V, 1);
+
+		cpu.BRK(test_memory);
+		cpu.RTI(test_memory);
+
+		assert(cpu.PC == 0x1975);
+		assert(cpu.P == 0x67);
+
+		// Test Indirect Jump
+
+		cpu.PC = 0x0000;
+		cpu.writeMemory(cpu.PC, 0x34);
+		cpu.writeMemory(cpu.PC + 1, 0x12);
+
+		cpu.writeMemory(0x1234, 0x78);
+		cpu.writeMemory(0x1235, 0x56);
+
+		cpu.JMP(cpu.IndirectJMP());
+
+		assert(cpu.PC == 0x5678);
+
+		std::cout << "---------------------------\nJump functions tests passed!\n";
+	}
+
+//----------------------------------------------------------------------------------------------------------------------------
+	void test_stack_instructions() {
+		CPU cpu;
+		cpu.reset();
+		uint16_t test_memory = 0x0000;
+		cpu.A = 0x34;
+		// Test PHA and PLA
+		cpu.PHA(test_memory);
+		cpu.PLA(test_memory);
+
+		assert(cpu.A == 0x34);
+		// Test PHP and PLP
+		cpu.PHP(test_memory);
+		cpu.PLP(test_memory);
+
+		assert(cpu.P == 0x24);
+	}
+
+//----------------------------------------------------------------------------------------------------------------------------
+	void test_branch() {
+		CPU cpu;
+		
+		uint16_t test_memory = 0x0000;
+		cpu.writeMemory(test_memory, 0x78);
+		
+		// branch if Zero set
+		cpu.setFlag(CPU::FLAGS::Z, 1);
+		cpu.BEQ(test_memory);
+		assert(cpu.PC == 0x7A);
+
+		// branch if Zero clear
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::Z, 0);
+		cpu.BNE(test_memory);
+		assert(cpu.PC == 0x7A);
+		
+		// branch if Carry set
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::C, 1);
+		cpu.BCS(test_memory);
+		assert(cpu.PC == 0x7A);
+
+		// branch if Carry clear
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::C, 0);
+		cpu.BCC(test_memory);
+		assert(cpu.PC == 0x7A);
+		
+		// branch if Negative set
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::N, 1);
+		cpu.BMI(test_memory);
+		assert(cpu.PC == 0x7A);
+
+		// branch if Negative clear
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::N, 0);
+		cpu.BPL(test_memory);
+		assert(cpu.PC == 0x7A);
+		
+		// branch if oVerflow set
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::V, 1);
+		cpu.BVS(test_memory);
+		assert(cpu.PC == 0x7A);
+
+		// branch if oVerflow clear
+		cpu.PC = 0x0000;
+		cpu.setFlag(CPU::FLAGS::V, 0);
+		cpu.BVC(test_memory);
+		assert(cpu.PC == 0x7A);	
+		
+		std::cout << "---------------------------\nBranch functions tests passed!\n";
+	}
+//----------------------------------------------------------------------------------------------------------------------------
+    void test_ASL() {
+        CPU cpu;
+        cpu.reset();
+        
+        // Accumulator loaded with 25, ASL executed, accumulator should now hold 50
+        cpu.A = 0x19;
+        cpu.writeMemory(0x00, 0x0A); // ASL Accumulator
+        cpu.execute();
+        assert(cpu.A == 0x32);
+
+        // Accumulator loaded with 144, ASL executed, accumulator should now hold 32 and carry flag should be set
+        cpu.A = 0x90;
+        cpu.writeMemory(0x01, 0x0A);
+        cpu.execute();
+        assert(cpu.A == 0x20);
+        assert(cpu.getFlag(CPU::FLAGS::C) == 1);
+
+        // ASL Non-Accumulator Testing. Address 0xABCD loaded with 25, ASL executed, address should now hold 50
+        cpu.writeMemory(0x02, 0x0E); // ASL Absolute
+        cpu.writeMemory(0x03, 0xCD);
+        cpu.writeMemory(0x04, 0xAB);
+        cpu.writeMemory(0xABCD, 0x19); // Load 0x19 into address 0xABCD
+        cpu.execute();
+        assert(cpu.readMemory(0xABCD) == 0x32);
+
+        std::cout << "---------------------------\nASL Instruction tests passed!\n";
+    }
+//----------------------------------------------------------------------------------------------------------------------------
+    void test_LSR() {
+        CPU cpu;
+        cpu.reset();
+
+        // Accumulator loaded with 144, LSR executed, accumulator should now hold 72
+        cpu.A = 0x90;
+        cpu.writeMemory(0x00, 0x4A); // LSR Accumulator
+        cpu.execute();
+        assert(cpu.A == 0x48);
+        assert(cpu.getFlag(CPU::FLAGS::C) == 0);
+
+        // LSR Non-Accumulator Testing. Address 0xABCD loaded with 144, LSR executed, address should now hold 72
+        cpu.writeMemory(0x01, 0x4E); // LSR Absolute
+        cpu.writeMemory(0x02, 0xCD);
+        cpu.writeMemory(0x03, 0xAB);
+        cpu.writeMemory(0xABCD, 0x90); // Load 0x90 into address 0xABCD
+        cpu.execute();
+        assert(cpu.readMemory(0xABCD) == 0x48);
+
+        std::cout << "---------------------------\nLSR Instruction tests passed!\n";
+    }
+//----------------------------------------------------------------------------------------------------------------------------
+    void test_ROL() {
+        CPU cpu;
+        cpu.reset();
+
+        // Accumulator loaded with 25, ROL executed, accumulator should now hold 50
+        cpu.A = 0x19;
+        cpu.writeMemory(0x00, 0x2A); // ROL Accumulator
+        cpu.execute();
+        assert(cpu.A == 0x32);
+
+        // Accumulator loaded with 128, ROL executed, accumulator should now hold 0
+        cpu.setFlag(CPU::FLAGS::C, 0); // Reset Carry Flag
+        cpu.A = 0x80;
+        cpu.writeMemory(0x01, 0x2A);
+        cpu.execute();
+        assert(cpu.A == 0x0);
+        assert(cpu.getFlag(CPU::FLAGS::C) == 1); // Carry Flag should now hold 1
+
+        // ROL Non-Accumulator Testing. Address 0xABCD loaded with 128, ROL executed, Carry Flag set, address should now hold 1
+        cpu.setFlag(CPU::FLAGS::C, 1); // Set Carry Flag
+        cpu.writeMemory(0x02, 0x2E); // ROL Absolute
+        cpu.writeMemory(0x03, 0xCD);
+        cpu.writeMemory(0x04, 0xAB);
+        cpu.writeMemory(0xABCD, 0x80);
+        cpu.execute();
+        assert(cpu.readMemory(0xABCD) == 0x1);
+        assert(cpu.getFlag(CPU::FLAGS::C) == 1); // Carry Flag should now hold 1
+
+        std::cout << "---------------------------\nROL Instruction tests passed!\n";
+    }
+//----------------------------------------------------------------------------------------------------------------------------
+    void test_ROR() {
+        CPU cpu;
+        cpu.reset();
+
+        // Accumulator loaded with 1, ROR executed, accumulator should now hold 0
+        cpu.A = 0x1;
+        cpu.writeMemory(0x00, 0x6A); // ROR Accumulator
+        cpu.execute();
+        assert(cpu.A == 0x0);
+        assert(cpu.getFlag(CPU::FLAGS::C) == 1);
+
+        // Accumulator loaded with 25, ROR executed, Carry Flag not set, accumulator should now hold 12
+        cpu.setFlag(CPU::FLAGS::C, 0); // Reset Carry Flag
+        cpu.A = 0x19;
+        cpu.writeMemory(0x01, 0x6A);
+        cpu.execute();
+        assert(cpu.A == 0xC);
+
+        // ROR Non-Accumulator Testing. Address 0xABCD loaded with 1, ROR executed, Carry Flag set, address should now hold 128
+        cpu.setFlag(CPU::FLAGS::C, 1); // Set Carry Flag
+        cpu.writeMemory(0x02, 0x6E); // ROR Absolute
+        cpu.writeMemory(0x03, 0xCD);
+        cpu.writeMemory(0x04, 0xAB);
+        cpu.writeMemory(0xABCD, 0x1); // Load 0x1 into address 0xABCD
+        cpu.execute();
+        assert(cpu.readMemory(0xABCD) == 0x80);
+        assert(cpu.getFlag(CPU::FLAGS::C) == 1);
+
+        std::cout << "---------------------------\nROR Instruction tests passed!\n";
+    }
+//----------------------------------------------------------------------------------------------------------------------------
+    void test_CMP() {
+        CPU cpu;
+        cpu.reset();
+
+        // Accumulator loaded with 144, address loaded with 80, CMP executed, Carry flag should be set
+        cpu.A = 0x90;
+        cpu.writeMemory(0x00, 0xCD); // CMP Absolute
+        cpu.writeMemory(0x01, 0xCD);
+        cpu.writeMemory(0x02, 0xAB);
+        cpu.writeMemory(0xABCD, 0x50);
+        cpu.execute();
+        assert(cpu.getFlag(CPU::FLAGS::C) == 1);
+
+        // Accumulator loaded with 80, address loaded with 144, CMP executed, Carry flag should not be set
+        cpu.A = 0x50;
+        cpu.writeMemory(0x03, 0xCD);
+        cpu.writeMemory(0x04, 0xCD);
+        cpu.writeMemory(0x05, 0xAB);
+        cpu.writeMemory(0xABCD, 0x90);
+        cpu.execute();
+        assert(cpu.getFlag(CPU::FLAGS::C) == 0);
+
+        std::cout << "---------------------------\nCMP Instruction tests passed!\n";
+    }
+//----------------------------------------------------------------------------------------------------------------------------
+    void test_CPX() {
+        CPU cpu;
+        cpu.reset();
+
+        // X register loaded with 144, address loaded with 80, CPX executed, Carry flag should be set
+        cpu.X = 0x90;
+        cpu.writeMemory(0x00, 0xEC); // CPX Absolute
+        cpu.writeMemory(0x01, 0xCD);
+        cpu.writeMemory(0x02, 0xAB);
+        cpu.writeMemory(0xABCD, 0x50);
+        cpu.execute();
+        assert(cpu.getFlag(CPU::FLAGS::C) == 1);
+
+        // X register loaded with 80, address loaded with 144, CPX executed, Carry flag should not be set
+        cpu.X = 0x50;
+        cpu.writeMemory(0x03, 0xEC);
+        cpu.writeMemory(0x04, 0xCD);
+        cpu.writeMemory(0x05, 0xAB);
+        cpu.writeMemory(0xABCD, 0x90);
+        cpu.execute();
+        assert(cpu.getFlag(CPU::FLAGS::C) == 0);
+
+        std::cout << "---------------------------\nCPX Instruction tests passed!\n";
+    }
+//----------------------------------------------------------------------------------------------------------------------------
+    void test_CPY() {
+        CPU cpu;
+        cpu.reset();
+
+        // Y register loaded with 144, address loaded with 80, CPY executed, Carry flag should be set
+        cpu.Y = 0x90;
+        cpu.writeMemory(0x00, 0xCC); // CPY Absolute
+        cpu.writeMemory(0x01, 0xCD);
+        cpu.writeMemory(0x02, 0xAB);
+        cpu.writeMemory(0xABCD, 0x50);
+        cpu.execute();
+        assert(cpu.getFlag(CPU::FLAGS::C) == 1);
+
+        // Y register loaded with 80, address loaded with 144, CPY executed, Carry flag should not be set
+        cpu.Y = 0x50;
+        cpu.writeMemory(0x03, 0xCC);
+        cpu.writeMemory(0x04, 0xCD);
+        cpu.writeMemory(0x05, 0xAB);
+        cpu.writeMemory(0xABCD, 0x90);
+        cpu.execute();
+        assert(cpu.getFlag(CPU::FLAGS::C) == 0);
+
+        std::cout << "---------------------------\nCPY Instruction tests passed!\n";
+    }
+//----------------------------------------------------------------------------------------------------------------------------
+    void test_CLD_SED_CLV() {
+        CPU cpu;
+        cpu.reset();
+
+        cpu.writeMemory(0x00, 0xF8); // SED
+        cpu.execute();
+        assert(cpu.getFlag(CPU::FLAGS::D) == 1);
+
+        cpu.writeMemory(0x01, 0xD8); // CLD
+        cpu.execute();
+        assert(cpu.getFlag(CPU::FLAGS::D) == 0);
+
+        cpu.setFlag(CPU::FLAGS::V, 1);
+        cpu.writeMemory(0x02, 0xB8); // CLV
+        cpu.execute();
+        assert(cpu.getFlag(CPU::FLAGS::V) == 0);
+
+        std::cout << "---------------------------\nCLD_SED_CLV Instruction tests passed!\n";
+    }
 };
