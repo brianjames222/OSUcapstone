@@ -90,6 +90,81 @@ public:
 	}
 
 //----------------------------------------------------------------------------------------------------------------------------
+	void test_ADC() {
+		std::cout << "---------------------------\nADC Tests:\n\n";
+    CPU cpu;
+
+    // Test Program
+    cpu.writeMemory(0x00, 0x69); // Load 5
+    cpu.writeMemory(0x01, 0x05);
+    cpu.writeMemory(0x02, 0x69); // Load 0
+    cpu.writeMemory(0x03, 0x00);
+    cpu.writeMemory(0x04, 0x69); // Load 80
+    cpu.writeMemory(0x05, 0x50);
+    cpu.writeMemory(0x06, 0x69); // Load -10, signed
+    cpu.writeMemory(0x07, 0xF6);
+
+    // Test A Register
+    cpu.PC = 0x00;
+    cpu.A = 0x05;
+    cpu.execute();
+    assert(cpu.A == 0x0A);
+    std::cout << "   A Register good\n";
+
+    // Test Carry Flag
+    cpu.PC = 0x00;
+    cpu.A = 0x05;
+    cpu.setFlag(CPU::FLAGS::C, true);
+    cpu.execute();
+    assert(cpu.A == 0x0B);
+    std::cout << "   Carry flag modifier good\n";
+
+    // Test Carry Flag Value
+    cpu.PC = 0x00;
+    cpu.A = 0x05;
+    cpu.execute();
+    assert(cpu.getFlag(CPU::FLAGS::C) == false);
+    cpu.PC = 0x00;
+    cpu.A = 0xFF;
+    cpu.execute();
+    assert(cpu.getFlag(CPU::FLAGS::C) == true);
+    std::cout << "   Carry flag result good\n";
+
+    // Test Zero Flag Value
+    cpu.PC = 0x00;
+    cpu.A = 0x05;
+    cpu.execute();
+    assert(cpu.getFlag(CPU::FLAGS::Z) == false);
+    cpu.A = 0x00;
+    cpu.execute();
+    assert(cpu.getFlag(CPU::FLAGS::Z) == true);
+    std::cout << "   Zero flag good\n";
+
+    // Test Overflow Flag Value
+    cpu.PC = 0x00;
+    cpu.A = 0x05;
+    cpu.execute();
+    assert(cpu.getFlag(CPU::FLAGS::V) == false);
+    cpu.PC = 0x04;
+    cpu.A = 0x50;
+    cpu.execute();
+    assert(cpu.getFlag(CPU::FLAGS::V) == true);
+    std::cout << "   Overflow flag good\n";
+
+    // Test Negative Flag Value
+    cpu.PC = 0x00;
+    cpu.A = 0x05;
+    cpu.execute();
+      assert(cpu.getFlag(CPU::FLAGS::N) == false);
+    cpu.PC = 0x06;
+    cpu.A = 0x05;
+    cpu.execute();
+    std::cout << "   Negative flag good\n";
+
+    std::cout << "\nADC Tests passed!\n\n";
+}
+
+//----------------------------------------------------------------------------------------------------------------------------
 	void test_stack() {
 		CPU cpu;
 

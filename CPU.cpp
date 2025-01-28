@@ -196,9 +196,72 @@ public:
         instructionTable[0xD8] = {&CPU::CLD, &CPU::Implicit};
         instructionTable[0xF8] = {&CPU::SED, &CPU::Implicit};
         instructionTable[0xB8] = {&CPU::CLV, &CPU::Implicit};
+        instructionTable[0x69] = {&CPU::ADC, &CPU::Immediate};
+        instructionTable[0x65] = {&CPU::ADC, &CPU::ZeroPage};
+        instructionTable[0x75] = {&CPU::ADC, &CPU::ZeroPageX};
+        instructionTable[0x6D] = {&CPU::ADC, &CPU::Absolute};
+        instructionTable[0x7D] = {&CPU::ADC, &CPU::AbsoluteX};
+        instructionTable[0x79] = {&CPU::ADC, &CPU::AbsoluteY};
+        instructionTable[0x61] = {&CPU::ADC, &CPU::IndirectX};
+        instructionTable[0x71] = {&CPU::ADC, &CPU::IndirectY};
     }
 
     // --------------------------------------  Instructions
+
+    // Justyn's Instructions
+    // Arithmetic Instructions
+
+    // Add carry flag and value to A
+    void ADC(uint16_t address) {
+      uint8_t value = readMemory(address);
+      uint16_t result = A + value + getFlag(CPU::FLAGS::C);
+
+      // Set C flag if overflow
+      setFlag(CPU::FLAGS::C, result > 0xFF);
+
+      // Set Z flag if zero
+      setFlag(CPU::FLAGS::Z, result == 0);
+
+      // Set V flag if signed overflow
+      uint8_t trunc_result = result & 0xFF;
+      if ((trunc_result ^ A) & (trunc_result ^ value) & 0x80) {
+        setFlag(CPU::FLAGS::V, true);
+      } else {
+        setFlag(CPU::FLAGS::V, false);
+      }
+
+      // Set N flag if negative
+      setFlag(CPU::FLAGS::N, trunc_result & 0x80);
+
+      // Update A
+      A = trunc_result;
+    }
+
+    // Subtract value from A with carry flag
+    void SBC(uint16_t address) {
+      uint8_t value = readMemory(address);
+      uint16_t result = A - value + ~getFlag(CPU::FLAGS::C);
+
+      // Set C flag if overflow
+      setFlag(CPU::FLAGS::C, result & 0x100);
+
+      // Set Z flag if zero
+      setFlag(CPU::FLAGS::Z, result == 0);
+
+      // Set V flag if signed overflow
+      uint8_t trunc_result = result & 0xFF;
+      if ((trunc_result ^ A) & (trunc_result ^ ~value) & 0x80) {
+        setFlag(CPU::FLAGS::V, true);
+      } else {
+        setFlag(CPU::FLAGS::V, false);
+      }
+
+      // Set N flag if negative
+      setFlag(CPU::FLAGS::N, trunc_result & 0x80);
+
+      // Update A
+      A = trunc_result;
+    }
 
     // Ethan's instructions
 
@@ -305,7 +368,7 @@ public:
       uint8_t value = readMemory(address);
       A = value;
     }
-    
+
     // Carter's instructions--------------------------------------------------------
 
     // Branch Instructions (8 count)
@@ -544,7 +607,6 @@ public:
     void CLV(uint16_t address) {
       setFlag(V, 0);
     }
-
 
     // --------------------------------------  Addressing Modes
     // Address is implied, returning 0xFFFF as indicator
