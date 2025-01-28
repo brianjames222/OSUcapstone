@@ -121,11 +121,11 @@ public:
     // Intialize instructionTable with null values
     Instruction instructionTable[256];
 
-    }
-
+    void initInstructionTable(){
         for (int i = 0; i < 256; i++) {
           instructionTable[i] = {nullptr, nullptr};
         };
+
           // Brian's Instruction Table START ---------------------------- //
         // LDA
         instructionTable[0xA9] = {&CPU::LDA, &CPU::Immediate};
@@ -253,9 +253,7 @@ public:
     }
 
     // --------------------------------------  Instructions
-
-// BRIAN INSTRUCTIONS BEGIN ------------------------------------- //
-
+    // BRIAN INSTRUCTIONS BEGIN ------------------------------------- //
     // Helper function to update Z and N flags
     void updateZeroNegativeFlags(uint8_t value) {
       setFlag(FLAGS::Z, value == 0);
