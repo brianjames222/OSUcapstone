@@ -625,14 +625,15 @@ public:
 		// Execute CPU instructions from test rom
 		cpu.PC = 0xC000;
 		int counter = 0;
-		for (int i = 0;i < 100; i++) {
+		for (int i = 0;i < 10000; i++) {
+			uint8_t opcode = cpu.readMemory(cpu.PC);
+			printf("Opcode: %02X\n", opcode);
 			printf("counter %d \n", counter);
 			cpu.printRegisters();
 			cpu.execute();
-			uint8_t opcode = cpu.readMemory(cpu.PC);
-			printf("Opcode: %02X\n", opcode);
 
-			uint8_t test_passed = cpu.readMemory(0x0002);
+
+			uint8_t test_passed = cpu.readMemory(0x002);
 			printf("test_passed 0x%02X\n\n", test_passed);
 			counter++;
 		}
