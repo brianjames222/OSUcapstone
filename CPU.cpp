@@ -250,6 +250,17 @@ public:
         instructionTable[0x79] = {&CPU::ADC, &CPU::AbsoluteY};
         instructionTable[0x61] = {&CPU::ADC, &CPU::IndirectX};
         instructionTable[0x71] = {&CPU::ADC, &CPU::IndirectY};
+
+        // Unofficial Opcodes
+        // SLO
+        instructionTable[0x07] = {&CPU::SLO, &CPU::ZeroPage};
+        instructionTable[0x17] = {&CPU::SLO, &CPU::ZeroPageX};
+        instructionTable[0x03] = {&CPU::SLO, &CPU::IndirectX};
+        instructionTable[0x13] = {&CPU::SLO, &CPU::IndirectY};
+        instructionTable[0x0F] = {&CPU::SLO, &CPU::Absolute};
+        instructionTable[0x1F] = {&CPU::SLO, &CPU::AbsoluteX};
+        instructionTable[0x1B] = {&CPU::SLO, &CPU::AbsoluteY};
+
     }
 
     // --------------------------------------  Instructions
@@ -734,6 +745,26 @@ public:
     // Clear Overflow Flag
     void CLV(uint16_t address) {
       setFlag(V, 0);
+    }
+
+    // --------------------------------------  Unofficial Opcodes
+    // Shift left and Or
+    void SLO(uint16_t address) {
+      uint8_t value = readMemory(address);
+
+      // Shift left
+      setFlag(C, value & 0x80);
+      value <<= 1;
+      writeMemory(address, value);
+
+      // Or
+      A |= value;
+
+      // Set N Flag
+      setFlag(N, A & 0x80);
+
+      // Set Z Flag
+      setFlag(Z, A == 0);
     }
 
     // --------------------------------------  Addressing Modes
