@@ -301,6 +301,15 @@ public:
         instructionTable[0xB3] = {&CPU::LAX, &CPU::IndirectY};
         instructionTable[0xAF] = {&CPU::LAX, &CPU::Absolute};
         instructionTable[0xBF] = {&CPU::LAX, &CPU::AbsoluteY};
+
+        // DCP
+        instructionTable[0xC7] = {&CPU::DCP, &CPU::ZeroPage};
+        instructionTable[0xD7] = {&CPU::DCP, &CPU::ZeroPageX};
+        instructionTable[0xC3] = {&CPU::DCP, &CPU::IndirectX};
+        instructionTable[0xD3] = {&CPU::DCP, &CPU::IndirectY};
+        instructionTable[0xCF] = {&CPU::DCP, &CPU::Absolute};
+        instructionTable[0xDF] = {&CPU::DCP, &CPU::AbsoluteX};
+        instructionTable[0xDB] = {&CPU::DCP, &CPU::AbsoluteY};
     }
 
     // --------------------------------------  Instructions
@@ -456,6 +465,9 @@ public:
     }
 
     void EOR(uint16_t address) {
+    }
+
+    void DEC(uint16_t address){
     }
 
     // Ethan's instructions
@@ -833,6 +845,12 @@ public:
     void LAX(uint16_t address) {
       LDA(address);
       LDX(address);
+    }
+
+    // Decrement Memory and Compare
+    void DCP(uint16_t address) {
+      DEC(address);
+      CMP(address);
     }
 
     // --------------------------------------  Addressing Modes
