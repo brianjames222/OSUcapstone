@@ -287,6 +287,13 @@ public:
         instructionTable[0x6F] = {&CPU::RRA, &CPU::Absolute};
         instructionTable[0x7F] = {&CPU::RRA, &CPU::AbsoluteX};
         instructionTable[0x7B] = {&CPU::RRA, &CPU::AbsoluteY};
+
+        // SAX
+        instructionTable[0x87] = {&CPU::SAX, &CPU::ZeroPage};
+        instructionTable[0x97] = {&CPU::SAX, &CPU::ZeroPageY};
+        instructionTable[0x83] = {&CPU::SAX, &CPU::IndirectX};
+        instructionTable[0x8F] = {&CPU::SAX, &CPU::Absolute};
+
     }
 
     // --------------------------------------  Instructions
@@ -807,6 +814,12 @@ public:
     void RRA(uint16_t address) {
       ROR(address);
       ADC(address);
+    }
+
+    // Store A and X
+    void SAX(uint16_t address) {
+      uint8_t result = A & X;
+      writeMemory(address, result);
     }
 
     // --------------------------------------  Addressing Modes
