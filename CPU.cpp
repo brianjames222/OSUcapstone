@@ -805,36 +805,8 @@ public:
 
     // Rotate Right and Add With Carry
     void RRA(uint16_t address) {
-      uint8_t value = readMemory(address);
-
-      // Rotate Right
-      bool carry = getFlag(C);
-      setFlag(C, value & 0x01);
-      value = (value >> 1) | (carry << 7);
-      writeMemory(address, value);
-
-      // Add with Carry (using new carry value)
-      uint16_t result = A + value + getFlag(C);
-      uint8_t trunc_result = result & 0xFF;
-
-      // Set N Flag
-      setFlag(N, trunc_result & 0x80);
-
-      // Set V Flag
-      if ((trunc_result ^ A) & (trunc_result ^ value) & 0x80) {
-        setFlag(CPU::FLAGS::V, true);
-      } else {
-        setFlag(CPU::FLAGS::V, false);
-      }
-
-      // Set Z Flag
-      setFlag(Z, trunc_result == 0);
-
-      // Set C Flag
-      setFlag(C, result > 0xFF);
-
-      // Set A
-      A = trunc_result;
+      ROR(address);
+      ADC(address);
     }
 
     // --------------------------------------  Addressing Modes
