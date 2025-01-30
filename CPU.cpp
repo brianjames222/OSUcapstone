@@ -433,9 +433,12 @@ public:
       A = trunc_result;
     }
 
-    // Temporary ORA
+    // Temporary instructions
     // DELETE WHEN MERGING ETHAN'S BRANCH
     void ORA(uint16_t address) {
+    }
+
+    void AND(uint16_t address) {
     }
 
     // Ethan's instructions
@@ -787,22 +790,8 @@ public:
 
     // Rotate Left and And
     void RLA(uint16_t address) {
-      uint8_t value = readMemory(address);
-
-      // Rotate left
-      bool carry = getFlag(C);
-      setFlag(C, value & 0x80);
-      value = (value << 1) | carry;
-      writeMemory(address, value);
-
-      // And
-      A &= value;
-
-      // Set N Flag
-      setFlag(N, A & 0x80);
-
-      // Set Z Flag
-      setFlag(Z, A == 0);
+      ROL(address);
+      AND(address);
     }
 
     // Shift Right and Exclusive Or
