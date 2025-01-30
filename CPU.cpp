@@ -433,6 +433,11 @@ public:
       A = trunc_result;
     }
 
+    // Temporary ORA
+    // DELETE WHEN MERGING ETHAN'S BRANCH
+    void ORA(uint16_t address) {
+    }
+
     // Ethan's instructions
 
     //Jump instructions
@@ -776,21 +781,8 @@ public:
     // --------------------------------------  Unofficial Opcodes
     // Shift Left and Or
     void SLO(uint16_t address) {
-      uint8_t value = readMemory(address);
-
-      // Shift left
-      setFlag(C, value & 0x80);
-      value <<= 1;
-      writeMemory(address, value);
-
-      // Or
-      A |= value;
-
-      // Set N Flag
-      setFlag(N, A & 0x80);
-
-      // Set Z Flag
-      setFlag(Z, A == 0);
+      ASL(address);
+      ORA(address);
     }
 
     // Rotate Left and And
