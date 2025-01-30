@@ -310,6 +310,15 @@ public:
         instructionTable[0xCF] = {&CPU::DCP, &CPU::Absolute};
         instructionTable[0xDF] = {&CPU::DCP, &CPU::AbsoluteX};
         instructionTable[0xDB] = {&CPU::DCP, &CPU::AbsoluteY};
+
+        // ISC
+        instructionTable[0xE7] = {&CPU::ISC, &CPU::ZeroPage};
+        instructionTable[0xF7] = {&CPU::ISC, &CPU::ZeroPageX};
+        instructionTable[0xE3] = {&CPU::ISC, &CPU::IndirectX};
+        instructionTable[0xF3] = {&CPU::ISC, &CPU::IndirectY};
+        instructionTable[0xEF] = {&CPU::ISC, &CPU::Absolute};
+        instructionTable[0xFF] = {&CPU::ISC, &CPU::AbsoluteX};
+        instructionTable[0xFB] = {&CPU::ISC, &CPU::AbsoluteY};
     }
 
     // --------------------------------------  Instructions
@@ -467,7 +476,11 @@ public:
     void EOR(uint16_t address) {
     }
 
-    void DEC(uint16_t address){
+    void DEC(uint16_t address) {
+    }
+
+    void INC(uint16_t address) {
+
     }
 
     // Ethan's instructions
@@ -851,6 +864,12 @@ public:
     void DCP(uint16_t address) {
       DEC(address);
       CMP(address);
+    }
+
+    // Increment Memory and Subtract with Borrow
+    void ISC(uint16_t address) {
+      INC(address);
+      SBC(address);
     }
 
     // --------------------------------------  Addressing Modes
