@@ -261,6 +261,14 @@ public:
         instructionTable[0x1F] = {&CPU::SLO, &CPU::AbsoluteX};
         instructionTable[0x1B] = {&CPU::SLO, &CPU::AbsoluteY};
 
+        // RLA
+        instructionTable[0x27] = {&CPU::RLA, &CPU::ZeroPage};
+        instructionTable[0x37] = {&CPU::RLA, &CPU::ZeroPageX};
+        instructionTable[0x23] = {&CPU::RLA, &CPU::IndirectX};
+        instructionTable[0x33] = {&CPU::RLA, &CPU::IndirectY};
+        instructionTable[0x2F] = {&CPU::RLA, &CPU::Absolute};
+        instructionTable[0x3F] = {&CPU::RLA, &CPU::AbsoluteX};
+        instructionTable[0x3B] = {&CPU::RLA, &CPU::AbsoluteY};
     }
 
     // --------------------------------------  Instructions
@@ -748,7 +756,7 @@ public:
     }
 
     // --------------------------------------  Unofficial Opcodes
-    // Shift left and Or
+    // Shift Left and Or
     void SLO(uint16_t address) {
       uint8_t value = readMemory(address);
 
@@ -759,6 +767,26 @@ public:
 
       // Or
       A |= value;
+
+      // Set N Flag
+      setFlag(N, A & 0x80);
+
+      // Set Z Flag
+      setFlag(Z, A == 0);
+    }
+
+    // Rotate Left and And
+    void RLA(uint16_t address) {
+      uint8_t value = readMemory(address);
+
+      // Rotate left
+      bool carry = getFlag(C);
+      setFlag(C, value & 0x80);
+      value = (value << 1) | carry;
+      writeMemory(address, value);
+
+      // And
+      A &= value;
 
       // Set N Flag
       setFlag(N, A & 0x80);
