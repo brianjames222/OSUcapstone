@@ -441,6 +441,9 @@ public:
     void AND(uint16_t address) {
     }
 
+    void EOR(uint16_t address) {
+    }
+
     // Ethan's instructions
 
     //Jump instructions
@@ -796,21 +799,8 @@ public:
 
     // Shift Right and Exclusive Or
     void SRE(uint16_t address) {
-      uint8_t value = readMemory(address);
-
-      // Shift Right
-      setFlag(C, value & 0x01);
-      value >>= 1;
-      writeMemory(address, value);
-
-      // Eor
-      A ^= value;
-
-      // Set N flag
-      setFlag(N, A & 0x80);
-
-      // Set Z flag
-      setFlag(Z, A == 0);
+      LSR(address);
+      EOR(address);
     }
 
     // Rotate Right and Add With Carry
