@@ -294,6 +294,13 @@ public:
         instructionTable[0x83] = {&CPU::SAX, &CPU::IndirectX};
         instructionTable[0x8F] = {&CPU::SAX, &CPU::Absolute};
 
+        // LAX
+        instructionTable[0xA7] = {&CPU::LAX, &CPU::ZeroPage};
+        instructionTable[0xB7] = {&CPU::LAX, &CPU::ZeroPageY};
+        instructionTable[0xA3] = {&CPU::LAX, &CPU::IndirectX};
+        instructionTable[0xB3] = {&CPU::LAX, &CPU::IndirectY};
+        instructionTable[0xAF] = {&CPU::LAX, &CPU::Absolute};
+        instructionTable[0xBF] = {&CPU::LAX, &CPU::AbsoluteY};
     }
 
     // --------------------------------------  Instructions
@@ -820,6 +827,12 @@ public:
     void SAX(uint16_t address) {
       uint8_t result = A & X;
       writeMemory(address, result);
+    }
+
+    // Load A and X
+    void LAX(uint16_t address) {
+      LDA(address);
+      LDX(address);
     }
 
     // --------------------------------------  Addressing Modes
