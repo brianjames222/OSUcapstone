@@ -269,6 +269,15 @@ public:
         instructionTable[0x2F] = {&CPU::RLA, &CPU::Absolute};
         instructionTable[0x3F] = {&CPU::RLA, &CPU::AbsoluteX};
         instructionTable[0x3B] = {&CPU::RLA, &CPU::AbsoluteY};
+
+        // SRE
+        instructionTable[0x47] = {&CPU::SRE, &CPU::ZeroPage};
+        instructionTable[0x57] = {&CPU::SRE, &CPU::ZeroPageX};
+        instructionTable[0x43] = {&CPU::SRE, &CPU::IndirectX};
+        instructionTable[0x53] = {&CPU::SRE, &CPU::IndirectY};
+        instructionTable[0x4F] = {&CPU::SRE, &CPU::Absolute};
+        instructionTable[0x5F] = {&CPU::SRE, &CPU::AbsoluteX};
+        instructionTable[0x5B] = {&CPU::SRE, &CPU::AbsoluteY};
     }
 
     // --------------------------------------  Instructions
@@ -792,6 +801,25 @@ public:
       setFlag(N, A & 0x80);
 
       // Set Z Flag
+      setFlag(Z, A == 0);
+    }
+
+    // Shift Right and Exclusive Or
+    void SRE(uint16_t address) {
+      uint8_t value = readMemory(address);
+
+      // Shift Right
+      setFlag(C, value & 0x01);
+      value >>= 1;
+      writeMemory(address, value);
+
+      // Eor
+      A ^= value;
+
+      // Set N flag
+      setFlag(N, A & 0x80);
+
+      // Set Z flag
       setFlag(Z, A == 0);
     }
 
