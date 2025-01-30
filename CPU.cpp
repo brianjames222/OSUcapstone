@@ -278,6 +278,15 @@ public:
         instructionTable[0x4F] = {&CPU::SRE, &CPU::Absolute};
         instructionTable[0x5F] = {&CPU::SRE, &CPU::AbsoluteX};
         instructionTable[0x5B] = {&CPU::SRE, &CPU::AbsoluteY};
+
+        // RRA
+        instructionTable[0x67] = {&CPU::RRA, &CPU::ZeroPage};
+        instructionTable[0x77] = {&CPU::RRA, &CPU::ZeroPageX};
+        instructionTable[0x63] = {&CPU::RRA, &CPU::IndirectX};
+        instructionTable[0x73] = {&CPU::RRA, &CPU::IndirectY};
+        instructionTable[0x6F] = {&CPU::RRA, &CPU::Absolute};
+        instructionTable[0x7F] = {&CPU::RRA, &CPU::AbsoluteX};
+        instructionTable[0x7B] = {&CPU::RRA, &CPU::AbsoluteY};
     }
 
     // --------------------------------------  Instructions
@@ -821,6 +830,40 @@ public:
 
       // Set Z flag
       setFlag(Z, A == 0);
+    }
+
+    // Rotate Right and Add With Carry
+    void RRA(uint16_t address) {
+      uint8_t value = readMemory(address);
+
+      // Rotate Right
+      bool carry = getFlag(C);
+      setFlag(C, value & 0x01);
+      value = (value >> 1) | (carry << 7);
+      writeMemory(address, value);
+
+      // Add with Carry (using new carry value)
+      uint16_t result = A + value + getFlag(C);
+      uint8_t trunc_result = result & 0xFF;
+
+      // Set N Flag
+      setFlag(N, trunc_result & 0x80);
+
+      // Set V Flag
+      if ((trunc_result ^ A) & (trunc_result ^ value) & 0x80) {
+        setFlag(CPU::FLAGS::V, true);
+      } else {
+        setFlag(CPU::FLAGS::V, false);
+      }
+
+      // Set Z Flag
+      setFlag(Z, trunc_result == 0);
+
+      // Set C Flag
+      setFlag(C, result > 0xFF);
+
+      // Set A
+      A = trunc_result;
     }
 
     // --------------------------------------  Addressing Modes
