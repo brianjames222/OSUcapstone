@@ -957,8 +957,13 @@ public:
 
         uint16_t addr = (hi << 8) | lo;
 
+        if (lo == 0x00FF) {
+            hi = readMemory(addr & 0xFF00);
+        }
+        else {
+            hi = readMemory(addr + 1);
+        }
         lo = readMemory(addr);
-        hi = readMemory(addr + 1);
 
         addr = (hi << 8) | lo;
         return addr;
