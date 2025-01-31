@@ -1,9 +1,15 @@
-#include "CPU.cpp"
 #include <cassert>
+#include <chrono>
+#include <thread>
+#include <unistd.h>
+#include <iostream>
+#include <fstream>
+
+#include "NES.cpp"
 
 class Tests {
 public:
-	
+
 	void test_cpu() {
 		std::cout << "\nCPU Tests:\n";
 		CPU cpu;
@@ -27,7 +33,7 @@ public:
 		std::cout << "Memory at 0x10: 0x" << std::hex << static_cast<int>(cpu.readMemory(0x10)) << "\n";
 		printf("Value at address 0x0000: %02X\n", cpu.readMemory(0x0000));
 	}
-	
+
 //----------------------------------------------------------------------------------------------------------------------------
 	void test_opcodes() {
 		std::cout << "---------------------------\nOpcode Tests:\n\n";
@@ -37,7 +43,7 @@ public:
 		cpu.writeMemory(0x00, 0xA9); // LDA Immediate AA
 		cpu.writeMemory(0x01, 0xAA);
 		cpu.writeMemory(0x02, 0xA5); // LDA Zero Page
-		cpu.writeMemory(0x03, 0x35); 
+		cpu.writeMemory(0x03, 0x35);
 		cpu.writeMemory(0x35, 0xBB); // Load BB into 0x35
 		cpu.writeMemory(0x04, 0xB5); // LDA Zero Page X
 		cpu.writeMemory(0x05, 0x35);
@@ -171,19 +177,19 @@ public:
 		uint16_t starting_stack_address = 0x0100 + cpu.S;
 		cpu.stack_push(0xBC);
 		uint16_t current_stack_address = 0x0100 + cpu.S;
-		assert(cpu.memory[current_stack_address] == 0xBC);
+		assert(cpu.memory[current_stack_address + 1] == 0xBC);
 		uint8_t stack_top = cpu.stack_pop();
 		assert(stack_top == 0xBC);
 		current_stack_address = 0x0100 + cpu.S;
 		assert(current_stack_address == starting_stack_address);
 		cpu.stack_push16(0xABCD);
 		current_stack_address = 0x0100 + cpu.S;
-		assert(cpu.memory[current_stack_address] == 0xAB);
+		assert(cpu.memory[current_stack_address + 2] == 0xAB);
 		assert(cpu.memory[current_stack_address + 1] == 0xCD);
 		stack_top = cpu.stack_pop();
-		assert(stack_top == 0xAB);
-		stack_top = cpu.stack_pop();
 		assert(stack_top == 0xCD);
+		stack_top = cpu.stack_pop();
+		assert(stack_top == 0xAB);
 		current_stack_address = 0x0100 + cpu.S;
 		assert(current_stack_address == starting_stack_address);
 
@@ -229,7 +235,7 @@ public:
 		cpu.nmi_interrupt();
 		uint8_t current_stack_address = 0x0100 + cpu.S;
 		assert(current_stack_address == starting_stack_address - 3);
-		
+
 		// Check if PC address is being set correctly
         uint16_t read_address = 0xFFFA;
         cpu.writeMemory(read_address, 0x12);
@@ -241,10 +247,10 @@ public:
         cpu.PC = (hi << 8) | lo;
 
         assert(cpu.PC == 0x3412);
-		
+
 		std::cout << "---------------------------\nNMI Interrupt function tests passed!\n";
 	}
-	
+
 //----------------------------------------------------------------------------------------------------------------------------
 	void test_irq() {
 		CPU cpu;
@@ -288,7 +294,7 @@ public:
 		assert(cpu.PC == 0x1234);
 
 		cpu.RTS(test_memory);
-		assert(cpu.PC == 0xFFFA + 3);
+		assert(cpu.PC == 0xFFFA);
 
 		// Test BRK, RTI
 		cpu.PC = 0x1973;
@@ -341,7 +347,8 @@ public:
 		CPU cpu;
 		
 		uint16_t test_memory = 0x0000;
-		cpu.writeMemory(test_memory, 0x78);
+		cpu.writeMemory(test_memory, 0x79);
+		test_memory = cpu.Relative();
 		
 		// branch if Zero set
 		cpu.setFlag(CPU::FLAGS::Z, 1);
@@ -349,43 +356,43 @@ public:
 		assert(cpu.PC == 0x7A);
 
 		// branch if Zero clear
-		cpu.PC = 0x0000;
+		cpu.PC = 0x0001;
 		cpu.setFlag(CPU::FLAGS::Z, 0);
 		cpu.BNE(test_memory);
 		assert(cpu.PC == 0x7A);
 		
 		// branch if Carry set
-		cpu.PC = 0x0000;
+		cpu.PC = 0x0001;
 		cpu.setFlag(CPU::FLAGS::C, 1);
 		cpu.BCS(test_memory);
 		assert(cpu.PC == 0x7A);
 
 		// branch if Carry clear
-		cpu.PC = 0x0000;
+		cpu.PC = 0x0001;
 		cpu.setFlag(CPU::FLAGS::C, 0);
 		cpu.BCC(test_memory);
 		assert(cpu.PC == 0x7A);
 		
 		// branch if Negative set
-		cpu.PC = 0x0000;
+		cpu.PC = 0x0001;
 		cpu.setFlag(CPU::FLAGS::N, 1);
 		cpu.BMI(test_memory);
 		assert(cpu.PC == 0x7A);
 
 		// branch if Negative clear
-		cpu.PC = 0x0000;
+		cpu.PC = 0x0001;
 		cpu.setFlag(CPU::FLAGS::N, 0);
 		cpu.BPL(test_memory);
 		assert(cpu.PC == 0x7A);
 		
 		// branch if oVerflow set
-		cpu.PC = 0x0000;
+		cpu.PC = 0x0001;
 		cpu.setFlag(CPU::FLAGS::V, 1);
 		cpu.BVS(test_memory);
 		assert(cpu.PC == 0x7A);
 
 		// branch if oVerflow clear
-		cpu.PC = 0x0000;
+		cpu.PC = 0x0001;
 		cpu.setFlag(CPU::FLAGS::V, 0);
 		cpu.BVC(test_memory);
 		assert(cpu.PC == 0x7A);	
@@ -396,7 +403,7 @@ public:
     void test_ASL() {
         CPU cpu;
         cpu.reset();
-        
+
         // Accumulator loaded with 25, ASL executed, accumulator should now hold 50
         cpu.A = 0x19;
         cpu.writeMemory(0x00, 0x0A); // ASL Accumulator
@@ -599,4 +606,27 @@ public:
 
         std::cout << "---------------------------\nCLD_SED_CLV Instruction tests passed!\n";
     }
+
+	void test_NES() {
+		NES nes;
+		nes.load_rom("/home/ethan/CLionProjects/OSUcapstone/nestest.nes");
+		nes.initNES();
+
+		std::ofstream outfile("output.txt");
+
+		auto start = std::chrono::high_resolution_clock::now();
+		for (int i = 0;i < 4954; i++) {
+			outfile << std::hex <<std::uppercase << nes.cpu.PC << std::endl;
+			printf("count: %d\n", i+1);
+			uint8_t opcode = nes.cpu.readMemory(nes.cpu.PC);
+			printf("Opcode: %02X\n", opcode);
+			nes.cpu.printRegisters();
+			nes.cycle();
+
+		}
+		outfile.close();
+		auto end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> elapsed_time = end - start;
+		std::cout << "Elapsed Time" << elapsed_time.count() << "seconds\n";
+	}
 };
