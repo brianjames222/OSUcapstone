@@ -68,15 +68,20 @@ public:
             A, X, Y, PC, S, P);
     }
 
-    // Print the contents of the memory
+      // Print the contents of the memory
     void printMemory() const {
-        for (size_t i = 0; i < memory.size(); ++i) {
-            std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(memory[i]) << " ";
+        constexpr size_t bytesPerLine = 16;
 
-            // Print 16 values per line for better readability
-            if ((i + 1) % 16 == 0) {
-                std::cout << "\n";
-            }
+        for (size_t i = 0; i < memory.size(); i += bytesPerLine) {
+          // Print the memory address at the start of the line
+          std::cout << std::hex << std::setw(8) << std::setfill('0') << i << ": ";
+
+          // Print the memory values
+          for (size_t j = 0; j < bytesPerLine && (i + j) < memory.size(); ++j) {
+            std::cout << std::setw(2) << std::setfill('0') << static_cast<int>(memory[i + j]) << " ";
+          }
+
+          std::cout << "\n";
         }
     }
 
@@ -95,7 +100,8 @@ public:
     // Read and execute the next instruction
     void execute() {
       // Read the opcode
-      uint8_t opcode = readMemory(PC++);
+      uint8_t opcode = readMemory(PC);
+      PC ++;
 
       // Get the address mode and instruction type from the opcode
       //std::cout << "Opcode: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(opcode) << std::endl;
@@ -250,6 +256,52 @@ public:
         instructionTable[0x79] = {&CPU::ADC, &CPU::AbsoluteY};
         instructionTable[0x61] = {&CPU::ADC, &CPU::IndirectX};
         instructionTable[0x71] = {&CPU::ADC, &CPU::IndirectY};
+        instructionTable[0xE9] = {&CPU::SBC, &CPU::Immediate};
+        instructionTable[0xE5] = {&CPU::SBC, &CPU::ZeroPage};
+        instructionTable[0xF5] = {&CPU::SBC, &CPU::ZeroPageX};
+        instructionTable[0xED] = {&CPU::SBC, &CPU::Absolute};
+        instructionTable[0xFD] = {&CPU::SBC, &CPU::AbsoluteX};
+        instructionTable[0xF9] = {&CPU::SBC, &CPU::AbsoluteY};
+        instructionTable[0xE1] = {&CPU::SBC, &CPU::IndirectX};
+        instructionTable[0xF1] = {&CPU::SBC, &CPU::IndirectY};
+        instructionTable[0x24] = {&CPU::BIT, &CPU::ZeroPage};
+        instructionTable[0x2C] = {&CPU::BIT, &CPU::Absolute};
+        instructionTable[0x29] = {&CPU::AND, &CPU::Immediate};
+        instructionTable[0x25] = {&CPU::AND, &CPU::ZeroPage};
+        instructionTable[0x35] = {&CPU::AND, &CPU::ZeroPageX};
+        instructionTable[0x2D] = {&CPU::AND, &CPU::Absolute};
+        instructionTable[0x3D] = {&CPU::AND, &CPU::AbsoluteX};
+        instructionTable[0x39] = {&CPU::AND, &CPU::AbsoluteY};
+        instructionTable[0x21] = {&CPU::AND, &CPU::IndirectX};
+        instructionTable[0x31] = {&CPU::AND, &CPU::IndirectY};
+        instructionTable[0x09] = {&CPU::ORA, &CPU::Immediate};
+        instructionTable[0x05] = {&CPU::ORA, &CPU::ZeroPage};
+        instructionTable[0x15] = {&CPU::ORA, &CPU::ZeroPageX};
+        instructionTable[0x0D] = {&CPU::ORA, &CPU::Absolute};
+        instructionTable[0x1D] = {&CPU::ORA, &CPU::AbsoluteX};
+        instructionTable[0x19] = {&CPU::ORA, &CPU::AbsoluteY};
+        instructionTable[0x01] = {&CPU::ORA, &CPU::IndirectX};
+        instructionTable[0x11] = {&CPU::ORA, &CPU::IndirectY};
+        instructionTable[0x49] = {&CPU::EOR, &CPU::Immediate};
+        instructionTable[0x45] = {&CPU::EOR, &CPU::ZeroPage};
+        instructionTable[0x55] = {&CPU::EOR, &CPU::ZeroPageX};
+        instructionTable[0x4D] = {&CPU::EOR, &CPU::Absolute};
+        instructionTable[0x5D] = {&CPU::EOR, &CPU::AbsoluteX};
+        instructionTable[0x59] = {&CPU::EOR, &CPU::AbsoluteY};
+        instructionTable[0x41] = {&CPU::EOR, &CPU::IndirectX};
+        instructionTable[0x51] = {&CPU::EOR, &CPU::IndirectY};
+        instructionTable[0xC8] = {&CPU::INY, &CPU::Implied};
+        instructionTable[0xE8] = {&CPU::INX, &CPU::Implied};
+        instructionTable[0x88] = {&CPU::DEY, &CPU::Implied};
+        instructionTable[0xCA] = {&CPU::DEX, &CPU::Implied};
+        instructionTable[0xE6] = {&CPU::INC, &CPU::ZeroPage};
+        instructionTable[0xF6] = {&CPU::INC, &CPU::ZeroPageX};
+        instructionTable[0xEE] = {&CPU::INC, &CPU::Absolute};
+        instructionTable[0xFE] = {&CPU::INC, &CPU::AbsoluteX};
+        instructionTable[0xC6] = {&CPU::DEC, &CPU::ZeroPage};
+        instructionTable[0xD6] = {&CPU::DEC, &CPU::ZeroPageX};
+        instructionTable[0xCE] = {&CPU::DEC, &CPU::Absolute};
+        instructionTable[0xDE] = {&CPU::DEC, &CPU::AbsoluteX};
 
         // Unofficial Opcodes
         // SLO
@@ -442,45 +494,93 @@ public:
     // Subtract value from A with carry flag
     void SBC(uint16_t address) {
       uint8_t value = readMemory(address);
-      uint16_t result = A - value + ~getFlag(CPU::FLAGS::C);
+      uint16_t result = A + ~value + C;
 
       // Set C flag if overflow
-      setFlag(CPU::FLAGS::C, result & 0x100);
+      setFlag(C, ~(result & 0x00));
 
       // Set Z flag if zero
-      setFlag(CPU::FLAGS::Z, result == 0);
+      setFlag(Z, result == 0);
 
       // Set V flag if signed overflow
       uint8_t trunc_result = result & 0xFF;
       if ((trunc_result ^ A) & (trunc_result ^ ~value) & 0x80) {
-        setFlag(CPU::FLAGS::V, true);
+        setFlag(V, true);
       } else {
-        setFlag(CPU::FLAGS::V, false);
+        setFlag(V, false);
       }
 
       // Set N flag if negative
-      setFlag(CPU::FLAGS::N, trunc_result & 0x80);
+      setFlag(N, result & 0x80);
 
       // Update A
       A = trunc_result;
     }
 
-    // Temporary instructions
-    // DELETE WHEN MERGING ETHAN'S BRANCH
-    void ORA(uint16_t address) {
+    void BIT(uint16_t address) {
+        uint8_t value = readMemory(address);
+        uint8_t result = A & value;
+        setFlag(Z, result == 0);
+        setFlag(N, value & (1 << 7));
+        setFlag(V, value & (1 << 6));
     }
 
     void AND(uint16_t address) {
+        A = A & readMemory(address);
+        setFlag(Z, A == 0x00);
+        setFlag(N, A & (1 << 7));
+    }
+
+    void ORA(uint16_t address) {
+        A = A | readMemory(address);
+        setFlag(Z, A == 0x00);
+        setFlag(N, A & (1 << 7));
     }
 
     void EOR(uint16_t address) {
+        A = A ^ readMemory(address);
+        setFlag(Z, A == 0x00);
+        setFlag(N, A & (1 << 7));
     }
 
-    void DEC(uint16_t address) {
+    void INY(uint16_t address) {
+        Y++;
+        setFlag(Z, Y == 0x00);
+        setFlag(N, Y & (1 << 7));
+    }
+
+    void INX(uint16_t address) {
+        X++;
+        setFlag(Z, X == 0x00);
+        setFlag(N, X & (1 << 7));
+    }
+
+    void DEY(uint16_t address) {
+        Y--;
+        setFlag(Z, Y == 0x00);
+        setFlag(N, Y & (1 << 7));
+    }
+
+    void DEX(uint16_t address) {
+        X--;
+        setFlag(Z, X == 0x00);
+        setFlag(N, X & (1 << 7));
     }
 
     void INC(uint16_t address) {
+      uint8_t value = readMemory(address);
+      value ++;
+      writeMemory(address, value);
+      setFlag(Z, value == 0x00);
+      setFlag(N, value & (1 << 7));
+    }
 
+    void DEC(uint16_t address) {
+      uint8_t value = readMemory(address);
+      value --;
+      writeMemory(address, value);
+      setFlag(Z, value == 0x00);
+      setFlag(N, value & (1 << 7));
     }
 
     // Ethan's instructions
@@ -494,15 +594,15 @@ public:
 
     // Jump to subroutine
     void JSR(uint16_t address) {
-        PC = PC + 2;
+        PC--;
         stack_push16(PC);
         PC = address;
     }
 
     // Return from subroutine
     void RTS(uint16_t address) {
-        uint8_t hi = stack_pop();
         uint8_t lo = stack_pop();
+        uint8_t hi = stack_pop();
 
         PC = (hi << 8) | lo;
         PC ++;
@@ -535,8 +635,8 @@ public:
         setFlag(U, true);
 
         // Pop stack twice and set to PC
-        uint8_t hi = stack_pop();
         uint8_t lo = stack_pop();
+        uint8_t hi = stack_pop();
         PC = (hi << 8) | lo;
     }
 
@@ -551,7 +651,7 @@ public:
     void PLA(uint16_t address) {
         A = stack_pop();
         setFlag(Z, A == 0);
-        setFlag(N, A & 0x80);
+        setFlag(N, A & (1 << 7));
     }
 
     // Push status flags to stack
@@ -581,9 +681,6 @@ public:
         setFlag(I, true);
     }
 
-
-
-
     // Carter's instructions--------------------------------------------------------
 
     // Branch Instructions (8 count)
@@ -592,64 +689,64 @@ public:
 	// branch if Zero flag is set
 	void BEQ(uint16_t address) {
 		if (getFlag(Z)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 
 	// branch if Zero flag is not set
 	void BNE(uint16_t address) {
 		if (!getFlag(Z)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 
 	// branch if Carry flag is set
 	void BCS(uint16_t address) {
 		if (getFlag(C)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 	
 	// branch if Carry flag is not set
 	void BCC(uint16_t address) {
 		if (!getFlag(C)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 
 	// branch if Negative flag is set (Minus)
 	void BMI(uint16_t address) {
 		if (getFlag(N)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 
 	// branch if Negative flag is not set (Plus)
 	void BPL(uint16_t address) {
 		if (!getFlag(N)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = (address);
+			PC = PC + value;
 		}
 	}
 
 	// branch if oVerflow flag is set
 	void BVS(uint16_t address) {
 		if (getFlag(V)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 	
 	// branch if oVerflow flag is not set
 	void BVC(uint16_t address) {
 		if (!getFlag(V)) {
-			int8_t value = readMemory(address);
-			PC = PC + 2 + value;
+			int8_t value = address;
+			PC = PC + value;
 		}
 	}
 
@@ -899,8 +996,9 @@ public:
     // Return next PC += offset, stored in PC
     uint16_t Relative() {
       // Offset is unsigned, at the memory location stored in PC
-      int8_t offset = static_cast<int8_t>(readMemory(PC++));
-      return PC + offset;
+      int8_t offset = static_cast<int8_t>(readMemory(PC));
+      PC++;
+      return offset;
     }
 
     // Return address from zero page memory
@@ -972,8 +1070,13 @@ public:
 
         uint16_t addr = (hi << 8) | lo;
 
+        if (lo == 0x00FF) {
+            hi = readMemory(addr & 0xFF00);
+        }
+        else {
+            hi = readMemory(addr + 1);
+        }
         lo = readMemory(addr);
-        hi = readMemory(addr + 1);
 
         addr = (hi << 8) | lo;
         return addr;
@@ -986,28 +1089,29 @@ public:
 
 	// Push to the stack (8 bits)
     void stack_push(uint8_t value) {
-        S -= 1;
         uint16_t stack_address = 0x0100 + S;
         writeMemory(stack_address, value);
+        S -= 1;
     }
 
     // Push to the stack (16 bits)
     void stack_push16(uint16_t value) {
         uint8_t low_byte = value & 0xFF;
-        uint8_t high_byte = value >> 8;
-        S -= 1;
+        uint8_t high_byte = (value >> 8) & 0xFF;
+
         uint16_t stack_address = 0x0100 + S;
-        writeMemory(stack_address, low_byte);
-        stack_address -= 1;
-        S -= 1;
         writeMemory(stack_address, high_byte);
+        S -= 1;
+        stack_address -= 1;
+        writeMemory(stack_address, low_byte);
+        S -= 1;
     }
 
     // Pop from the stack
     uint8_t stack_pop() {
+        S += 1;
         uint16_t stack_address = 0x0100 + S;
         uint8_t stack_top_value = readMemory(stack_address);
-        S += 1;
         return stack_top_value;
     }
 
