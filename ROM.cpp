@@ -7,7 +7,7 @@ const size_t NES_HEADER_SIZE = 16;
 
 // NES ROM header structure
 struct NESHeader {
-    char header[4];         // Should be "NES\x1A"
+    char header[4];        // Should be "NES\x1A"
     uint8_t prgRomSize;    // Size of PRG ROM in 16KB units
     uint8_t chrRomSize;    // Size of CHR ROM in 8KB units
     uint8_t flags6;        // Flags 6
@@ -22,6 +22,38 @@ class NESROM {
 public:
     uint8_t* prgRom;
     uint8_t* chrRom;
+    
+    // determine the type of mapper
+    void detect_mapper(const NESHeader& header, std::ifstream &file) {
+    	if (isValidHeader(header)) {
+    		switch (header.flags6) {
+    		case 00:					// Mapper 0 (NROM)
+    		case 01: {
+    			// Calculate sizes based on the header
+       			size_t prgRomSize = header.prgRomSize * 16 * 1024;		// 2 = NROM-256, mapped into $8000-$FFFF
+       																	// 1 = NROM-128, mapped into $8000-$BFFF AND $C000-$FFFF
+        		size_t chrRomSize = header.chrRomSize * 8 * 1024;
+
+        		// Dynamically allocate memory for PRG ROM and CHR ROM
+        		prgRom = new uint8_t[prgRomSize];
+        		file.read(reinterpret_cast<char*>(prgRom), prgRomSize);
+        		
+        		chrRom = new uint8_t[chrRomSize];
+            	file.read(reinterpret_cast<char*>(chrRom), chrRomSize);
+            	
+            	break;
+            }
+
+            case 20:					// Mapper 2 (UNROM)
+            case 21: {
+         		// UNROM specific stuff goes here (requires bank switching)
+        		break;
+        	}
+        		
+        	// more mapper cases to follow
+        	}
+    	}
+    }
 
     // function to load ROM
     bool load(const std::string& filepath) {
@@ -39,19 +71,7 @@ public:
             return false;
         }
 
-        // Calculate sizes based on the header
-        size_t prgRomSize = header.prgRomSize * 16 * 1024;
-        size_t chrRomSize = header.chrRomSize * 8 * 1024;
-
-        // Dynamically allocate memory for PRG ROM
-        prgRom = new uint8_t[prgRomSize];
-        file.read(reinterpret_cast<char*>(prgRom), prgRomSize);
-
-        // Dynamically allocate memory for CHR ROM (if present)
-        if (chrRomSize > 0) {
-            chrRom = new uint8_t[chrRomSize];
-            file.read(reinterpret_cast<char*>(chrRom), chrRomSize);
-        }
+		detect_mapper(header, file);
 
         // Close the file
         file.close();

@@ -127,10 +127,10 @@ public:
     // Intialize instructionTable with null values
     Instruction instructionTable[256];
 
-    void initInstructionTable(){
+    void initInstructionTable() {
         for (int i = 0; i < 256; i++) {
           instructionTable[i] = {nullptr, nullptr};
-        };
+    };
 
           // Brian's Instruction Table START ---------------------------- //
         // LDA
