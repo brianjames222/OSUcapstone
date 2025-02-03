@@ -609,7 +609,7 @@ public:
 
 	void test_NES() {
 		NES nes;
-		nes.load_rom("/home/ethan/CLionProjects/OSUcapstone/nestest.nes");
+		nes.load_rom("./nestest.nes");
 		nes.initNES();
 
 		std::ofstream outfile("output.txt");

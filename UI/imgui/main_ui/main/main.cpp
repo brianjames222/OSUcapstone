@@ -213,7 +213,7 @@ int main(int, char**)
             ImGui::Begin("Registers");
             if (ImGui::Button("Load Rom")) {
                 nes.on = false;
-                nes.load_rom("/home/ethan/CLionProjects/OSUcapstone/nestest.nes");
+                nes.load_rom("../../../../nestest.nes");
                 nes.initNES();
             }
 
