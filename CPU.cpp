@@ -303,7 +303,74 @@ public:
         instructionTable[0xCE] = {&CPU::DEC, &CPU::Absolute};
         instructionTable[0xDE] = {&CPU::DEC, &CPU::AbsoluteX};
 
+        // Unofficial Opcodes
+        // SLO
+        instructionTable[0x07] = {&CPU::SLO, &CPU::ZeroPage};
+        instructionTable[0x17] = {&CPU::SLO, &CPU::ZeroPageX};
+        instructionTable[0x03] = {&CPU::SLO, &CPU::IndirectX};
+        instructionTable[0x13] = {&CPU::SLO, &CPU::IndirectY};
+        instructionTable[0x0F] = {&CPU::SLO, &CPU::Absolute};
+        instructionTable[0x1F] = {&CPU::SLO, &CPU::AbsoluteX};
+        instructionTable[0x1B] = {&CPU::SLO, &CPU::AbsoluteY};
 
+        // RLA
+        instructionTable[0x27] = {&CPU::RLA, &CPU::ZeroPage};
+        instructionTable[0x37] = {&CPU::RLA, &CPU::ZeroPageX};
+        instructionTable[0x23] = {&CPU::RLA, &CPU::IndirectX};
+        instructionTable[0x33] = {&CPU::RLA, &CPU::IndirectY};
+        instructionTable[0x2F] = {&CPU::RLA, &CPU::Absolute};
+        instructionTable[0x3F] = {&CPU::RLA, &CPU::AbsoluteX};
+        instructionTable[0x3B] = {&CPU::RLA, &CPU::AbsoluteY};
+
+        // SRE
+        instructionTable[0x47] = {&CPU::SRE, &CPU::ZeroPage};
+        instructionTable[0x57] = {&CPU::SRE, &CPU::ZeroPageX};
+        instructionTable[0x43] = {&CPU::SRE, &CPU::IndirectX};
+        instructionTable[0x53] = {&CPU::SRE, &CPU::IndirectY};
+        instructionTable[0x4F] = {&CPU::SRE, &CPU::Absolute};
+        instructionTable[0x5F] = {&CPU::SRE, &CPU::AbsoluteX};
+        instructionTable[0x5B] = {&CPU::SRE, &CPU::AbsoluteY};
+
+        // RRA
+        instructionTable[0x67] = {&CPU::RRA, &CPU::ZeroPage};
+        instructionTable[0x77] = {&CPU::RRA, &CPU::ZeroPageX};
+        instructionTable[0x63] = {&CPU::RRA, &CPU::IndirectX};
+        instructionTable[0x73] = {&CPU::RRA, &CPU::IndirectY};
+        instructionTable[0x6F] = {&CPU::RRA, &CPU::Absolute};
+        instructionTable[0x7F] = {&CPU::RRA, &CPU::AbsoluteX};
+        instructionTable[0x7B] = {&CPU::RRA, &CPU::AbsoluteY};
+
+        // SAX
+        instructionTable[0x87] = {&CPU::SAX, &CPU::ZeroPage};
+        instructionTable[0x97] = {&CPU::SAX, &CPU::ZeroPageY};
+        instructionTable[0x83] = {&CPU::SAX, &CPU::IndirectX};
+        instructionTable[0x8F] = {&CPU::SAX, &CPU::Absolute};
+
+        // LAX
+        instructionTable[0xA7] = {&CPU::LAX, &CPU::ZeroPage};
+        instructionTable[0xB7] = {&CPU::LAX, &CPU::ZeroPageY};
+        instructionTable[0xA3] = {&CPU::LAX, &CPU::IndirectX};
+        instructionTable[0xB3] = {&CPU::LAX, &CPU::IndirectY};
+        instructionTable[0xAF] = {&CPU::LAX, &CPU::Absolute};
+        instructionTable[0xBF] = {&CPU::LAX, &CPU::AbsoluteY};
+
+        // DCP
+        instructionTable[0xC7] = {&CPU::DCP, &CPU::ZeroPage};
+        instructionTable[0xD7] = {&CPU::DCP, &CPU::ZeroPageX};
+        instructionTable[0xC3] = {&CPU::DCP, &CPU::IndirectX};
+        instructionTable[0xD3] = {&CPU::DCP, &CPU::IndirectY};
+        instructionTable[0xCF] = {&CPU::DCP, &CPU::Absolute};
+        instructionTable[0xDF] = {&CPU::DCP, &CPU::AbsoluteX};
+        instructionTable[0xDB] = {&CPU::DCP, &CPU::AbsoluteY};
+
+        // ISC
+        instructionTable[0xE7] = {&CPU::ISC, &CPU::ZeroPage};
+        instructionTable[0xF7] = {&CPU::ISC, &CPU::ZeroPageX};
+        instructionTable[0xE3] = {&CPU::ISC, &CPU::IndirectX};
+        instructionTable[0xF3] = {&CPU::ISC, &CPU::IndirectY};
+        instructionTable[0xEF] = {&CPU::ISC, &CPU::Absolute};
+        instructionTable[0xFF] = {&CPU::ISC, &CPU::AbsoluteX};
+        instructionTable[0xFB] = {&CPU::ISC, &CPU::AbsoluteY};
     }
 
     // --------------------------------------  Instructions
@@ -614,9 +681,6 @@ public:
         setFlag(I, true);
     }
 
-
-
-
     // Carter's instructions--------------------------------------------------------
 
     // Branch Instructions (8 count)
@@ -854,6 +918,55 @@ public:
     // Clear Overflow Flag
     void CLV(uint16_t address) {
       setFlag(V, 0);
+    }
+
+    // --------------------------------------  Unofficial Opcodes
+    // Shift Left and Or
+    void SLO(uint16_t address) {
+      ASL(address);
+      ORA(address);
+    }
+
+    // Rotate Left and And
+    void RLA(uint16_t address) {
+      ROL(address);
+      AND(address);
+    }
+
+    // Shift Right and Exclusive Or
+    void SRE(uint16_t address) {
+      LSR(address);
+      EOR(address);
+    }
+
+    // Rotate Right and Add With Carry
+    void RRA(uint16_t address) {
+      ROR(address);
+      ADC(address);
+    }
+
+    // Store A and X
+    void SAX(uint16_t address) {
+      uint8_t result = A & X;
+      writeMemory(address, result);
+    }
+
+    // Load A and X
+    void LAX(uint16_t address) {
+      LDA(address);
+      LDX(address);
+    }
+
+    // Decrement Memory and Compare
+    void DCP(uint16_t address) {
+      DEC(address);
+      CMP(address);
+    }
+
+    // Increment Memory and Subtract with Borrow
+    void ISC(uint16_t address) {
+      INC(address);
+      SBC(address);
     }
 
     // --------------------------------------  Addressing Modes
