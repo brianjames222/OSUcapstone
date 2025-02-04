@@ -371,6 +371,22 @@ public:
         instructionTable[0xEF] = {&CPU::ISC, &CPU::Absolute};
         instructionTable[0xFF] = {&CPU::ISC, &CPU::AbsoluteX};
         instructionTable[0xFB] = {&CPU::ISC, &CPU::AbsoluteY};
+
+        // ANC
+        instructionTable[0x0B] = {&CPU::ANC, &CPU::Immediate};
+        instructionTable[0x2B] = {&CPU::ANC, &CPU::Immediate};
+
+        // ALR
+        instructionTable[0x4B] = {&CPU::ALR, &CPU::Immediate};
+
+        // ARR
+        instructionTable[0x6B] = {&CPU::ARR, &CPU::Immediate};
+
+        // AXS
+        instructionTable[0xCB] = {&CPU::AXS, &CPU::Immediate};
+
+        // SBC Unofficial
+        instructionTable[0xEB] = {&CPU::SBC, &CPU::Immediate};
     }
 
     // --------------------------------------  Instructions
@@ -967,6 +983,71 @@ public:
     void ISC(uint16_t address) {
       INC(address);
       SBC(address);
+    }
+
+    // AND then setting NZC flags
+    void ANC(uint16_t address) {
+      A = A & readMemory(address);
+      setFlag(Z, A == 0x00);
+      setFlag(N, A & (1 << 7));
+      setFlag(C, A & (1 << 7));
+    }
+
+    // AND then LSR A
+    void ALR(uint16_t address) {
+      // AND - Immediate
+      A = A & readMemory(address);
+      setFlag(Z, A == 0x00);
+      setFlag(N, A & (1 << 7));
+
+      // LSR - Accumulator
+      uint8_t value = A;
+
+      int value_lsb = value & 1;
+      uint8_t shifted_value = value >> 1;
+      int shifted_value_msb = (shifted_value >> 7) & 1;
+      setFlag(C, value_lsb);
+      setFlag(N, shifted_value_msb);
+      setFlag(Z, shifted_value == 0);
+      
+      A = shifted_value;
+      }
+
+    // AND then ROR A (CV flags set differently)
+    void ARR(uint16_t address) {
+      // AND - Immediate
+      A = A & readMemory(address);
+      setFlag(Z, A == 0x00);
+      setFlag(N, A & (1 << 7));
+
+      // ROR - Accumulator
+      uint8_t value = A;
+
+      uint8_t shifted_value = value >> 1;
+      // The value held in the Carry flag is shifted into the MSB of the new value
+      if (getFlag(C) == 1) {
+        shifted_value |= 0x80;
+      }
+      int shifted_value_msb = (shifted_value >> 7) & 1;
+      int bit_five = (shifted_value >> 5) & 1;
+      int bit_six = (shifted_value >> 6) & 1;
+      
+      setFlag(C, bit_six);
+      setFlag(N, shifted_value_msb);
+      setFlag(Z, shifted_value == 0);
+      setFlag(V, bit_six^bit_five);
+      
+      A = shifted_value;
+    }
+
+    // Sets X to (A AND X) minus value without borrow & Updates NZC flags
+    void AXS(uint16_t address) {
+      uint8_t value = readMemory(address);
+      X = (A & X) - value;
+
+      setFlag(C, 0);
+      setFlag(N, (X >> 7) & 1);
+      setFlag(Z, X == 0);
     }
 
     // --------------------------------------  Addressing Modes
