@@ -3,8 +3,9 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "CPU.cpp"
+#include "Bus.h"
 #include "ROM.cpp"
+#include "CPU.cpp"
 
 class NES {
     public:

@@ -1,4 +1,4 @@
-#include "CPU.cpp"
+
 #include "tests.cpp"
 
 int main() {
@@ -24,6 +24,7 @@ int main() {
 	tests.test_CPY();
 	tests.test_CLD_SED_CLV();
 	tests.test_NES();
+	tests.test_Bus();
     return 0;
 }
 

@@ -6,6 +6,7 @@
 #include <fstream>
 
 #include "NES.cpp"
+#include "Bus.h"
 
 class Tests {
 public:
@@ -628,5 +629,17 @@ public:
 		auto end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> elapsed_time = end - start;
 		std::cout << "Elapsed Time" << elapsed_time.count() << "seconds\n";
+	}
+
+	void test_Bus() {
+
+		Bus bus;
+		CPU& cpu = *bus.cpu;
+
+		cpu.reset();
+		cpu.writeBus(0x0000, 0xFF);
+		uint8_t opcode = cpu.readBus(0x0000);
+		assert(opcode == 0xFF);
+		std::cout << "---------------------------\nBus tests passed!\n";
 	}
 };
