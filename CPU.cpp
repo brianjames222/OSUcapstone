@@ -8,6 +8,8 @@
 #include <iostream>
 #include <iomanip>
 
+
+#include "Bus.h"
 class CPU {
 public:
     // Registers
@@ -32,6 +34,17 @@ public:
         V = (1 << 6),    // Overflow
         N = (1 << 7)     // Negative
     };
+
+    void connectBus(Bus* bus) {this->bus = bus;}
+
+    //Example read and write through the bus.
+    uint8_t readBus(uint16_t address) {
+      return bus->read(address);
+    }
+
+    void writeBus(uint16_t address, uint8_t value) {
+      bus->write(address, value);
+    }
 
     // Returns value at memory address
     uint8_t readMemory(const uint16_t address) const {
@@ -387,6 +400,25 @@ public:
 
         // SBC Unofficial
         instructionTable[0xEB] = {&CPU::SBC, &CPU::Immediate};
+
+        // NOP
+        instructionTable[0x04] = {&CPU::NOP, &CPU::ZeroPage};
+        instructionTable[0x44] = {&CPU::NOP, &CPU::ZeroPageY};
+        instructionTable[0x64] = {&CPU::NOP, &CPU::ZeroPageX};
+        instructionTable[0x0C] = {&CPU::NOP, &CPU::Absolute};
+        instructionTable[0x14] = {&CPU::NOP, &CPU::IndirectX};
+        instructionTable[0x34] = {&CPU::NOP, &CPU::IndirectX};
+        instructionTable[0x54] = {&CPU::NOP, &CPU::IndirectX};
+        instructionTable[0x74] = {&CPU::NOP, &CPU::IndirectX};
+        instructionTable[0xD4] = {&CPU::NOP, &CPU::IndirectX};
+        instructionTable[0xF4] = {&CPU::NOP, &CPU::IndirectX};
+        instructionTable[0x1A] = {&CPU::NOP, &CPU::Implicit};
+        instructionTable[0x3A] = {&CPU::NOP, &CPU::Implicit};
+        instructionTable[0x5A] = {&CPU::NOP, &CPU::Implicit};
+        instructionTable[0x7A] = {&CPU::NOP, &CPU::Implicit};
+        instructionTable[0xDA] = {&CPU::NOP, &CPU::Implicit};
+        instructionTable[0xFA] = {&CPU::NOP, &CPU::Implicit};
+        instructionTable[0x80] = {&CPU::NOP, &CPU::IndirectX};
     }
 
     // --------------------------------------  Instructions
@@ -1009,7 +1041,7 @@ public:
       setFlag(C, value_lsb);
       setFlag(N, shifted_value_msb);
       setFlag(Z, shifted_value == 0);
-      
+
       A = shifted_value;
       }
 
@@ -1031,12 +1063,12 @@ public:
       int shifted_value_msb = (shifted_value >> 7) & 1;
       int bit_five = (shifted_value >> 5) & 1;
       int bit_six = (shifted_value >> 6) & 1;
-      
+
       setFlag(C, bit_six);
       setFlag(N, shifted_value_msb);
       setFlag(Z, shifted_value == 0);
       setFlag(V, bit_six^bit_five);
-      
+
       A = shifted_value;
     }
 
@@ -1220,6 +1252,8 @@ public:
             PC = (hi << 8) | lo;
         }
     }
+    private:
+    Bus *bus = nullptr;
 };
 #endif
 
