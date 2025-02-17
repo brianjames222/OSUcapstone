@@ -645,11 +645,16 @@ public:
 
   void test_PPU_registers() {
     Bus bus;
+    CPU& cpu = *bus.cpu;
     // Write to PPUCTRL
-    bus.write(0x2000, 0xC2);
+    cpu.writeBus(0x2000, 0xC2);
 
     // Read from PPUCTRL
-    bus.read(0x2000);
+    uint8_t result = cpu.readBus(0x2000);
+    std::cout << "PPUCTRL: '" << std::hex << static_cast<int>(result) << "'\n";
+    assert(result == 0xC2);
+
+    std::cout << "PPU Register Tests Passed\n";
   }
 
 };
