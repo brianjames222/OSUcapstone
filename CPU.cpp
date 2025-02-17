@@ -190,12 +190,12 @@ public:
   instructionTable[0x8C] = {&CPU::STY, &CPU::Absolute};
 
   // TAX, TAY, TSX, TXA, TXS, TYA
-  instructionTable[0xAA] = {&CPU::TAX, &CPU::Implied};
-  instructionTable[0xA8] = {&CPU::TAY, &CPU::Implied};
-  instructionTable[0xBA] = {&CPU::TSX, &CPU::Implied};
-  instructionTable[0x8A] = {&CPU::TXA, &CPU::Implied};
-  instructionTable[0x9A] = {&CPU::TXS, &CPU::Implied};
-  instructionTable[0x98] = {&CPU::TYA, &CPU::Implied};
+  instructionTable[0xAA] = {&CPU::TAX, &CPU::Implicit};
+  instructionTable[0xA8] = {&CPU::TAY, &CPU::Implicit};
+  instructionTable[0xBA] = {&CPU::TSX, &CPU::Implicit};
+  instructionTable[0x8A] = {&CPU::TXA, &CPU::Implicit};
+  instructionTable[0x9A] = {&CPU::TXS, &CPU::Implicit};
+  instructionTable[0x98] = {&CPU::TYA, &CPU::Implicit};
 
   // Brian Instruction Table END -------------------------------- //
 
@@ -203,15 +203,15 @@ public:
   instructionTable[0x4C] = {&CPU::JMP, &CPU::Absolute};
   instructionTable[0x6C] = {&CPU::JMP, &CPU::IndirectJMP};
   instructionTable[0x20] = {&CPU::JSR, &CPU::Absolute};
-  instructionTable[0x60] = {&CPU::RTS, &CPU::Implied};
-  instructionTable[0x00] = {&CPU::BRK, &CPU::Implied};
-  instructionTable[0x40] = {&CPU::RTI, &CPU::Implied};
-  instructionTable[0x48] = {&CPU::PHA, &CPU::Implied};
-  instructionTable[0x68] = {&CPU::PLA, &CPU::Implied};
-  instructionTable[0x08] = {&CPU::PHP, &CPU::Implied};
-  instructionTable[0x28] = {&CPU::PLP, &CPU::Implied};
-  instructionTable[0x58] = {&CPU::CLI, &CPU::Implied};
-  instructionTable[0x78] = {&CPU::SEI, &CPU::Implied};
+  instructionTable[0x60] = {&CPU::RTS, &CPU::Implicit};
+  instructionTable[0x00] = {&CPU::BRK, &CPU::Implicit};
+  instructionTable[0x40] = {&CPU::RTI, &CPU::Implicit};
+  instructionTable[0x48] = {&CPU::PHA, &CPU::Implicit};
+  instructionTable[0x68] = {&CPU::PLA, &CPU::Implicit};
+  instructionTable[0x08] = {&CPU::PHP, &CPU::Implicit};
+  instructionTable[0x28] = {&CPU::PLP, &CPU::Implicit};
+  instructionTable[0x58] = {&CPU::CLI, &CPU::Implicit};
+  instructionTable[0x78] = {&CPU::SEI, &CPU::Implicit};
   instructionTable[0xF0] = {&CPU::BEQ, &CPU::Relative};
   instructionTable[0xD0] = {&CPU::BNE, &CPU::Relative};
   instructionTable[0x90] = {&CPU::BCC, &CPU::Relative};
@@ -302,10 +302,10 @@ public:
   instructionTable[0x59] = {&CPU::EOR, &CPU::AbsoluteY};
   instructionTable[0x41] = {&CPU::EOR, &CPU::IndirectX};
   instructionTable[0x51] = {&CPU::EOR, &CPU::IndirectY};
-  instructionTable[0xC8] = {&CPU::INY, &CPU::Implied};
-  instructionTable[0xE8] = {&CPU::INX, &CPU::Implied};
-  instructionTable[0x88] = {&CPU::DEY, &CPU::Implied};
-  instructionTable[0xCA] = {&CPU::DEX, &CPU::Implied};
+  instructionTable[0xC8] = {&CPU::INY, &CPU::Implicit};
+  instructionTable[0xE8] = {&CPU::INX, &CPU::Implicit};
+  instructionTable[0x88] = {&CPU::DEY, &CPU::Implicit};
+  instructionTable[0xCA] = {&CPU::DEX, &CPU::Implicit};
   instructionTable[0xE6] = {&CPU::INC, &CPU::ZeroPage};
   instructionTable[0xF6] = {&CPU::INC, &CPU::ZeroPageX};
   instructionTable[0xEE] = {&CPU::INC, &CPU::Absolute};
@@ -495,7 +495,7 @@ public:
     A = X;
 
     updateZeroNegativeFlags(A);
-  }  
+  }
 
   // "TXS copies the X register value to the stack pointer."
   void TXS(uint16_t) {
@@ -591,7 +591,7 @@ public:
   }
 
   void INY(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("INY called without implied mode");
     }
     Y++;
@@ -600,7 +600,7 @@ public:
   }
 
   void INX(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("INX called without implied mode");
     }
     X++;
@@ -609,7 +609,7 @@ public:
   }
 
   void DEY(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("DEY called without implied mode");
     }
     Y--;
@@ -618,7 +618,7 @@ public:
   }
 
   void DEX(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("DEX called without implied mode");
     }
     X--;
@@ -660,7 +660,7 @@ public:
 
   // Return from subroutine
   void RTS(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("RTS called without implied mode");
     }
     uint8_t lo = stack_pop();
@@ -672,7 +672,7 @@ public:
 
   // Break(software IRQ)
   void BRK(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("BRK called without implied mode");
     }
     PC++;
@@ -693,7 +693,7 @@ public:
 
   // Return from Interrupt
   void RTI(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("RTI called without implied mode");
     }
     // Pop stack and set to flags
@@ -712,7 +712,7 @@ public:
 
   // Push A register to stack
   void PHA(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("PHA called without implied mode");
     }
     stack_push(A);
@@ -720,7 +720,7 @@ public:
 
   // Pop stack into A register
   void PLA(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("PLA called without implied mode");
     }
     A = stack_pop();
@@ -730,7 +730,7 @@ public:
 
   // Push status flags to stack
   void PHP(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("PHP called without implied mode");
     }
     setFlag(B, true);
@@ -741,7 +741,7 @@ public:
 
   // Pop status flags
   void PLP(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("PLP called without implied mode");
     }
     P = stack_pop();
@@ -753,7 +753,7 @@ public:
 
   // Clear Interrupt Flag
   void CLI(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("CLI called without implied mode");
     }
     setFlag(I, false);
@@ -761,7 +761,7 @@ public:
 
   // Set Interrupt Flag
   void SEI(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("SEI called without implied mode");
     }
     setFlag(I, true);
@@ -840,7 +840,7 @@ public:
 	
 	//set the carry flag
 	void SEC(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("SEC called without implied mode");
     }
 		setFlag(C, true);
@@ -848,7 +848,7 @@ public:
 	
 	// clear the carry flag
 	void CLC(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("CLC called without implied mode");
     }
 		setFlag(C, false);
@@ -992,7 +992,7 @@ public:
 
   // No Operation
   void NOP(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("NOP called without implied mode");
     }
     return;
@@ -1002,7 +1002,7 @@ public:
 
   // Clear Decimal Flag
   void CLD(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("CLD called without implied mode");
     }
     setFlag(D, 0);
@@ -1010,7 +1010,7 @@ public:
 
   // Set Decimal Flag
   void SED(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("SED called without implied mode");
     }
     setFlag(D, 1);
@@ -1018,7 +1018,7 @@ public:
 
   // Clear Overflow Flag
   void CLV(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("CLV called without implied mode");
     }
     setFlag(V, 0);
@@ -1148,13 +1148,6 @@ public:
   uint16_t Immediate() {
     return PC++;
   }
-
-  // Address mode
-  // Implied addressing does nothing, no memory access needed (dummy value)
-  uint16_t Implied() {
-    return 0;
-  }
-
 
   // Address is the accumulator, returning 0xFFFF as indicator
   // Logic to be handled in instruction
