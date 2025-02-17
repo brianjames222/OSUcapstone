@@ -285,7 +285,7 @@ public:
 	void test_jmp() {
 		CPU cpu;
 		cpu.reset();
-		uint16_t test_memory = 0x0000;
+		uint16_t test_memory = 0xFFFF;
 
 		// Test JMP, JSR, RTS
 		cpu.JMP(0xFFFA);
@@ -329,7 +329,7 @@ public:
 	void test_stack_instructions() {
 		CPU cpu;
 		cpu.reset();
-		uint16_t test_memory = 0x0000;
+		uint16_t test_memory = 0xFFFF;
 		cpu.A = 0x34;
 		// Test PHA and PLA
 		cpu.PHA(test_memory);
