@@ -7,6 +7,7 @@
 #include <array>
 #include <iostream>
 #include <iomanip>
+#include <stdexcept>
 #include "Bus.h"
 
 class CPU {
@@ -591,24 +592,36 @@ public:
     }
 
     void INY(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("INY called without implied mode");
+        }
         Y++;
         setFlag(Z, Y == 0x00);
         setFlag(N, Y & (1 << 7));
     }
 
     void INX(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("INX called without implied mode");
+        }
         X++;
         setFlag(Z, X == 0x00);
         setFlag(N, X & (1 << 7));
     }
 
     void DEY(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("DEY called without implied mode");
+        }
         Y--;
         setFlag(Z, Y == 0x00);
         setFlag(N, Y & (1 << 7));
     }
 
     void DEX(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("DEX called without implied mode");
+        }
         X--;
         setFlag(Z, X == 0x00);
         setFlag(N, X & (1 << 7));
@@ -648,6 +661,9 @@ public:
 
     // Return from subroutine
     void RTS(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("RTS called without implied mode");
+        }
         uint8_t lo = stack_pop();
         uint8_t hi = stack_pop();
 
@@ -657,6 +673,9 @@ public:
 
     // Break(software IRQ)
     void BRK(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("BRK called without implied mode");
+        }
         PC++;
         PC++;
         stack_push16(PC);
@@ -675,6 +694,9 @@ public:
 
     // Return from Interrupt
     void RTI(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("RTI called without implied mode");
+        }
         // Pop stack and set to flags
         uint8_t flags = stack_pop();
         P = flags;
@@ -691,11 +713,17 @@ public:
 
     // Push A register to stack
     void PHA(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("PHA called without implied mode");
+        }
         stack_push(A);
     }
 
     // Pop stack into A register
     void PLA(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("PLA called without implied mode");
+        }
         A = stack_pop();
         setFlag(Z, A == 0);
         setFlag(N, A & (1 << 7));
@@ -703,6 +731,9 @@ public:
 
     // Push status flags to stack
     void PHP(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("PHP called without implied mode");
+        }
         setFlag(B, true);
         setFlag(U, true);
         stack_push(P);
@@ -711,6 +742,9 @@ public:
 
     // Pop status flags
     void PLP(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("PLP called without implied mode");
+        }
         P = stack_pop();
         setFlag(U, true);
         setFlag(B, false);
@@ -720,11 +754,17 @@ public:
 
     // Clear Interrupt Flag
     void CLI(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("CLI called without implied mode");
+        }
         setFlag(I, false);
     }
 
     // Set Interrupt Flag
     void SEI(uint16_t address) {
+        if (address != 0xFF) {
+          throw std::runtime_error("SEI called without implied mode");
+        }
         setFlag(I, true);
     }
 
@@ -801,11 +841,17 @@ public:
 	
 	//set the carry flag
 	void SEC(uint16_t address) {
+    if (address != 0xFF) {
+      throw std::runtime_error("SEC called without implied mode");
+    }
 		setFlag(C, true);
 	}
 	
 	// clear the carry flag
 	void CLC(uint16_t address) {
+    if (address != 0xFF) {
+      throw std::runtime_error("CLC called without implied mode");
+    }
 		setFlag(C, false);
 	}
 
@@ -947,6 +993,9 @@ public:
 
     // No Operation
     void NOP(uint16_t address) {
+      if (address != 0xFF) {
+        throw std::runtime_error("NOP called without implied mode");
+      }
       return;
     }
 
@@ -954,16 +1003,25 @@ public:
 
     // Clear Decimal Flag
     void CLD(uint16_t address) {
+      if (address != 0xFF) {
+        throw std::runtime_error("CLD called without implied mode");
+      }
       setFlag(D, 0);
     }
 
     // Set Decimal Flag
     void SED(uint16_t address) {
+      if (address != 0xFF) {
+        throw std::runtime_error("SED called without implied mode");
+      }
       setFlag(D, 1);
     }
 
     // Clear Overflow Flag
     void CLV(uint16_t address) {
+      if (address != 0xFF) {
+        throw std::runtime_error("CLV called without implied mode");
+      }
       setFlag(V, 0);
     }
 
