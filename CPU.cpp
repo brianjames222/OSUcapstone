@@ -315,109 +315,109 @@ public:
   instructionTable[0xCE] = {&CPU::DEC, &CPU::Absolute};
   instructionTable[0xDE] = {&CPU::DEC, &CPU::AbsoluteX};
 
-    // Unofficial Opcodes
-    // SLO
-    instructionTable[0x07] = {&CPU::SLO, &CPU::ZeroPage};
-    instructionTable[0x17] = {&CPU::SLO, &CPU::ZeroPageX};
-    instructionTable[0x03] = {&CPU::SLO, &CPU::IndirectX};
-    instructionTable[0x13] = {&CPU::SLO, &CPU::IndirectY};
-    instructionTable[0x0F] = {&CPU::SLO, &CPU::Absolute};
-    instructionTable[0x1F] = {&CPU::SLO, &CPU::AbsoluteX};
-    instructionTable[0x1B] = {&CPU::SLO, &CPU::AbsoluteY};
+  // Unofficial Opcodes
+  // SLO
+  instructionTable[0x07] = {&CPU::SLO, &CPU::ZeroPage};
+  instructionTable[0x17] = {&CPU::SLO, &CPU::ZeroPageX};
+  instructionTable[0x03] = {&CPU::SLO, &CPU::IndirectX};
+  instructionTable[0x13] = {&CPU::SLO, &CPU::IndirectY};
+  instructionTable[0x0F] = {&CPU::SLO, &CPU::Absolute};
+  instructionTable[0x1F] = {&CPU::SLO, &CPU::AbsoluteX};
+  instructionTable[0x1B] = {&CPU::SLO, &CPU::AbsoluteY};
 
-    // RLA
-    instructionTable[0x27] = {&CPU::RLA, &CPU::ZeroPage};
-    instructionTable[0x37] = {&CPU::RLA, &CPU::ZeroPageX};
-    instructionTable[0x23] = {&CPU::RLA, &CPU::IndirectX};
-    instructionTable[0x33] = {&CPU::RLA, &CPU::IndirectY};
-    instructionTable[0x2F] = {&CPU::RLA, &CPU::Absolute};
-    instructionTable[0x3F] = {&CPU::RLA, &CPU::AbsoluteX};
-    instructionTable[0x3B] = {&CPU::RLA, &CPU::AbsoluteY};
+  // RLA
+  instructionTable[0x27] = {&CPU::RLA, &CPU::ZeroPage};
+  instructionTable[0x37] = {&CPU::RLA, &CPU::ZeroPageX};
+  instructionTable[0x23] = {&CPU::RLA, &CPU::IndirectX};
+  instructionTable[0x33] = {&CPU::RLA, &CPU::IndirectY};
+  instructionTable[0x2F] = {&CPU::RLA, &CPU::Absolute};
+  instructionTable[0x3F] = {&CPU::RLA, &CPU::AbsoluteX};
+  instructionTable[0x3B] = {&CPU::RLA, &CPU::AbsoluteY};
 
-    // SRE
-    instructionTable[0x47] = {&CPU::SRE, &CPU::ZeroPage};
-    instructionTable[0x57] = {&CPU::SRE, &CPU::ZeroPageX};
-    instructionTable[0x43] = {&CPU::SRE, &CPU::IndirectX};
-    instructionTable[0x53] = {&CPU::SRE, &CPU::IndirectY};
-    instructionTable[0x4F] = {&CPU::SRE, &CPU::Absolute};
-    instructionTable[0x5F] = {&CPU::SRE, &CPU::AbsoluteX};
-    instructionTable[0x5B] = {&CPU::SRE, &CPU::AbsoluteY};
+  // SRE
+  instructionTable[0x47] = {&CPU::SRE, &CPU::ZeroPage};
+  instructionTable[0x57] = {&CPU::SRE, &CPU::ZeroPageX};
+  instructionTable[0x43] = {&CPU::SRE, &CPU::IndirectX};
+  instructionTable[0x53] = {&CPU::SRE, &CPU::IndirectY};
+  instructionTable[0x4F] = {&CPU::SRE, &CPU::Absolute};
+  instructionTable[0x5F] = {&CPU::SRE, &CPU::AbsoluteX};
+  instructionTable[0x5B] = {&CPU::SRE, &CPU::AbsoluteY};
 
-    // RRA
-    instructionTable[0x67] = {&CPU::RRA, &CPU::ZeroPage};
-    instructionTable[0x77] = {&CPU::RRA, &CPU::ZeroPageX};
-    instructionTable[0x63] = {&CPU::RRA, &CPU::IndirectX};
-    instructionTable[0x73] = {&CPU::RRA, &CPU::IndirectY};
-    instructionTable[0x6F] = {&CPU::RRA, &CPU::Absolute};
-    instructionTable[0x7F] = {&CPU::RRA, &CPU::AbsoluteX};
-    instructionTable[0x7B] = {&CPU::RRA, &CPU::AbsoluteY};
+  // RRA
+  instructionTable[0x67] = {&CPU::RRA, &CPU::ZeroPage};
+  instructionTable[0x77] = {&CPU::RRA, &CPU::ZeroPageX};
+  instructionTable[0x63] = {&CPU::RRA, &CPU::IndirectX};
+  instructionTable[0x73] = {&CPU::RRA, &CPU::IndirectY};
+  instructionTable[0x6F] = {&CPU::RRA, &CPU::Absolute};
+  instructionTable[0x7F] = {&CPU::RRA, &CPU::AbsoluteX};
+  instructionTable[0x7B] = {&CPU::RRA, &CPU::AbsoluteY};
 
-    // SAX
-    instructionTable[0x87] = {&CPU::SAX, &CPU::ZeroPage};
-    instructionTable[0x97] = {&CPU::SAX, &CPU::ZeroPageY};
-    instructionTable[0x83] = {&CPU::SAX, &CPU::IndirectX};
-    instructionTable[0x8F] = {&CPU::SAX, &CPU::Absolute};
+  // SAX
+  instructionTable[0x87] = {&CPU::SAX, &CPU::ZeroPage};
+  instructionTable[0x97] = {&CPU::SAX, &CPU::ZeroPageY};
+  instructionTable[0x83] = {&CPU::SAX, &CPU::IndirectX};
+  instructionTable[0x8F] = {&CPU::SAX, &CPU::Absolute};
 
-    // LAX
-    instructionTable[0xA7] = {&CPU::LAX, &CPU::ZeroPage};
-    instructionTable[0xB7] = {&CPU::LAX, &CPU::ZeroPageY};
-    instructionTable[0xA3] = {&CPU::LAX, &CPU::IndirectX};
-    instructionTable[0xB3] = {&CPU::LAX, &CPU::IndirectY};
-    instructionTable[0xAF] = {&CPU::LAX, &CPU::Absolute};
-    instructionTable[0xBF] = {&CPU::LAX, &CPU::AbsoluteY};
+  // LAX
+  instructionTable[0xA7] = {&CPU::LAX, &CPU::ZeroPage};
+  instructionTable[0xB7] = {&CPU::LAX, &CPU::ZeroPageY};
+  instructionTable[0xA3] = {&CPU::LAX, &CPU::IndirectX};
+  instructionTable[0xB3] = {&CPU::LAX, &CPU::IndirectY};
+  instructionTable[0xAF] = {&CPU::LAX, &CPU::Absolute};
+  instructionTable[0xBF] = {&CPU::LAX, &CPU::AbsoluteY};
 
-    // DCP
-    instructionTable[0xC7] = {&CPU::DCP, &CPU::ZeroPage};
-    instructionTable[0xD7] = {&CPU::DCP, &CPU::ZeroPageX};
-    instructionTable[0xC3] = {&CPU::DCP, &CPU::IndirectX};
-    instructionTable[0xD3] = {&CPU::DCP, &CPU::IndirectY};
-    instructionTable[0xCF] = {&CPU::DCP, &CPU::Absolute};
-    instructionTable[0xDF] = {&CPU::DCP, &CPU::AbsoluteX};
-    instructionTable[0xDB] = {&CPU::DCP, &CPU::AbsoluteY};
+  // DCP
+  instructionTable[0xC7] = {&CPU::DCP, &CPU::ZeroPage};
+  instructionTable[0xD7] = {&CPU::DCP, &CPU::ZeroPageX};
+  instructionTable[0xC3] = {&CPU::DCP, &CPU::IndirectX};
+  instructionTable[0xD3] = {&CPU::DCP, &CPU::IndirectY};
+  instructionTable[0xCF] = {&CPU::DCP, &CPU::Absolute};
+  instructionTable[0xDF] = {&CPU::DCP, &CPU::AbsoluteX};
+  instructionTable[0xDB] = {&CPU::DCP, &CPU::AbsoluteY};
 
-    // ISC
-    instructionTable[0xE7] = {&CPU::ISC, &CPU::ZeroPage};
-    instructionTable[0xF7] = {&CPU::ISC, &CPU::ZeroPageX};
-    instructionTable[0xE3] = {&CPU::ISC, &CPU::IndirectX};
-    instructionTable[0xF3] = {&CPU::ISC, &CPU::IndirectY};
-    instructionTable[0xEF] = {&CPU::ISC, &CPU::Absolute};
-    instructionTable[0xFF] = {&CPU::ISC, &CPU::AbsoluteX};
-    instructionTable[0xFB] = {&CPU::ISC, &CPU::AbsoluteY};
+  // ISC
+  instructionTable[0xE7] = {&CPU::ISC, &CPU::ZeroPage};
+  instructionTable[0xF7] = {&CPU::ISC, &CPU::ZeroPageX};
+  instructionTable[0xE3] = {&CPU::ISC, &CPU::IndirectX};
+  instructionTable[0xF3] = {&CPU::ISC, &CPU::IndirectY};
+  instructionTable[0xEF] = {&CPU::ISC, &CPU::Absolute};
+  instructionTable[0xFF] = {&CPU::ISC, &CPU::AbsoluteX};
+  instructionTable[0xFB] = {&CPU::ISC, &CPU::AbsoluteY};
 
-    // ANC
-    instructionTable[0x0B] = {&CPU::ANC, &CPU::Immediate};
-    instructionTable[0x2B] = {&CPU::ANC, &CPU::Immediate};
+  // ANC
+  instructionTable[0x0B] = {&CPU::ANC, &CPU::Immediate};
+  instructionTable[0x2B] = {&CPU::ANC, &CPU::Immediate};
 
-    // ALR
-    instructionTable[0x4B] = {&CPU::ALR, &CPU::Immediate};
+  // ALR
+  instructionTable[0x4B] = {&CPU::ALR, &CPU::Immediate};
 
-    // ARR
-    instructionTable[0x6B] = {&CPU::ARR, &CPU::Immediate};
+  // ARR
+  instructionTable[0x6B] = {&CPU::ARR, &CPU::Immediate};
 
-    // AXS
-    instructionTable[0xCB] = {&CPU::AXS, &CPU::Immediate};
+  // AXS
+  instructionTable[0xCB] = {&CPU::AXS, &CPU::Immediate};
 
-    // SBC Unofficial
-    instructionTable[0xEB] = {&CPU::SBC, &CPU::Immediate};
+  // SBC Unofficial
+  instructionTable[0xEB] = {&CPU::SBC, &CPU::Immediate};
 
-    // NOP
-    instructionTable[0x04] = {&CPU::NOP, &CPU::ZeroPage};
-    instructionTable[0x44] = {&CPU::NOP, &CPU::ZeroPageY};
-    instructionTable[0x64] = {&CPU::NOP, &CPU::ZeroPageX};
-    instructionTable[0x0C] = {&CPU::NOP, &CPU::Absolute};
-    instructionTable[0x14] = {&CPU::NOP, &CPU::IndirectX};
-    instructionTable[0x34] = {&CPU::NOP, &CPU::IndirectX};
-    instructionTable[0x54] = {&CPU::NOP, &CPU::IndirectX};
-    instructionTable[0x74] = {&CPU::NOP, &CPU::IndirectX};
-    instructionTable[0xD4] = {&CPU::NOP, &CPU::IndirectX};
-    instructionTable[0xF4] = {&CPU::NOP, &CPU::IndirectX};
-    instructionTable[0x1A] = {&CPU::NOP, &CPU::Implicit};
-    instructionTable[0x3A] = {&CPU::NOP, &CPU::Implicit};
-    instructionTable[0x5A] = {&CPU::NOP, &CPU::Implicit};
-    instructionTable[0x7A] = {&CPU::NOP, &CPU::Implicit};
-    instructionTable[0xDA] = {&CPU::NOP, &CPU::Implicit};
-    instructionTable[0xFA] = {&CPU::NOP, &CPU::Implicit};
-    instructionTable[0x80] = {&CPU::NOP, &CPU::IndirectX};
+  // NOP
+  instructionTable[0x04] = {&CPU::NOP, &CPU::ZeroPage};
+  instructionTable[0x44] = {&CPU::NOP, &CPU::ZeroPageY};
+  instructionTable[0x64] = {&CPU::NOP, &CPU::ZeroPageX};
+  instructionTable[0x0C] = {&CPU::NOP, &CPU::Absolute};
+  instructionTable[0x14] = {&CPU::NOP, &CPU::IndirectX};
+  instructionTable[0x34] = {&CPU::NOP, &CPU::IndirectX};
+  instructionTable[0x54] = {&CPU::NOP, &CPU::IndirectX};
+  instructionTable[0x74] = {&CPU::NOP, &CPU::IndirectX};
+  instructionTable[0xD4] = {&CPU::NOP, &CPU::IndirectX};
+  instructionTable[0xF4] = {&CPU::NOP, &CPU::IndirectX};
+  instructionTable[0x1A] = {&CPU::NOP, &CPU::Implicit};
+  instructionTable[0x3A] = {&CPU::NOP, &CPU::Implicit};
+  instructionTable[0x5A] = {&CPU::NOP, &CPU::Implicit};
+  instructionTable[0x7A] = {&CPU::NOP, &CPU::Implicit};
+  instructionTable[0xDA] = {&CPU::NOP, &CPU::Implicit};
+  instructionTable[0xFA] = {&CPU::NOP, &CPU::Implicit};
+  instructionTable[0x80] = {&CPU::NOP, &CPU::IndirectX};
   }
 
   // --------------------------------------  Instructions
@@ -591,7 +591,7 @@ public:
   }
 
   void INY(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("INY called without implied mode");
     }
 
@@ -601,7 +601,7 @@ public:
   }
 
   void INX(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("INX called without implied mode");
     }
 
@@ -611,7 +611,7 @@ public:
   }
 
   void DEY(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("DEY called without implied mode");
     }
 
@@ -621,7 +621,7 @@ public:
   }
 
   void DEX(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("DEX called without implied mode");
     }
 
@@ -664,7 +664,7 @@ public:
 
   // Return from subroutine
   void RTS(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("RTS called without implied mode");
     }
 
@@ -677,7 +677,7 @@ public:
 
   // Break(software IRQ)
   void BRK(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("BRK called without implied mode");
     }
 
@@ -699,7 +699,7 @@ public:
 
   // Return from Interrupt
   void RTI(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("RTI called without implied mode");
     }
 
@@ -719,7 +719,7 @@ public:
 
   // Push A register to stack
   void PHA(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("PHA called without implied mode");
     }
 
@@ -728,7 +728,7 @@ public:
 
   // Pop stack into A register
   void PLA(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("PLA called without implied mode");
     }
 
@@ -739,7 +739,7 @@ public:
 
   // Push status flags to stack
   void PHP(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("PHP called without implied mode");
     }
 
@@ -751,7 +751,7 @@ public:
 
   // Pop status flags
   void PLP(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("PLP called without implied mode");
     }
 
@@ -764,7 +764,7 @@ public:
 
   // Clear Interrupt Flag
   void CLI(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("CLI called without implied mode");
     }
 
@@ -773,7 +773,7 @@ public:
 
   // Set Interrupt Flag
   void SEI(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("SEI called without implied mode");
     }
 
@@ -853,7 +853,7 @@ public:
 	
 	//set the carry flag
 	void SEC(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("SEC called without implied mode");
     }
 
@@ -862,7 +862,7 @@ public:
 	
 	// clear the carry flag
 	void CLC(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("CLC called without implied mode");
     }
 
@@ -1007,7 +1007,7 @@ public:
 
   // No Operation
   void NOP(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("NOP called without implied mode");
     }
 
@@ -1018,7 +1018,7 @@ public:
 
   // Clear Decimal Flag
   void CLD(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("CLD called without implied mode");
     }
 
@@ -1027,7 +1027,7 @@ public:
 
   // Set Decimal Flag
   void SED(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("SED called without implied mode");
     }
 
@@ -1036,7 +1036,7 @@ public:
 
   // Clear Overflow Flag
   void CLV(uint16_t address) {
-    if (address != 0xFF) {
+    if (address != 0xFFFF) {
       throw std::runtime_error("CLV called without implied mode");
     }
     
@@ -1244,23 +1244,23 @@ public:
 
   // Special Indirect mode for JMP
   uint16_t IndirectJMP() {
-      uint16_t lo = readMemory(PC);
-      PC ++;
-      uint16_t hi = readMemory(PC);
-      PC ++;
+    uint16_t lo = readMemory(PC);
+    PC ++;
+    uint16_t hi = readMemory(PC);
+    PC ++;
 
-      uint16_t addr = (hi << 8) | lo;
+    uint16_t addr = (hi << 8) | lo;
 
-      if (lo == 0x00FF) {
-          hi = readMemory(addr & 0xFF00);
-      }
-      else {
-          hi = readMemory(addr + 1);
-      }
-      lo = readMemory(addr);
+    if (lo == 0x00FF) {
+        hi = readMemory(addr & 0xFF00);
+    }
+    else {
+        hi = readMemory(addr + 1);
+    }
+    lo = readMemory(addr);
 
-      addr = (hi << 8) | lo;
-      return addr;
+    addr = (hi << 8) | lo;
+    return addr;
   }
 
   // Constructor
