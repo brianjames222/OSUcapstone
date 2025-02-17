@@ -7,9 +7,8 @@
 #include <array>
 #include <iostream>
 #include <iomanip>
-
-
 #include "Bus.h"
+
 class CPU {
 public:
     // Registers
