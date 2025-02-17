@@ -11,7 +11,7 @@ Bus::~Bus() = default;
 void Bus::write(uint16_t address, uint8_t data) {
 
     if (address >= 0x0000 && address <= 0x1FFF) {
-        cpuRam[0x0000] = data;
+        cpuRam[address & 0x07FF] = data;
     } else if (address >= 0x2000 && address <= 0x3FFF) {
         // TODO: write to PPU registers and mirror
     } else if ((address >= 0x4000 && address <= 0x4013) || address == 0x4015 || address == 0x4017) {
