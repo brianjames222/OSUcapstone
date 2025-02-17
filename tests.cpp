@@ -642,4 +642,14 @@ public:
 		assert(opcode == 0xFF);
 		std::cout << "---------------------------\nBus tests passed!\n";
 	}
+
+  void test_PPU_registers() {
+    Bus bus;
+    // Write to PPUCTRL
+    bus.write(0x2000, 0xC2);
+
+    // Read from PPUCTRL
+    bus.read(0x2000);
+  }
+
 };
