@@ -285,7 +285,7 @@ public:
 	void test_jmp() {
 		CPU cpu;
 		cpu.reset();
-		uint16_t test_memory = 0x0000;
+		uint16_t test_memory = 0xFFFF;
 
 		// Test JMP, JSR, RTS
 		cpu.JMP(0xFFFA);
@@ -329,7 +329,7 @@ public:
 	void test_stack_instructions() {
 		CPU cpu;
 		cpu.reset();
-		uint16_t test_memory = 0x0000;
+		uint16_t test_memory = 0xFFFF;
 		cpu.A = 0x34;
 		// Test PHA and PLA
 		cpu.PHA(test_memory);
@@ -642,4 +642,14 @@ public:
 		assert(opcode == 0xFF);
 		std::cout << "---------------------------\nBus tests passed!\n";
 	}
+
+  void test_PPU_registers() {
+    Bus bus;
+    // Write to PPUCTRL
+    bus.write(0x2000, 0xC2);
+
+    // Read from PPUCTRL
+    bus.read(0x2000);
+  }
+
 };

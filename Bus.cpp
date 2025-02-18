@@ -13,7 +13,7 @@ void Bus::write(uint16_t address, uint8_t data) {
     if (address >= 0x0000 && address <= 0x1FFF) {
         cpuRam[address & 0x07FF] = data;
     } else if (address >= 0x2000 && address <= 0x3FFF) {
-        // TODO: write to PPU registers and mirror
+        ppuRegister[(address - 0x2000) % 0x8] = data;
     } else if ((address >= 0x4000 && address <= 0x4013) || address == 0x4015 || address == 0x4017) {
         // TODO: write to APU address
     } else if (address == 0x4014) {
@@ -30,6 +30,7 @@ uint8_t Bus::read(uint16_t address) {
         return cpuRam[address & 0x07FF];
     } else if (address >= 0x2000 && address <= 0x3FFF) {
         // TODO: read from PPU registers and mirror
+        return ppuRegister[(address - 0x2000) % 0x8];
     } else if ((address >= 0x4000 && address <= 0x4013) || address == 0x4015 || address == 0x4017) {
         // TODO: read from APU address
     } else if (address == 0x4014) {
