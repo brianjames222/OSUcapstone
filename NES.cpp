@@ -23,17 +23,35 @@ class NES {
             rom.load(filename);
             rom_loaded = true;
             uint16_t memory_address = 0x0000;
-            uint16_t memory_address_cpu = 0xC000;
-
+            
             // Write prg ROM to CPU Memory
-            for (int i = 0;i < 1024 * 16; i++) {
-                uint8_t prgByte = rom.prgRom[memory_address];
-                memory_address ++;
-                cpu.writeMemory(memory_address_cpu, prgByte);
-                memory_address_cpu ++;
+            // this section is specifically for NROM, changes will be necessary for future mappers
+            if (rom.mirrored) {
+            	uint16_t memory_address_cpu = 0x8000;
+            	uint16_t memory_address_cpu_mirror = 0xC000;
+				
+				// NROM-128
+            	for (int i = 0; i < 1024 * 16; i++) {
+                	uint8_t prgByte = rom.prgRom[memory_address];
+                	memory_address ++;
+                	cpu.writeMemory(memory_address_cpu, prgByte);
+                	cpu.writeMemory(memory_address_cpu_mirror, prgByte);
+                	memory_address_cpu ++;
+                	memory_address_cpu_mirror ++;
+            	}
+        	} else {
+        		uint16_t memory_address_cpu = 0x8000;
+
+				// NROM-256
+            	for (int i = 0; i < 1024 * 32; i++) {
+                	uint8_t prgByte = rom.prgRom[memory_address];
+                	memory_address ++;
+                	cpu.writeMemory(memory_address_cpu, prgByte);
+                	memory_address_cpu ++;
+            	}
             }
-        }
-    }
+    	}
+	}
 
     void initNES() {
         if (on == true) {
