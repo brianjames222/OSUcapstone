@@ -3,7 +3,10 @@
 
 #include <array>
 #include <cstdint>
+
 class CPU;
+class APU;
+
 class Bus {
 public:
     Bus();  // Constructor
@@ -11,6 +14,7 @@ public:
 
     // Devices
     CPU* cpu;
+    APU* apu;
     std::array<uint8_t, 2 * 1024> cpuRam{};
     std::array<uint8_t, 8> ppuRegister{};
 
