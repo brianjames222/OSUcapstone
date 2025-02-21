@@ -34,6 +34,13 @@ public:
     N = (1 << 7)     // Negative
   };
 
+  // Struct for returning address
+  struct AddressResult {
+    uint16_t address;
+    int cycles;
+    bool additionalCycles;
+  };
+
   void connectBus(Bus* bus) {this->bus = bus;}
 
   //Example read and write through the bus.
@@ -112,8 +119,7 @@ public:
   // Read and execute the next instruction
   void execute() {
     // Read the opcode
-    uint8_t opcode = readMemory(PC);
-    PC ++;
+    uint8_t opcode = readMemory(PC++);
 
     // Get the address mode and instruction type from the opcode
     //std::cout << "Opcode: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(opcode) << std::endl;
@@ -122,18 +128,18 @@ public:
       std::cout << "Error: Invalid opcode"; 
     }
 
-    // Find the address
-    uint16_t address = (this->*opcodeInstr.addressingMode)();
+    // Find the address, cycles and additional cycles
+    AddressResult res = (this->*opcodeInstr.addressingMode)();
 
     // Execute the instruction
-    (this->*opcodeInstr.operation)(address);
+    (this->*opcodeInstr.operation)(res.address);
 
   }
 
   // Instruction struct for storing addressingMode and operation
   struct Instruction {
     void (CPU::*operation)(uint16_t);
-    uint16_t (CPU::*addressingMode)();
+    AddressResult (CPU::*addressingMode)();
   };
 
   // Intialize instructionTable with null values
@@ -1159,91 +1165,141 @@ public:
 
   // --------------------------------------  Addressing Modes
   // Address is implied, returning 0xFFFF as indicator
-  uint16_t Implicit() {
-    return 0xFFFF;
+  AddressResult Implicit() {
+    uint16_t address = 0xFFFF;
+    int cycles = 2;
+    bool additionalCycles = false;
+
+    return {address, cycles, additionalCycles};
   }
 
   // Address is directly at the next PC
-  uint16_t Immediate() {
-    return PC++;
+  AddressResult Immediate() {
+    uint16_t address = PC++;
+    int cycles = 2;
+    bool additionalCycles = false;
+
+    return {address, cycles, additionalCycles};
   }
 
   // Address is the accumulator, returning 0xFFFF as indicator
   // Logic to be handled in instruction
-  uint16_t Accumulator() {
-    return 0xFFFF;
+  AddressResult Accumulator() {
+    uint16_t address = 0xFFFF;
+    int cycles = 2;
+    bool additionalCycles = false;
+
+    return {address, cycles, additionalCycles};
   }
 
   // Return next PC += offset, stored in PC
-  uint16_t Relative() {
+  AddressResult Relative() {
     // Offset is unsigned, at the memory location stored in PC
     int8_t offset = static_cast<int8_t>(readMemory(PC));
     PC++;
-    return offset;
+    // Return a uint16_t as forced, which will be converted back into
+    // an int8_t in the branch instructions
+    uint16_t addr = offset & 0xFF;
+    int cycles = 2;
+    bool additionalCycles = true;
+
+    return {addr, cycles, additionalCycles};
   }
 
   // Return address from zero page memory
-  uint16_t ZeroPage() {
-    return readMemory(PC++);
+  AddressResult ZeroPage() {
+    uint16_t address = readMemory(PC++);
+    int cycles = 3;
+    bool additionalCycles = true;
+
+    return {address, cycles, additionalCycles};
   }
 
   // Reuturn address + X from zero page memory, wrapped
-  uint16_t ZeroPageX() {
-    return readMemory(PC++) + X & 0xFF;
+  AddressResult ZeroPageX() {
+    uint16_t address = readMemory(PC++) + X & 0xFF;
+    int cycles = 4;
+    bool additionalCycles = true;
+
+    return {address, cycles, additionalCycles};
   }
 
   // Reuturn address + X from zero page memory, wrapped
-  uint16_t ZeroPageY() {
-    return readMemory(PC++) + Y & 0xFF;
+  AddressResult ZeroPageY() {
+    uint16_t address = readMemory(PC++) + Y & 0xFF;
+    int cycles = 4;
+    bool additionalCycles = true;
+
+    return {address, cycles, additionalCycles};
   }
 
   // Return a full 16 bit address from the next two PC
-  uint16_t Absolute() {
+  AddressResult Absolute() {
     uint16_t addr = readMemory(PC) | readMemory(PC + 1) << 8;
     PC += 2;
-    return addr;
+    int cycles = 4;
+    bool additionalCycles = true;
+
+    return {addr, cycles, additionalCycles};
   }
 
   // Return a full 16 bit address from the next two PC + X
-  uint16_t AbsoluteX() {
+  AddressResult AbsoluteX() {
     uint16_t addr = readMemory(PC) | readMemory(PC + 1) << 8;
+    addr += X;
     PC += 2;
-    return addr + X;
+    int cycles = 4;
+    bool additionalCycles = true;
+
+    return {addr, cycles, additionalCycles};
   }
 
   // Return a full 16 bit address from the next two PC + Y
-  uint16_t AbsoluteY() {
+  AddressResult AbsoluteY() {
     uint16_t addr = readMemory(PC) | readMemory(PC + 1) << 8;
+    addr += Y;
     PC += 2;
-    return addr + Y;
+    int cycles = 4;
+    bool additionalCycles = true;
+
+    return {addr, cycles, additionalCycles};
   }
 
   // Return an address using the operand as a pointer
-  uint16_t Indirect() {
+  AddressResult Indirect() {
     // Find 16 bit address from operand
     uint16_t pointer = readMemory(PC) | readMemory(PC + 1) << 8;
     // Find address referenced by pointer
     uint16_t addr = readMemory(pointer) | readMemory((pointer + 1) & 0xFFFF) << 8;
     PC += 2;
-    return addr;
+    int cycles = 5;
+    bool additionalCycles = false;
+
+    return {addr, cycles, additionalCycles};
   }
 
   // Return a full 16 bit address from a pointer in the zero page + X
-  uint16_t IndirectX() {
+  AddressResult IndirectX() {
     uint16_t ptrAddr = (readMemory(PC++) + X) & 0xFF;
     uint16_t addr = readMemory(ptrAddr) | (readMemory(ptrAddr + 1) & 0xFF) << 8;
-    return addr;
+    int cycles = 6;
+    bool additionalCycles = false;
+
+    return {addr, cycles, additionalCycles};
   }
 
   // Return a full 16 bit address from a pointer in the zero page + Y
-  uint16_t IndirectY() {
+  AddressResult IndirectY() {
     uint16_t ptrAddr = readMemory(PC++);
     uint16_t addr = readMemory(ptrAddr) | (readMemory(ptrAddr + 1) & 0xFF) << 8;
-    return addr + Y;
+    addr += Y;
+    int cycles = 5;
+    bool additionalCycles = true;
+    return {addr, cycles, additionalCycles};
   }
 
   // Special Indirect mode for JMP
-  uint16_t IndirectJMP() {
+  AddressResult IndirectJMP() {
     uint16_t lo = readMemory(PC);
     PC ++;
     uint16_t hi = readMemory(PC);
@@ -1260,7 +1316,10 @@ public:
     lo = readMemory(addr);
 
     addr = (hi << 8) | lo;
-    return addr;
+    int cycles = 5;
+    bool additionalCycles = false;
+
+    return {addr, cycles, additionalCycles};
   }
 
   // Constructor

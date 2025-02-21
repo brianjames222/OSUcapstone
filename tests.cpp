@@ -318,7 +318,7 @@ public:
 		cpu.writeMemory(0x1234, 0x78);
 		cpu.writeMemory(0x1235, 0x56);
 
-		cpu.JMP(cpu.IndirectJMP());
+		cpu.JMP(cpu.IndirectJMP().address);
 
 		assert(cpu.PC == 0x5678);
 
@@ -349,7 +349,7 @@ public:
 		
 		uint16_t test_memory = 0x0000;
 		cpu.writeMemory(test_memory, 0x79);
-		test_memory = cpu.Relative();
+		test_memory = cpu.Relative().address;
 		
 		// branch if Zero set
 		cpu.setFlag(CPU::FLAGS::Z, 1);
