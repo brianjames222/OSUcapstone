@@ -22,6 +22,7 @@ class NESROM {
 public:
     uint8_t* prgRom;
     uint8_t* chrRom;
+	bool mirrored = false;		// for NROM-128
     
     // determine the type of mapper
     void detect_mapper(const NESHeader& header, std::ifstream &file) {
@@ -33,10 +34,13 @@ public:
        			size_t prgRomSize = header.prgRomSize * 16 * 1024;		// 2 = NROM-256, mapped into $8000-$FFFF
        																	// 1 = NROM-128, mapped into $8000-$BFFF AND $C000-$FFFF
         		size_t chrRomSize = header.chrRomSize * 8 * 1024;
-
+        		
+        		if (header.prgRomSize == 1) mirrored = true;			// let the calling program know to mirror the memory
+	
         		// Dynamically allocate memory for PRG ROM and CHR ROM
         		prgRom = new uint8_t[prgRomSize];
         		file.read(reinterpret_cast<char*>(prgRom), prgRomSize);
+
         		
         		chrRom = new uint8_t[chrRomSize];
             	file.read(reinterpret_cast<char*>(chrRom), chrRomSize);

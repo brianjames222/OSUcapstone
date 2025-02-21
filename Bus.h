@@ -13,7 +13,7 @@ public:
     CPU* cpu;
     std::array<uint8_t, 2 * 1024> cpuRam{};
     std::array<uint8_t, 8> ppuRegister{};
-
+    										
     // Bus read and write functions
     void write(uint16_t address, uint8_t data);
     uint8_t read(uint16_t address);
