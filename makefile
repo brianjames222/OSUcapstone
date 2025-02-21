@@ -8,7 +8,7 @@ CXXFLAGS = -std=c++20 -Wall -Wextra -pedantic
 TARGET = emulator
 
 # Source files
-SRCS = CPU.cpp main.cpp tests.cpp ROM.cpp NES.cpp Bus.cpp
+SRCS = CPU.cpp main.cpp tests.cpp ROM.cpp NES.cpp Bus.cpp APU.cpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
