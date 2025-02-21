@@ -6,6 +6,7 @@ Bus::Bus() {
     cpu = new CPU();
     apu = new APU();
     cpu->connectBus(this);  // Connect CPU to Bus
+    APU apu;                // not needed?
 }
 
 Bus::~Bus() = default;

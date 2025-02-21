@@ -1,4 +1,3 @@
-
 #include "tests.cpp"
 
 int main() {
@@ -25,7 +24,7 @@ int main() {
 	tests.test_CLD_SED_CLV();
 	tests.test_NES();
 	tests.test_Bus();
-  tests.test_PPU_registers();
+	tests.test_PPU_registers();
     return 0;
 }
 
