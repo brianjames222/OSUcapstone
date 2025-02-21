@@ -18,6 +18,8 @@ public:
   uint8_t S = 0xFD;        // Stack Pointer, start at 0xFD
   uint16_t PC = 0x0000;    // Program Counter, read memory at 0xFFFC and 0xFFFD for start of program;
   uint8_t P = I + U;        // Status Flags Register, start with I and U
+  
+  int cycles = 0;          // Countdown of cycles until the next instruction
 
   // RAM for CPU
   std::array<uint8_t, 64 * 1024> memory{};
@@ -134,6 +136,14 @@ public:
     // Execute the instruction
     (this->*opcodeInstr.operation)(res.address);
 
+  }
+
+  // Step-execute with cycles
+  void cycleExecute() {
+    if (cycles == 0) {
+      execute();
+    }
+    cycles--;
   }
 
   // Instruction struct for storing addressingMode and operation
@@ -1168,7 +1178,8 @@ public:
   AddressResult Implicit() {
     uint16_t address = 0xFFFF;
     int cycles = 2;
-    bool additionalCycles = false;
+    // Set to true to allow for special cases
+    bool additionalCycles = true;
 
     return {address, cycles, additionalCycles};
   }
@@ -1201,6 +1212,8 @@ public:
     // an int8_t in the branch instructions
     uint16_t addr = offset & 0xFF;
     int cycles = 2;
+    // Branch instructions will modify cycles based on 
+    // branch taken and page crossing
     bool additionalCycles = true;
 
     return {addr, cycles, additionalCycles};
@@ -1224,7 +1237,7 @@ public:
     return {address, cycles, additionalCycles};
   }
 
-  // Reuturn address + X from zero page memory, wrapped
+  // Reuturn address + Y from zero page memory, wrapped
   AddressResult ZeroPageY() {
     uint16_t address = readMemory(PC++) + Y & 0xFF;
     int cycles = 4;
@@ -1247,9 +1260,13 @@ public:
   AddressResult AbsoluteX() {
     uint16_t addr = readMemory(PC) | readMemory(PC + 1) << 8;
     addr += X;
-    PC += 2;
     int cycles = 4;
+    // additionalCycles dependent on page boundary crossed
+    if ((addr & 0xFF00) != (readMemory(PC + 1) << 8)) {
+      cycles++;
+    }
     bool additionalCycles = true;
+    PC += 2;
 
     return {addr, cycles, additionalCycles};
   }
@@ -1258,9 +1275,12 @@ public:
   AddressResult AbsoluteY() {
     uint16_t addr = readMemory(PC) | readMemory(PC + 1) << 8;
     addr += Y;
-    PC += 2;
     int cycles = 4;
+    if ((addr & 0xFF00) != (readMemory(PC + 1) << 8)) {
+      cycles++;
+    }
     bool additionalCycles = true;
+    PC += 2;
 
     return {addr, cycles, additionalCycles};
   }
@@ -1294,6 +1314,10 @@ public:
     uint16_t addr = readMemory(ptrAddr) | (readMemory(ptrAddr + 1) & 0xFF) << 8;
     addr += Y;
     int cycles = 5;
+    // Add 1 cycle if page crossed
+    if ((addr & 0xFF00) != ((readMemory(ptrAddr + 1) & 0xFF) << 8)) {
+      cycles++;
+    }
     bool additionalCycles = true;
     return {addr, cycles, additionalCycles};
   }
