@@ -118,37 +118,58 @@ public:
     setFlag(U, true);
   }
 
-  // Read and execute the next instruction
+  // Read and execute cycles until the next instruction has ran
   void execute() {
-    // Read the opcode
-    uint8_t opcode = readMemory(PC++);
-
-    // Get the address mode and instruction type from the opcode
-    //std::cout << "Opcode: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(opcode) << std::endl;
-    Instruction opcodeInstr = instructionTable[opcode];
-    if (opcodeInstr.operation == nullptr || opcodeInstr.addressingMode == nullptr) {
-      std::cout << "Error: Invalid opcode"; 
+    int ran = 1;
+    while (ran) {
+      ran = cycleExecute();
     }
-
-    // Find the address, cycles and additional cycles
-    AddressResult res = (this->*opcodeInstr.addressingMode)();
-
-    // Execute the instruction
-    (this->*opcodeInstr.operation)(res.address);
-
   }
 
-  // Step-execute with cycles
-  void cycleExecute() {
+  // Execute a cycle, running an instruction if or waiting for cycles
+  int cycleExecute() {
+    int ran = 1;
+
+    // Ready to run next instruction
     if (cycles == 0) {
-      execute();
+      // Read the opcode
+      uint8_t opcode = readMemory(PC++);
+
+      // Get the address mode and instruction type from the opcode
+      //std::cout << "Opcode: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(opcode) << std::endl;
+      Instruction opcodeInstr = instructionTable[opcode];
+      if (opcodeInstr.operation == nullptr || opcodeInstr.addressingMode == nullptr) {
+        std::cout << "Error: Invalid opcode"; 
+      }
+
+      // Find the address, cycles and additional cycles
+      AddressResult res = (this->*opcodeInstr.addressingMode)();
+      std::cout << "Cycles: " << res.cycles << "\n";
+
+      // Execute the instruction
+      int instrCycles = (this->*opcodeInstr.operation)(res.address);
+
+      // Adds cycles to counter (if necessary)
+      cycles += res.cycles;
+      if (res.additionalCycles) {
+        cycles += instrCycles;
+      }
+        int res = 0;
+
+      // Return ran
+      ran = 0;
+      std::cout << "Executed!\n";
+    } else {
+      std::cout << "Waiting " << cycles << "cycles\n";
     }
+
     cycles--;
+    return ran;
   }
 
   // Instruction struct for storing addressingMode and operation
   struct Instruction {
-    void (CPU::*operation)(uint16_t);
+    int (CPU::*operation)(uint16_t);
     AddressResult (CPU::*addressingMode)();
   };
 
