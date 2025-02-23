@@ -154,7 +154,6 @@ public:
       if (res.additionalCycles) {
         cycles += instrCycles;
       }
-        int res = 0;
 
       // Return ran
       ran = 0;
@@ -467,90 +466,102 @@ public:
 
   // Access Instructions
   // "LDA loads a memory value into the accumulator."
-  void LDA(uint16_t address) {
+  int LDA(uint16_t address) {
     uint8_t value = readMemory(address);
     A = value;
 
     updateZeroNegativeFlags(A);
+    return 0;
   }
 
   // "LDX loads a memory value into the X register."
-  void LDX(uint16_t address) {
+  int LDX(uint16_t address) {
     uint8_t value = readMemory(address);
     X = value;
 
     updateZeroNegativeFlags(X);
+    return 0;
   }
 
   // "LDY loads a memory value into the Y register."
-  void LDY(uint16_t address) {
+  int LDY(uint16_t address) {
     uint8_t value = readMemory(address);
     Y = value;
 
     updateZeroNegativeFlags(Y);
+    return 0;
   }
 
   // "STA stores the accumulator value into memory."
-  void STA(uint16_t address) {
+  int STA(uint16_t address) {
     writeMemory(address, A);
+    return 0;
   }
 
   // "STX stores the X register value into memory."
-  void STX(uint16_t address) {
+  int STX(uint16_t address) {
     writeMemory(address, X);
+    return 0;
   }
 
   // "STY stores the Y register value into memory. "
-  void STY(uint16_t address) {
+  int STY(uint16_t address) {
     writeMemory(address, Y);
-  } 
+    return 0;
+  }
 
   // Transfer Instructions
   // "TAX copies the accumulator value to the X register."
-  void TAX(uint16_t) {
+  int TAX(uint16_t) {
     X = A;
 
     updateZeroNegativeFlags(X);
+    return 0;
   }
 
   // "TAY copies the accumulator value to the Y register."
-  void TAY(uint16_t) {
+  int TAY(uint16_t) {
     Y = A;
 
     updateZeroNegativeFlags(Y);
-  } 
+    return 0;
+  }
 
   // "TSX copies the stack pointer value to the X register."
-  void TSX(uint16_t) {
+  int TSX(uint16_t) {
     X = S;
 
     updateZeroNegativeFlags(X);
+    return 0;
   }
 
   // "TXA copies the X register value to the accumulator."
-  void TXA(uint16_t) {
+  int TXA(uint16_t) {
     A = X;
 
     updateZeroNegativeFlags(A);
-  }  
+    return 0;
+  }
 
   // "TXS copies the X register value to the stack pointer."
-  void TXS(uint16_t) {
+  int TXS(uint16_t) {
     S = X;
+    return 0;
   }
 
   // "TYA copies the Y register value to the accumulator."
-  void TYA(uint16_t) {
+  int TYA(uint16_t) {
     A = Y;
 
     updateZeroNegativeFlags(A);
-  } 
+    return 0;
+  }
 
   // Justyn's Instructions
   // Arithmetic Instructions
 
   // Add carry flag and value to A
-  void ADC(uint16_t address) {
+  int ADC(uint16_t address) {
     uint8_t value = readMemory(address);
     uint16_t result = A + value + getFlag(CPU::FLAGS::C);
 
@@ -573,10 +584,11 @@ public:
 
     // Update A
     A = trunc_result;
+    return 0;
   }
 
   // Subtract value from A with carry flag
-  void SBC(uint16_t address) {
+  int SBC(uint16_t address) {
     uint8_t value = readMemory(address);
     uint16_t result = A + ~value + C;
 
@@ -599,35 +611,41 @@ public:
 
     // Update A
     A = trunc_result;
+
+    return 0;
   }
 
-  void BIT(uint16_t address) {
+  int BIT(uint16_t address) {
     uint8_t value = readMemory(address);
     uint8_t result = A & value;
     setFlag(Z, result == 0);
     setFlag(N, value & (1 << 7));
     setFlag(V, value & (1 << 6));
+    return 0;
   }
 
-  void AND(uint16_t address) {
+  int AND(uint16_t address) {
     A = A & readMemory(address);
     setFlag(Z, A == 0x00);
     setFlag(N, A & (1 << 7));
+    return 0;
   }
 
-  void ORA(uint16_t address) {
+  int ORA(uint16_t address) {
     A = A | readMemory(address);
     setFlag(Z, A == 0x00);
     setFlag(N, A & (1 << 7));
+    return 0;
   }
 
-  void EOR(uint16_t address) {
+  int EOR(uint16_t address) {
     A = A ^ readMemory(address);
     setFlag(Z, A == 0x00);
     setFlag(N, A & (1 << 7));
+    return 0;
   }
 
-  void INY(uint16_t address) {
+  int INY(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("INY called without implied mode");
     }
@@ -635,9 +653,10 @@ public:
     Y++;
     setFlag(Z, Y == 0x00);
     setFlag(N, Y & (1 << 7));
+    return 0;
   }
 
-  void INX(uint16_t address) {
+  int INX(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("INX called without implied mode");
     }
@@ -645,9 +664,10 @@ public:
     X++;
     setFlag(Z, X == 0x00);
     setFlag(N, X & (1 << 7));
+    return 0;
   }
 
-  void DEY(uint16_t address) {
+  int DEY(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("DEY called without implied mode");
     }
@@ -655,9 +675,10 @@ public:
     Y--;
     setFlag(Z, Y == 0x00);
     setFlag(N, Y & (1 << 7));
+    return 0;
   }
 
-  void DEX(uint16_t address) {
+  int DEX(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("DEX called without implied mode");
     }
@@ -665,22 +686,27 @@ public:
     X--;
     setFlag(Z, X == 0x00);
     setFlag(N, X & (1 << 7));
+    return 0;
   }
 
-  void INC(uint16_t address) {
+  int INC(uint16_t address) {
     uint8_t value = readMemory(address);
     value ++;
     writeMemory(address, value);
     setFlag(Z, value == 0x00);
     setFlag(N, value & (1 << 7));
+    // Requires 2 additional cycles
+    return 2;
   }
 
-  void DEC(uint16_t address) {
+  int DEC(uint16_t address) {
     uint8_t value = readMemory(address);
     value --;
     writeMemory(address, value);
     setFlag(Z, value == 0x00);
     setFlag(N, value & (1 << 7));
+    // Requires 2 additional cycles
+    return 2;
   }
 
   // Ethan's instructions
@@ -688,19 +714,24 @@ public:
   //Jump instructions
 
   // Jump to address
-  void JMP(uint16_t address) {
+  int JMP(uint16_t address) {
     PC = address;
+    // Absolute is 1 cycle faster
+    // Indirect unchanged
+    return -1;
   }
 
   // Jump to subroutine
-  void JSR(uint16_t address) {
+  int JSR(uint16_t address) {
     PC--;
     stack_push16(PC);
     PC = address;
+    // Requires 2 additional cycles
+    return 2;
   }
 
   // Return from subroutine
-  void RTS(uint16_t address) {
+  int RTS(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("RTS called without implied mode");
     }
@@ -710,10 +741,13 @@ public:
 
     PC = (hi << 8) | lo;
     PC ++;
+
+    // Also requires 4 additional cycles
+    return 4;
   }
 
   // Break(software IRQ)
-  void BRK(uint16_t address) {
+  int BRK(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("BRK called without implied mode");
     }
@@ -732,10 +766,13 @@ public:
     uint16_t lo = readMemory(read_address);
     uint16_t hi = readMemory(read_address + 1);
     PC = (hi << 8) | lo;
+
+    // Takes 7 cycles for some reason
+    return 5;
   }
 
   // Return from Interrupt
-  void RTI(uint16_t address) {
+  int RTI(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("RTI called without implied mode");
     }
@@ -750,21 +787,26 @@ public:
     uint8_t lo = stack_pop();
     uint8_t hi = stack_pop();
     PC = (hi << 8) | lo;
-    }
+
+    // Requirse a MASSIVE 4 additional cycles
+    return 4;
+  }
 
     // Stack instructions
 
   // Push A register to stack
-  void PHA(uint16_t address) {
+  int PHA(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("PHA called without implied mode");
     }
 
     stack_push(A);
+    // For some reason requires 1 additional cycle
+    return 1;
   }
 
   // Pop stack into A register
-  void PLA(uint16_t address) {
+  int PLA(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("PLA called without implied mode");
     }
@@ -772,10 +814,12 @@ public:
     A = stack_pop();
     setFlag(Z, A == 0);
     setFlag(N, A & (1 << 7));
+    // For some reason requires 2 additional cycles
+    return 2;
   }
 
   // Push status flags to stack
-  void PHP(uint16_t address) {
+  int PHP(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("PHP called without implied mode");
     }
@@ -784,10 +828,12 @@ public:
     setFlag(U, true);
     stack_push(P);
     setFlag(B, false);
+    // Also requires 1 additional cycle
+    return 1;
   }
 
   // Pop status flags
-  void PLP(uint16_t address) {
+  int PLP(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("PLP called without implied mode");
     }
@@ -795,115 +841,194 @@ public:
     P = stack_pop();
     setFlag(U, true);
     setFlag(B, false);
+    // Also requires 2 additional cycles
+    return 2;
   }
 
     // Flag instructions
 
   // Clear Interrupt Flag
-  void CLI(uint16_t address) {
+  int CLI(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("CLI called without implied mode");
     }
 
     setFlag(I, false);
+    return 0;
   }
 
   // Set Interrupt Flag
-  void SEI(uint16_t address) {
+  int SEI(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("SEI called without implied mode");
     }
 
     setFlag(I, true);
+    return 0;
   }
 
   // Carter's instructions--------------------------------------------------------
 
   // Branch Instructions (8 count)
-	// these are signed, hence int8_t instead of uint8_t
+	// These are signed, hence int8_t instead of uint8_t
+  // Return 0 cycles if not taken, 1 if taken, and 2 if
+  // taken and page crossed
 
 	// branch if Zero flag is set
-	void BEQ(uint16_t address) {
+	int BEQ(uint16_t address) {
+    int res = 0;
 		if (getFlag(Z)) {
+      res++;
 			int8_t value = address;
+
+      // Add another cycle if page crossed
+      if (((PC + value) & 0xFF00) != (PC & 0xFF00)) {
+        res++;
+      }
+
 			PC = PC + value;
 		}
+    return res;
 	}
 
 	// branch if Zero flag is not set
-	void BNE(uint16_t address) {
+	int BNE(uint16_t address) {
+    int res = 0;
 		if (!getFlag(Z)) {
-			int8_t value = address;
+      res++;
+			int8_t value = address;	
+
+      // Add another cycle if page crossed
+      if (((PC + value) & 0xFF00) != (PC & 0xFF00)) {
+        res++;
+      }
+
 			PC = PC + value;
 		}
+    return res;
 	}
 
 	// branch if Carry flag is set
-	void BCS(uint16_t address) {
-		if (getFlag(C)) {
+	int BCS(uint16_t address) {
+		int res = 0;
+    if (getFlag(C)) {
+      res++;
 			int8_t value = address;
-			PC = PC + value;
+			
+      // Add another cycle if page crossed
+      if (((PC + value) & 0xFF00) != (PC & 0xFF00)) {
+        res++;
+      }
+
+      PC = PC + value;
 		}
+    return res;
 	}
 	
 	// branch if Carry flag is not set
-	void BCC(uint16_t address) {
+	int BCC(uint16_t address) {
+    int res = 0;
 		if (!getFlag(C)) {
+      res++;
 			int8_t value = address;
+
+      // Add another cycle if page crossed
+      if (((PC + value) & 0xFF00) != (PC & 0xFF00)) {
+        res++;
+      }
+
 			PC = PC + value;
 		}
+    return res;
 	}
 
 	// branch if Negative flag is set (Minus)
-	void BMI(uint16_t address) {
+	int BMI(uint16_t address) {
+    int res = 0;
 		if (getFlag(N)) {
 			int8_t value = address;
-			PC = PC + value;
+
+      // Add another cycle if page crossed
+      if (((PC + value) & 0xFF00) != (PC & 0xFF00)) {
+        res++;
+      }
+
+		PC = PC + value;
 		}
+    return res;
 	}
 
 	// branch if Negative flag is not set (Plus)
-	void BPL(uint16_t address) {
+	int BPL(uint16_t address) {
+    int res = 0;
 		if (!getFlag(N)) {
+      res++;
 			int8_t value = (address);
+
+      // Add another cycle if page crossed
+      if (((PC + value) & 0xFF00) != (PC & 0xFF00)) {
+        res++;
+      }
+
 			PC = PC + value;
 		}
+    return res;
 	}
 
 	// branch if oVerflow flag is set
-	void BVS(uint16_t address) {
+	int BVS(uint16_t address) {
+    int res = 0;
 		if (getFlag(V)) {
+      res++;
 			int8_t value = address;
+
+      // Add another cycle if page crossed
+      if (((PC + value) & 0xFF00) != (PC & 0xFF00)) {
+        res++;
+      }
+
 			PC = PC + value;
 		}
+    return res;
 	}
 	
 	// branch if oVerflow flag is not set
-	void BVC(uint16_t address) {
+	int BVC(uint16_t address) {
+    int res = 0;
 		if (!getFlag(V)) {
+      res++;
 			int8_t value = address;
+
+      // Add another cycle if page crossed
+      if (((PC + value) & 0xFF00) != (PC & 0xFF00)) {
+        res++;
+      }
+
 			PC = PC + value;
 		}
+    return res;
 	}
 
 	// Carry Flag Instructions (2 count)
 	
 	//set the carry flag
-	void SEC(uint16_t address) {
+	int SEC(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("SEC called without implied mode");
     }
 
 		setFlag(C, true);
+    return 0;
 	}
 	
 	// clear the carry flag
-	void CLC(uint16_t address) {
+	int CLC(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("CLC called without implied mode");
     }
 
 		setFlag(C, false);
+    return 0;
 	}
 
   // Zachary's Instructions
@@ -911,7 +1036,7 @@ public:
   // Shift Instructions
 
   // Arithmetic Shift Left
-  void ASL(uint16_t address) {
+  int ASL(uint16_t address) {
     uint8_t value;
     // Checking for accumulator mode
     if (address == 0xFFFF) {
@@ -933,10 +1058,13 @@ public:
       writeMemory(address, value);
       writeMemory(address, shifted_value);
     }
+
+    // 2 additional cycles
+    return 2;
   }
 
   // Logical Shift Right
-  void LSR(uint16_t address) {
+  int LSR(uint16_t address) {
     uint8_t value;
     if (address == 0xFFFF) {
       value = A;
@@ -956,10 +1084,12 @@ public:
       writeMemory(address, value);
       writeMemory(address, shifted_value);
     }
+    // Requires 2 additional cycles for all modes but absolute
+    return 2;
   }
 
   // Rotate Left
-  void ROL(uint16_t address) {
+  int ROL(uint16_t address) {
     uint8_t value;
     if (address == 0xFFFF) {
       value = A;
@@ -982,10 +1112,12 @@ public:
       writeMemory(address, value);
       writeMemory(address, shifted_value);
     }
+    // Requires 2 additional cycles for all modes but absolute
+    return 2;
   }
 
   // Rotate Right
-  void ROR(uint16_t address) {
+  int ROR(uint16_t address) {
     uint8_t value;
     if (address == 0xFFFF) {
       value = A;
@@ -1008,137 +1140,154 @@ public:
       writeMemory(address, value);
       writeMemory(address, shifted_value);
     }
+    // Also requires 2 additional cycles for all modes but absolute
+    return 2;
   }
 
   // Compare Instructions
 
   // Compare to Accumulator
-  void CMP(uint16_t address) {
+  int CMP(uint16_t address) {
     uint8_t value = readMemory(address);
     uint8_t result = A - value;
     int result_msb = (result >> 7) & 1;
     setFlag(C, A >= value);
     setFlag(N, result_msb);
     setFlag(Z, A == value);
+    return 0;
   }
 
   // Compare to X Register
-  void CPX(uint16_t address) {
+  int CPX(uint16_t address) {
     uint8_t value = readMemory(address);
     uint8_t result = X - value;
     int result_msb = (result >> 7) & 1;
     setFlag(C, X >= value);
     setFlag(N, result_msb);
     setFlag(Z, X == value);
+    return 0;
   }
 
   // Compare to Y Register
-  void CPY(uint16_t address) {
+  int CPY(uint16_t address) {
     uint8_t value = readMemory(address);
     uint8_t result = Y - value;
     int result_msb = (result >> 7) & 1;
     setFlag(C, Y >= value);
     setFlag(N, result_msb);
     setFlag(Z, Y == value);
+    return 0;
   }
 
   // No Operation
-  void NOP(uint16_t address) {
+  int NOP(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("NOP called without implied mode");
     }
 
-    return;
+    return 0;
   }
 
   // Flag Instructions
 
   // Clear Decimal Flag
-  void CLD(uint16_t address) {
+  int CLD(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("CLD called without implied mode");
     }
 
     setFlag(D, 0);
+    return 0;
   }
 
   // Set Decimal Flag
-  void SED(uint16_t address) {
+  int SED(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("SED called without implied mode");
     }
 
     setFlag(D, 1);
+    return 0;
   }
 
   // Clear Overflow Flag
-  void CLV(uint16_t address) {
+  int CLV(uint16_t address) {
     if (address != 0xFFFF) {
       throw std::runtime_error("CLV called without implied mode");
     }
-    
+
     setFlag(V, 0);
+    return 0;
   }
 
   // --------------------------------------  Unofficial Opcodes
   // Shift Left and Or
-  void SLO(uint16_t address) {
-    ASL(address);
-    ORA(address);
+  int SLO(uint16_t address) {
+    int res = ASL(address);
+    res += ORA(address);
+    return res;
   }
 
   // Rotate Left and And
-  void RLA(uint16_t address) {
-    ROL(address);
-    AND(address);
+  int RLA(uint16_t address) {
+    int res = ROL(address);
+    res += AND(address);
+    return res;
   }
 
   // Shift Right and Exclusive Or
-  void SRE(uint16_t address) {
-    LSR(address);
-    EOR(address);
+  int SRE(uint16_t address) {
+    int res = LSR(address);
+    res += EOR(address);
+    return res;
   }
 
   // Rotate Right and Add With Carry
-  void RRA(uint16_t address) {
-    ROR(address);
-    ADC(address);
+  int RRA(uint16_t address) {
+    int res = ROR(address);
+    res += ADC(address);
+    return res;
   }
 
   // Store A and X
-  void SAX(uint16_t address) {
+  int SAX(uint16_t address) {
     uint8_t result = A & X;
     writeMemory(address, result);
+    return 0;
   }
 
   // Load A and X
-  void LAX(uint16_t address) {
-    LDA(address);
-    LDX(address);
+  int LAX(uint16_t address) {
+    int res = LDA(address);
+    res += LDX(address);
+    return res;
   }
 
   // Decrement Memory and Compare
-  void DCP(uint16_t address) {
-    DEC(address);
-    CMP(address);
+  int DCP(uint16_t address) {
+    int res = DEC(address);
+    res += CMP(address);
+    return res;
   }
 
   // Increment Memory and Subtract with Borrow
-  void ISC(uint16_t address) {
-    INC(address);
-    SBC(address);
+  int ISC(uint16_t address) {
+    int res = INC(address);
+    res += SBC(address);
+    return res;
   }
 
   // AND then setting NZC flags
-  void ANC(uint16_t address) {
+  int ANC(uint16_t address) {
     A = A & readMemory(address);
     setFlag(Z, A == 0x00);
     setFlag(N, A & (1 << 7));
     setFlag(C, A & (1 << 7));
+    return 0;
   }
 
   // AND then LSR A
-  void ALR(uint16_t address) {
+  int ALR(uint16_t address) {
     // AND - Immediate
     A = A & readMemory(address);
     setFlag(Z, A == 0x00);
@@ -1155,10 +1304,11 @@ public:
     setFlag(Z, shifted_value == 0);
 
     A = shifted_value;
-    }
+    return 0;
+  }
 
   // AND then ROR A (CV flags set differently)
-  void ARR(uint16_t address) {
+  int ARR(uint16_t address) {
     // AND - Immediate
     A = A & readMemory(address);
     setFlag(Z, A == 0x00);
@@ -1182,16 +1332,18 @@ public:
     setFlag(V, bit_six^bit_five);
 
     A = shifted_value;
+    return 0;
   }
 
   // Sets X to (A AND X) minus value without borrow & Updates NZC flags
-  void AXS(uint16_t address) {
+  int AXS(uint16_t address) {
     uint8_t value = readMemory(address);
     X = (A & X) - value;
 
     setFlag(C, 0);
     setFlag(N, (X >> 7) & 1);
     setFlag(Z, X == 0);
+    return 0;
   }
 
   // --------------------------------------  Addressing Modes
