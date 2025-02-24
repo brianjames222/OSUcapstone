@@ -645,18 +645,20 @@ public:
 		std::cout << "---------------------------\nBus tests passed!\n";
 	}
 
-  void test_PPU_registers() {
-    Bus bus;
-    CPU& cpu = *bus.cpu;
-    // Write to PPUCTRL
-    cpu.writeBus(0x2000, 0xC2);
+	void test_PPU_registers() {
+	Bus bus;
+	CPU& cpu = *bus.cpu;
+	// Write to PPUCTRL
+	cpu.writeBus(0x2000, 0xC2);
 
-    // Read from PPUCTRL
-    uint8_t result = cpu.readBus(0x2000);
-    std::cout << "PPUCTRL: '" << std::hex << static_cast<int>(result) << "'\n";
-    assert(result == 0xC2);
+	// Read from PPUCTRL
+	//uint8_t result = cpu.readBus(0x2000);
+	uint8_t result = bus.ppu.PPUCTRL;
 
-    std::cout << "PPU Register Tests Passed\n";
-  }
+	std::cout << "PPUCTRL: '" << std::hex << static_cast<int>(result) << "'\n";
+	assert(result == 0xC2);
+
+	std::cout << "PPU Register Tests Passed\n";
+	}
 
 };
