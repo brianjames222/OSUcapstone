@@ -23,7 +23,7 @@ class NES {
             rom.load(filename);
             rom_loaded = true;
             uint16_t memory_address = 0x0000;
-            
+
             // Write prg ROM to CPU Memory
             // this section is specifically for NROM, changes will be necessary for future mappers
             if (rom.mirrored) {
