@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <fstream>
+#include <string>
 
 #include "NES.cpp"
 #include "Bus.h"
@@ -608,9 +609,10 @@ public:
         std::cout << "---------------------------\nCLD_SED_CLV Instruction tests passed!\n";
     }
 
-	void test_NES() {
+	void test_NES(std::string path) {
 		NES nes;
-		nes.load_rom("./nestest.nes");
+		nes.load_rom(path.c_str());
+    // current test rom is ./nestest.nes
 		nes.initNES();
 
 		std::ofstream outfile("output.txt");
