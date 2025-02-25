@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include "PPU.cpp" // Need to make header file for PPU
 
 class CPU;
 class APU;
@@ -15,8 +16,8 @@ public:
     // Devices
     CPU* cpu;
     APU* apu;
+    PPU  ppu;
     std::array<uint8_t, 2 * 1024> cpuRam{};
-    std::array<uint8_t, 8> ppuRegister{};
     										
     // Bus read and write functions
     void write(uint16_t address, uint8_t data);
