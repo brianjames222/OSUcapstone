@@ -17,9 +17,10 @@ public:
   uint8_t Y = 0x00;        // Y Register
   uint8_t S = 0xFD;        // Stack Pointer, start at 0xFD
   uint16_t PC = 0x0000;    // Program Counter, read memory at 0xFFFC and 0xFFFD for start of program;
-  uint8_t P = I + U;        // Status Flags Register, start with I and U
+  uint8_t P = I + U;       // Status Flags Register, start with I and U
   
   int cycles = 0;          // Countdown of cycles until the next instruction
+  int totalCycles = 0;     // Count of total cycles since launch
 
   // RAM for CPU
   std::array<uint8_t, 64 * 1024> memory{};
@@ -163,6 +164,7 @@ public:
     }
 
     cycles--;
+    totalCycles++;
     return ran;
   }
 

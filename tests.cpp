@@ -629,7 +629,7 @@ public:
 			  printf("count: %d\n", i+1);
         printf("Opcode: %02X\n", opcode);
         nes.cpu.printRegisters();
-        printf("Cycles: %d\n\n", nes.cpu.cycles);
+        printf("Cycles: %d\n\n", nes.cpu.totalCycles);
       }
 
       // Step by step (if enabled)
