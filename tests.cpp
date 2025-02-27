@@ -609,8 +609,9 @@ public:
         std::cout << "---------------------------\nCLD_SED_CLV Instruction tests passed!\n";
     }
 
-	void test_NES(std::string path) {
+	void test_NES(std::string path, bool debug, int step) {
 		NES nes;
+    std::cout << "Running testfile '" << path << "'\n";
 		nes.load_rom(path.c_str());
     // current test rom is ./nestest.nes
 		nes.initNES();
@@ -620,17 +621,29 @@ public:
 		auto start = std::chrono::high_resolution_clock::now();
 		for (int i = 0;i < 4954; i++) {
 			outfile << std::hex <<std::uppercase << nes.cpu.PC << std::endl;
-			printf("count: %d\n", i+1);
 			uint8_t opcode = nes.cpu.readMemory(nes.cpu.PC);
-			printf("Opcode: %02X\n", opcode);
-			nes.cpu.printRegisters();
 			nes.cycle();
+
+      // Debug output
+      if (debug) {
+			  printf("count: %d\n", i+1);
+        printf("Opcode: %02X\n", opcode);
+        nes.cpu.printRegisters();
+        printf("Cycles: %d\n\n", nes.cpu.cycles);
+      }
+
+      // Step by step (if enabled)
+      if (step != -1 && i >= step) {
+        printf("Press a button to continue...");
+        std::cin.get();
+        printf("\n");
+      }
 
 		}
 		outfile.close();
 		auto end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> elapsed_time = end - start;
-		std::cout << "Elapsed Time" << elapsed_time.count() << "seconds\n";
+		std::cout << "Elapsed Time " << elapsed_time.count() << " seconds\n";
 	}
 
 	void test_Bus() {

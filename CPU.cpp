@@ -139,12 +139,12 @@ public:
       //std::cout << "Opcode: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(opcode) << std::endl;
       Instruction opcodeInstr = instructionTable[opcode];
       if (opcodeInstr.operation == nullptr || opcodeInstr.addressingMode == nullptr) {
-        std::cout << "Error: Invalid opcode"; 
+        std::cout << "Error: Invalid opcode";
       }
 
       // Find the address, cycles and additional cycles
       AddressResult res = (this->*opcodeInstr.addressingMode)();
-      std::cout << "Cycles: " << res.cycles << "\n";
+      // std::cout << "Cycles: " << res.cycles << "\n";
 
       // Execute the instruction
       int instrCycles = (this->*opcodeInstr.operation)(res.address);
@@ -157,9 +157,9 @@ public:
 
       // Return ran
       ran = 0;
-      std::cout << "Executed!\n";
+      // std::cout << "Executed!\n";
     } else {
-      std::cout << "Waiting " << cycles << "cycles\n";
+      // std::cout << "Waiting " << cycles << "cycles\n";
     }
 
     cycles--;
