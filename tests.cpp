@@ -616,7 +616,7 @@ public:
     // current test rom is ./nestest.nes
 		nes.initNES();
 
-		std::ofstream outfile("output.txt");
+		std::ofstream outfile("testing/output.txt");
 
 		auto start = std::chrono::high_resolution_clock::now();
 		for (int i = 0;i < 4954; i++) {
