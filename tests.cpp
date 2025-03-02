@@ -620,10 +620,14 @@ public:
 
 		auto start = std::chrono::high_resolution_clock::now();
 		for (int i = 0;i < 4954; i++) {
-			outfile << std::hex <<std::uppercase << nes.cpu.PC << std::endl;
+			// Old output format
+      // outfile << std::hex <<std::uppercase << nes.cpu.PC << std::endl;
 
 			uint8_t opcode = nes.cpu.readMemory(nes.cpu.PC);
 			nes.cycle();
+
+      // Output just cycle count for debug
+      outfile << std::setw(4) << i + 1 << " CYC:" << nes.cpu.totalCycles << "\n";
 
       // Debug output
       if (debug) {
