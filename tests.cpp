@@ -621,6 +621,7 @@ public:
 		auto start = std::chrono::high_resolution_clock::now();
 		for (int i = 0;i < 4954; i++) {
 			outfile << std::hex <<std::uppercase << nes.cpu.PC << std::endl;
+
 			uint8_t opcode = nes.cpu.readMemory(nes.cpu.PC);
 			nes.cycle();
 
@@ -629,6 +630,8 @@ public:
 			  printf("count: %d\n", i+1);
         printf("Opcode: %02X\n", opcode);
         nes.cpu.printRegisters();
+
+        // Print cycles
         printf("Cycles: %d\n\n", nes.cpu.totalCycles);
       }
 
