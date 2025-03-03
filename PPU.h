@@ -42,6 +42,8 @@ public:
         uint8_t x;          // X position of a sprite
     } OAM[64]{};
 
+    //TODO: Create memory for name table and palettes
+
     // Cant have the values in an enum equal the same letter as it causes compiler errors
     // It's the same as two variables having the same name.
 
@@ -79,6 +81,10 @@ public:
     // Method for writing data to PPU registers
     void cpuWrite(uint16_t addr, uint8_t data);
 
+    void writePPU(uint16_t addr, uint8_t data);
+
+    uint8_t readPPU(uint16_t addr);
+
     // Method to connect ROM to PPU
     void connectROM(NESROM& ROM);
     // Init ROM
@@ -96,6 +102,11 @@ public:
     // method to get a tile, returned as an 8-byte array of pixel info (0-3)
     void getTile(uint8_t tileIndex, uint8_t* tileData, bool table1);
 
+    void clock();
+
+    uint16_t cycle = 0;
+    uint16_t scanline = 0;
+    bool complete_frame = false;
 };
 
 #endif // PPU_H

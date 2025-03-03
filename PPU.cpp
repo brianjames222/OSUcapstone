@@ -51,10 +51,17 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data) {
             }
             break;
         case 0x0007: // PPU Data
-            // Todo: create write function for internal ppu memory and write PPU Data through that function to handle mirroring
             // Todo: increment I bit of CRTL register by 1 or 32 depending on vertical or horizontal mode
             break;
     }
+}
+
+void PPU::writePPU(uint16_t addr, uint8_t data) {
+    //TODO: Write to ppu bus between 0x0000 and 0x3FFF
+}
+
+uint8_t PPU::readPPU(uint16_t addr) {
+    //TODO: Read from ppu bus between 0x0000 and 0x3FFF
 }
 
 void PPU::connectROM(NESROM& ROM) {
@@ -80,5 +87,22 @@ void PPU::getTile(uint8_t tileIndex, uint8_t* tileData, bool table1) {
     
     for (int i = 0; i < 8; i++) {
         tileData[i] = (patternTables[index + i] << 1) | (patternTables[index + i + 8] & 0x01); // Combine bit planes
+    }
+}
+
+
+void PPU::clock() {
+    // TODO: add the code for one clock cycle of the PPU
+    // There should be a lot of logic to implement as the ppu is going through the scanlines.
+
+    cycle++;
+    if (cycle >= 341) {
+        cycle = 0;
+        scanline++;
+
+        if (scanline >= 261) {
+            scanline = -1;
+            complete_frame = true;
+        }
     }
 }
