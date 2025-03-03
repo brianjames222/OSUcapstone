@@ -57,6 +57,28 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data) {
     }
 }
 
-    void PPU::connectROM(NESROM& ROM) {
-        this->ROM = &ROM;
+void PPU::connectROM(NESROM& ROM) {
+    this->ROM = &ROM;
+}
+
+// Pattern tables ----------------------------------------------------------------------------------------------------
+
+// modify to allow specification of table, tile, plane?
+uint8_t PPU::readPatternTable(uint16_t addr) {
+    return patternTables[addr];
+}
+
+void PPU::writePatternTable(uint16_t addr, uint8_t data) {
+    patternTables[addr] = data;
+}
+
+// fetch a tile
+void PPU::getTile(uint8_t tileIndex, uint8_t* tileData, bool table1) {
+	// get the index by multiplying the tileIndex (0 - 255) by 16 (each tile is 16 bytes)
+    uint16_t index = tileIndex * 16;
+    if (!table1) index += 256;			// second table
+    
+    for (int i = 0; i < 8; i++) {
+        tileData[i] = (patternTables[index + i] << 1) | (patternTables[index + i + 8] & 0x01); // Combine bit planes
     }
+}
