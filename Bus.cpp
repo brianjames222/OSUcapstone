@@ -1,6 +1,6 @@
 #include "Bus.h"
 #include "CPU.cpp" // <-- need to implement CPU.h
-#include "APU.h"
+
 
 Bus::Bus() {
     cpu = new CPU();
@@ -58,4 +58,8 @@ void Bus::clock() const {
     if (clockCounter % 3 == 0) {
         // TODO: cycle the CPU
     }
+}
+
+void Bus::connectROM(NESROM& ROM) {
+    ppu.connectROM(ROM);
 }
