@@ -1,4 +1,4 @@
-#include "tests.cpp"
+#include "tests.h"
 #include "string"
 
 int main(int argc, char* argv[]) {
@@ -42,6 +42,6 @@ int main(int argc, char* argv[]) {
 	tests.test_NES(testPath);
 	tests.test_Bus();
 	tests.test_PPU_registers();
-  return 0;
+    return 0;
 }
 

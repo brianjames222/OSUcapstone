@@ -3,7 +3,9 @@
 
 #include <array>
 #include <cstdint>
-#include "PPU.cpp" // Need to make header file for PPU
+#include "PPU.h"
+#include "ROM.h"
+#include "APU.h"
 
 class CPU;
 class APU;
@@ -27,6 +29,8 @@ public:
     void reset() const;
     // Clock function
     void clock() const;
+    // Connect Game Rom to Bus
+    void connectROM(NESROM& ROM);
 
 
 private:
