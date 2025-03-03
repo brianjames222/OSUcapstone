@@ -1,5 +1,4 @@
 #include "tests.h"
-#include <string>
 
 
 void Tests::test_cpu() {

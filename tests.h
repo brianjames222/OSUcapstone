@@ -9,6 +9,7 @@
 #include <fstream>
 #include "NES.h"
 #include "Bus.h"
+#include <string>
 
 class Tests {
 public:
@@ -30,7 +31,7 @@ public:
     void test_CPX();
     void test_CPY();
     void test_CLD_SED_CLV();
-    void test_NES();
+    void test_NES(std::string path);
     void test_Bus();
     void test_PPU_registers();
 };
