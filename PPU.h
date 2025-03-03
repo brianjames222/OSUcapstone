@@ -83,6 +83,18 @@ public:
     void connectROM(NESROM& ROM);
     // Init ROM
     NESROM* ROM{};
+    
+    // Pattern tables------------------------------------------------------------------------------------
+    std::array<uint8_t, 4096 * 2> patternTables; // two pattern tables of 256 tiles each (4096 / 16)
+
+	// read and write may be modified / unused (e.x. caller specifies table + tile, function figures out what to return)
+	// useful for testing?
+    uint8_t readPatternTable(uint16_t addr);
+
+    void writePatternTable(uint16_t addr, uint8_t data);
+    
+    // method to get a tile, returned as an 8-byte array of pixel info (0-3)
+    void getTile(uint8_t tileIndex, uint8_t* tileData, bool table1);
 
 };
 
