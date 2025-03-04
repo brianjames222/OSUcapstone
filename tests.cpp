@@ -4,9 +4,11 @@
 #include <unistd.h>
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 #include "NES.cpp"
 #include "Bus.h"
+#include "APU.h"
 
 class Tests {
 public:
@@ -659,4 +661,50 @@ public:
 	std::cout << "PPU Register Tests Passed\n";
 	}
 
+	void test_pulse1_sound() {
+		std::cout << "Running Pulse 1 Test..." << std::endl;
+
+		APU apu;
+		std::vector<int16_t> output_buffer;
+
+		// Enable Pulse 1
+		apu.write_register(0x4015, 0x01); // Enable Pulse 1
+
+		// Set Pulse 1 Control Register
+		apu.write_register(0x4000, 0b01000000); // 50% duty cycle, constant volume = 10
+
+		// Set Timer
+		apu.write_register(0x4002, 0xF0); // Low byte of timer
+		apu.write_register(0x4003, 0x08); // High byte of timer (lowers frequency)
+
+		uint8_t status = apu.read_register(0x4015);
+		if (!(status & 0x01)) {
+			std::cout << "Test Failed: Pulse 1 is NOT enabled!" << std::endl;
+			return;
+		} else {
+			std::cout << "Pulse 1 is enabled." << std::endl;
+		}
+
+		// Run the APU for a few frames
+		for (int i = 0; i < 10000; i++) {
+			apu.clock();  // Run the APU
+			if (i % 100 == 0) {
+				apu.mixer(output_buffer);
+			}
+		}
+
+		// Check if output buffer has sound
+		if (output_buffer.empty()) {
+			std::cout << "Test Failed: No sound data generated." << std::endl;
+		} else {
+			std::cout << "Test Passed: Pulse 1 is generating sound." << std::endl;
+
+			// // Print first 10 samples to verify waveform occurring
+			// std::cout << "First 10 Samples: ";
+			// for (int i = 0; i < 10 && i < output_buffer.size(); i++) {
+			// 	std::cout << output_buffer[i] << " ";
+			// }
+			// std::cout << std::endl;
+		}
+	}
 };

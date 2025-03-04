@@ -1,6 +1,13 @@
 #include "tests.cpp"
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+#include <iostream>
 
 int main() {
+
+	SDL_Init(SDL_INIT_EVERYTHING);
+	std::cout << "SDL Initialized Successfully." << std::endl;
+	SDL_Quit();
 
 	// // TESTS -- uncomment as needed
 	Tests tests;
@@ -25,6 +32,7 @@ int main() {
 	tests.test_NES();
 	tests.test_Bus();
 	tests.test_PPU_registers();
+	tests.test_pulse1_sound();
     return 0;
 }
 
