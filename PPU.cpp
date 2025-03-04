@@ -80,14 +80,37 @@ void PPU::writePatternTable(uint16_t addr, uint8_t data) {
 }
 
 // fetch a tile
-void PPU::getTile(uint8_t tileIndex, uint8_t* tileData, bool table1) {
+void PPU::getTile(uint8_t tileIndex, uint16_t* tileData, bool table1) {
 	// get the index by multiplying the tileIndex (0 - 255) by 16 (each tile is 16 bytes)
     uint16_t index = tileIndex * 16;
     if (!table1) index += 256;			// second table
     
+    /* Pretty sure this implementation is actually wrong, forgot to account for each individual bit
     for (int i = 0; i < 8; i++) {
         tileData[i] = (patternTables[index + i] << 1) | (patternTables[index + i + 8] & 0x01); // Combine bit planes
-    }
+    } */
+    
+    // let's try again:
+    for (int i = 0; i < 8; ++i) {
+		// combine the data from both planes
+		uint8_t low = patternTables[index + i];			// plane 0 - lower bit of each pixel
+		uint8_t high = patternTables[index + i + 8];	// plane 1 - higher bit of each pixel
+
+		uint16_t combinedPixels = 0;
+
+		// extract bits for each pixel in a row
+		for (int j = 0; j < 8; j++) {
+			//start at the far left, move down as j increases
+		    uint8_t bit0 = (low >> (7 - j)) & 0x01;
+		    uint8_t bit1 = (high >> (7 - j)) & 0x01;
+		    
+		    // Combine the bits together (bit1 << 1) + bit0
+		    combinedPixels |= ((bit1 << 1) | bit0) << (j * 2); // Shift left for the next pixel
+		}
+
+		// Store the combined result
+		((uint16_t*)tileData)[i] = combinedPixels; // Each entry now represents 8 pixels (16 bits)
+	}
 }
 
 

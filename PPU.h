@@ -100,7 +100,7 @@ public:
     void writePatternTable(uint16_t addr, uint8_t data);
     
     // method to get a tile, returned as an 8-byte array of pixel info (0-3)
-    void getTile(uint8_t tileIndex, uint8_t* tileData, bool table1);
+    void getTile(uint8_t tileIndex, uint16_t* tileData, bool table1);
 
     void clock();
 
