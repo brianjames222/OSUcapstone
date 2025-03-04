@@ -109,7 +109,7 @@ void PPU::getTile(uint8_t tileIndex, uint16_t* tileData, bool table1) {
 		}
 
 		// Store the combined result
-		((uint16_t*)tileData)[i] = combinedPixels; // Each entry now represents 8 pixels (16 bits)
+		tileData[i] = combinedPixels; // Each entry now represents 8 pixels (16 bits)
 	}
 }
 
