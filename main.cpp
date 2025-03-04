@@ -1,7 +1,12 @@
 #include "tests.h"
 #include "string"
 
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+#include <iostream>
+
 int main(int argc, char* argv[]) {
+
 
   std::string testPath;
 
@@ -18,6 +23,9 @@ int main(int argc, char* argv[]) {
   if (testPath.empty()) {
     testPath = "./nestest.nes";
   }
+
+	SDL_Init(SDL_INIT_EVERYTHING);
+	std::cout << "SDL Initialized Successfully." << std::endl;
 
 	// // TESTS -- uncomment as needed
 	Tests tests;
@@ -42,6 +50,8 @@ int main(int argc, char* argv[]) {
 	tests.test_NES(testPath);
 	tests.test_Bus();
 	tests.test_PPU_registers();
+	tests.testPulse1();
+	SDL_Quit();
     return 0;
 }
 

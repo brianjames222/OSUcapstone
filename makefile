@@ -4,6 +4,10 @@ CXX = g++
 # Compiler flags
 CXXFLAGS = -std=c++20 -Wall -Wextra -pedantic
 
+# SDL2 flags
+SDL_CXXFLAGS = -I/mingw64/include/SDL2
+SDL_LDFLAGS = -L/mingw64/lib -lmingw32 -lSDL2 -mconsole
+
 # Target executable
 TARGET = emulator
 
@@ -16,13 +20,13 @@ OBJS = $(SRCS:.cpp=.o)
 # Default target
 all: $(TARGET)
 
-# Link the executable
+# Link the executable w/ SDL2 (audio)
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(SDL_LDFLAGS)
 
-# Compile source files into object files
+# Compile source files into object files with SDL2 includes
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(SDL_CXXFLAGS) -c $< -o $@
 
 # Clean up build files
 clean:
