@@ -2,6 +2,7 @@
 #define PPU_H
 
 #include <cstdint>  // For uint8_t and uint16_t
+#include <map>
 #include "ROM.h"
 class PPU {
 public:
@@ -107,6 +108,23 @@ public:
     uint16_t cycle = 0;
     uint16_t scanline = 0;
     bool complete_frame = false;
+
+    // Name tables
+    std::array<uint8_t, 1024> nameTableA;
+    std::array<uint8_t, 1024> nameTableB;
+
+    std::map<uint8_t, uint16_t> nameTableBaseAddresses = {
+        {0b00000000, 0x23C0},
+        {0b00000001, 0x27C0},
+        {0b00000010, 0x2BC0},
+        {0b00000011, 0x2FC0}
+    };
+
+    // Given an address, determines mirroring scheme and returns modified address
+    uint16_t getMirroredNameTableAddress(uint16_t address);
+
+    // Uses data from PPU v register to calculate attribute table address for current tile
+    uint16_t getAttributeTableAddress();
 };
 
 #endif // PPU_H
