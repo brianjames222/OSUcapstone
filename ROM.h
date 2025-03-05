@@ -26,6 +26,7 @@ class NESROM {
 public:
     uint8_t* prgRom;          // Pointer to PRG ROM data
     uint8_t* chrRom;          // Pointer to CHR ROM data
+    NESHeader ROMheader;
     bool mirrored = false;    // Flag for NROM-128 mirroring
 
     // Function to detect and initialize the mapper based on header and file data
