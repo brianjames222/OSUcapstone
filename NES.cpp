@@ -6,6 +6,7 @@ void NES::load_rom(const char *filename) {
         rom.load(filename);
         rom_loaded = true;
         uint16_t memory_address = 0x0000;
+        bus.ppu.connectROM(rom);
 
         // Write prg ROM to CPU Memory
         // this section is specifically for NROM, changes will be necessary for future mappers

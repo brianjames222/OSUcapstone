@@ -1,5 +1,5 @@
 #include "tests.h"
-
+#include "CPU.cpp"
 
 void Tests::test_cpu() {
 	std::cout << "\nCPU Tests:\n";
@@ -601,6 +601,7 @@ void Tests::test_CLD_SED_CLV() {
 void Tests::test_NES(std::string path) {
 	NES nes;
 	nes.load_rom(path.c_str()); // current test rom is ./nestest.nes
+	printf("ROM HEADER FLAG 6: %d \n", nes.bus.ppu.ROM->ROMheader.flags6);
 	nes.initNES();
 
 	std::ofstream outfile("output.txt");

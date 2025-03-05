@@ -54,6 +54,7 @@ bool NESROM::load(const std::string& filepath) {
         std::cerr << "Invalid NES file: " << filepath << std::endl;
         return false;
     }
+    ROMheader = header;
 
 	detect_mapper(header, file);
 

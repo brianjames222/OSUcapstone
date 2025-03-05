@@ -9,11 +9,11 @@
 #include "Bus.h"
 #include "ROM.h"
 #include "CPU.cpp"
-
 class NES {
 public:
     // Public member variables
-    CPU cpu;
+    Bus bus;
+    CPU& cpu = *bus.cpu;
     NESROM rom{};
     bool on = false;
     bool rom_loaded = false;
