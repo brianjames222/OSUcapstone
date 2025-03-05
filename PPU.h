@@ -26,9 +26,32 @@ public:
     uint8_t w = 0x00;               // First or Second write toggle --- 1 bit
 
     // I/O Registers
-    uint8_t PPUCTRL = 0x00;         // Controller
+    union PPUSTATUS {
+        struct {
+            uint8_t unused: 5;
+            uint8_t sprite_overflow: 1;
+            uint8_t sprite_zerohit: 1;
+            uint8_t vblank: 1;
+        };
+        uint8_t reg;
+    } status;
+
+    union PPUCTRL {
+        struct {
+            uint8_t nametable_x: 1;
+            uint8_t nametable_y: 1;
+            uint8_t increment_type: 1;
+            uint8_t sprite_pattern: 1;
+            uint8_t background_pattern: 1;
+            uint8_t sprite_size: 1;
+            uint8_t ppu_master: 1;
+            uint8_t vblank_nmi_enable: 1;
+        }; uint8_t reg;
+    } control;
+
+    //uint8_t PPUCTRL = 0x00;         // Controller
     uint8_t PPUMASK = 0x00;         // Mask
-    uint8_t PPUSTATUS = 0x00;       // Status
+    //uint8_t PPUSTATUS = 0x00;       // Status
     uint8_t OAMADDR = 0x00;         // Sprite RAM address
     uint8_t PPUSCROLL = 0x00;       // X and Y scroll
     uint8_t PPUADDR = 0x00;         // VRAM address
@@ -102,11 +125,28 @@ public:
     // method to get a tile, returned as an 8-byte array of pixel info (0-3)
     void getTile(uint8_t tileIndex, uint8_t* tileData, bool table1);
 
+    void setPixel(uint8_t x, uint8_t y, uint32_t color);
+
     void clock();
 
     uint16_t cycle = 0;
     uint16_t scanline = 0;
     bool complete_frame = false;
+    bool nmi = false;
+
+    uint8_t framebuffer[256 * 240]{};  // 8-bit color indices
+    uint32_t rgbFramebuffer[256 * 240]{}; // 32-bit color for SDL
+
+    uint32_t nesPalette[64] = {
+        0x545454, 0x001E74, 0x0810A0, 0x300088, 0x44004C, 0x5C0020, 0x540400, 0x3C1800,
+        0x202A00, 0x083A00, 0x004000, 0x003C0A, 0x003238, 0x000000, 0x000000, 0x000000,
+        0x989696, 0x074C64, 0x3032EC, 0x5C1EEC, 0x8814B0, 0xA01464, 0x982220, 0x783C0A,
+        0x223C00, 0x0A6600, 0x006400, 0x00583A, 0x00393B, 0x001B2A, 0x1F1F1F, 0x111111,
+        0xA9A9A9, 0x023C9C, 0x2449CC, 0x3E40CF, 0x6B6C99, 0x7F77AA, 0x8B95C2, 0x8C8A7F,
+        0xFF00A0, 0xAA0D42, 0x8C1A4E, 0x801D53, 0x922C6F, 0x9E4A6E, 0x92515D, 0x774E53,
+        0x0F77BB, 0x0B9DE8, 0x2F67E0, 0x6A7FFF, 0xA2B9F1, 0x9CC6DB, 0x70A5E9, 0x5C82C7,
+        0x080F99, 0x13D1F6, 0x35C8FD, 0x7F8F9E, 0xC8E0F5, 0xF3FBFF, 0xC8EBFF, 0x7F9FF7
+    };
 };
 
 #endif // PPU_H

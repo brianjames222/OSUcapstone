@@ -16,10 +16,11 @@
 
 EXE = NES_EMULATOR
 IMGUI_DIR = ../..
+NES_OBJECT_PATH = $(filter-out ../../../../main.o, $(wildcard ../../../../*.o))
 SOURCES = main.cpp
 SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
 SOURCES += $(IMGUI_DIR)/backends/imgui_impl_sdl2.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
-OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
+OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES)))) $(NES_OBJECT_PATH)
 UNAME_S := $(shell uname -s)
 LINUX_GL_LIBS = -lGL
 

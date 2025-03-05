@@ -20,6 +20,7 @@ public:
     APU* apu;
     PPU  ppu;
     std::array<uint8_t, 2 * 1024> cpuRam{};
+    NESROM* rom;
     										
     // Bus read and write functions
     void write(uint16_t address, uint8_t data);
@@ -28,13 +29,22 @@ public:
     // Reset function
     void reset() const;
     // Clock function
-    void clock() const;
+    void clock();
     // Connect Game Rom to Bus
     void connectROM(NESROM& ROM);
 
+    uint32_t clockCounter = 0;
 
 private:
-    uint32_t clockCounter = 0;
+    // Device status
+
+    bool DMATransfer = false;
+    // DMA transfers need to start on an even clock cycle
+    bool DMACanStart = false;
+    uint8_t DMAPage = 0x00;
+    uint8_t DMAAddress = 0x00;
+    uint8_t DMAData = 0x00;
+
 };
 
 #endif // BUS_H

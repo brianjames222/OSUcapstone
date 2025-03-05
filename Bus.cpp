@@ -20,11 +20,16 @@ void Bus::write(uint16_t address, uint8_t data) {
     } else if ((address >= 0x4000 && address <= 0x4013) || address == 0x4015 || address == 0x4017) {
         apu->write_register(address, data);
     } else if (address == 0x4014) {
-        // TODO: write to address for DMA transfer
+        DMATransfer = true;
+        // DMA Page + DMA Address make a 16-bit address for the CPU bus
+        DMAPage = data;
+        DMAAddress = 0x00;
     } else if (address >= 0x4016 && address <= 0x4017) {
         // TODO: write to address and save controller state
     } else if (address >= 0x4020 && address <= 0xFFFF) {
         // TODO: write to cartridge memory
+        // Temporary way of getting rom information, current mappers write to old cpu memory
+        cpu->writeMemory(address, data);
     }
 }
 
@@ -42,6 +47,8 @@ uint8_t Bus::read(uint16_t address) {
         // TODO: read from address and save controller state
     } else if (address >= 0x4020 && address <= 0xFFFF) {
         // TODO: read from cartridge memory
+        // Temporary way of getting rom information, current mappers write to old cpu memory
+        return cpu->readMemory(address);
     }
     return -1;
 }
@@ -52,14 +59,55 @@ void Bus::reset() const {
     // TODO: add resets for other components
 }
 
-void Bus::clock() const {
-    // TODO: cycle the PPU and the APU
+void Bus::clock() {
+    // Cycle ppu every clock cycle
+    ppu.clock();
 
+    // CPU is three times slower than ppu
     if (clockCounter % 3 == 0) {
-        // TODO: cycle the CPU
+
+        // Check if a DMA transfer is happening, it suspends the CPU
+        if (DMATransfer) {
+            if (!DMACanStart) {
+                if (clockCounter % 2 == 1) {
+                    DMACanStart = true;
+                }
+            }
+            else {
+                // Read from the CPU bus on even clock cycles
+                if (clockCounter % 2 == 0) {
+                    DMAData = read(DMAPage << 8 | DMAAddress);
+                }
+                // Write to PPU OAM memory on odd clock cycles
+                else {
+                    ppu.OAMDATA[DMAAddress] = DMAData;
+                    DMAAddress++;
+
+                    // After transfering 256 bytes end the transfer
+                    if (DMAAddress == 0x00) {
+                        DMATransfer = false;
+                        DMACanStart = false;
+                    }
+                }
+            }
+        }
+        // If no DMA transfer, cycle CPU
+        else {
+            cpu->cycleExecute();
+        }
+
     }
+
+    // if vblank started, inform cpu through nmi interrupt.
+    if (ppu.nmi) {
+        ppu.nmi = false;
+        cpu->nmi_interrupt();
+    }
+
+    clockCounter++;
 }
 
 void Bus::connectROM(NESROM& ROM) {
     ppu.connectROM(ROM);
+    rom = &ROM;
 }

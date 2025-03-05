@@ -642,7 +642,7 @@ cpu.writeBus(0x2000, 0xC2);
 
 // Read from PPUCTRL
 //uint8_t result = cpu.readBus(0x2000);
-uint8_t result = bus.ppu.PPUCTRL;
+uint8_t result = bus.ppu.control.reg;
 
 std::cout << "PPUCTRL: '" << std::hex << static_cast<int>(result) << "'\n";
 assert(result == 0xC2);

@@ -144,7 +144,7 @@ public:
 
       // Find the address, cycles and additional cycles
       AddressResult res = (this->*opcodeInstr.addressingMode)();
-      std::cout << "Cycles: " << res.cycles << "\n";
+      //std::cout << "Cycles: " << res.cycles << "\n";
 
       // Execute the instruction
       int instrCycles = (this->*opcodeInstr.operation)(res.address);
@@ -157,9 +157,9 @@ public:
 
       // Return ran
       ran = 0;
-      std::cout << "Executed!\n";
+      //std::cout << "Executed!\n";
     } else {
-      std::cout << "Waiting " << cycles << "cycles\n";
+      //std::cout << "Waiting " << cycles << "cycles\n";
     }
 
     cycles--;

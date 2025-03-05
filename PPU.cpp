@@ -9,13 +9,13 @@
 void PPU::cpuWrite(uint16_t addr, uint8_t data) {
     switch (addr) {
         case 0x0000: // CRTL
-            PPUCTRL = data;
+            control.reg = data;
             break;
         case 0x0001: // MASK
             PPUMASK = data;
             break;
         case 0x0002: // STATUS
-            PPUSTATUS = data;
+            status.reg = data;
             break;
         case 0x0003: // OAM Address
             OAMADDR = data;
@@ -90,11 +90,27 @@ void PPU::getTile(uint8_t tileIndex, uint8_t* tileData, bool table1) {
     }
 }
 
+void PPU::setPixel(uint8_t x, uint8_t y, uint32_t color) {
+    rgbFramebuffer[y * 256 + x] = 0xFF000000 | color;
+}
+
 
 void PPU::clock() {
     // TODO: add the code for one clock cycle of the PPU
     // There should be a lot of logic to implement as the ppu is going through the scanlines.
 
+
+    if (scanline < 241 && cycle < 256) {
+        setPixel(cycle, scanline, nesPalette[cycle % 64]);
+    }
+    // if rendering of the screen is over, enable nmi vblank
+    if (scanline == 241 && cycle == 1) {
+        status.vblank = 1;
+        // Check control register
+        if (control.vblank_nmi_enable) {
+            nmi = true;
+        }
+    }
     cycle++;
     if (cycle >= 341) {
         cycle = 0;

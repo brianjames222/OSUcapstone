@@ -7,7 +7,7 @@
 #include "../../backends/imgui_impl_opengl3.h"
 #include <stdio.h>
 #include <SDL2/SDL.h>
-#include "../../../../NES.cpp"
+#include "../../../../NES.h"
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <SDL_opengles2.h>
 #else

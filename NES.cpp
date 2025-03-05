@@ -6,7 +6,14 @@ void NES::load_rom(const char *filename) {
         rom.load(filename);
         rom_loaded = true;
         uint16_t memory_address = 0x0000;
-        bus.ppu.connectROM(rom);
+        bus.connectROM(rom);
+
+        // write CHR ROM to ppu memory
+        for (int i = 0; i < 1024 * 2; i++) {
+            bus.ppu.writePatternTable(memory_address, rom.chrRom[memory_address]);
+            memory_address++;
+        }
+        memory_address = 0x0000;
 
         // Write prg ROM to CPU Memory
         // this section is specifically for NROM, changes will be necessary for future mappers
@@ -68,7 +75,19 @@ void NES::run() {
 
 void NES::cycle() {
     if(on == true) {
-        cpu.execute();
+        //Uncomment to test NES at full speed, might need to add more code if system is running too fast.
+        // double fps = 1./60.;
+        // auto start = std::chrono::high_resolution_clock::now();
+        // while (true) {
+        //     bus.clock();
+        //     auto end = std::chrono::high_resolution_clock::now();
+        //     std::chrono::duration<double> elapsed_time = end - start;
+        //     std::chrono::duration<double> frame_time(fps);
+        //     if ((elapsed_time) > frame_time) {
+        //         break;
+        //     }
+
+        bus.clock();
     }
 }
 
@@ -78,12 +97,12 @@ void NES::end() {
 
 
 uint32_t* NES::getFramebuffer() {
-    for (int i = 0; i < 256 * 240; i++) {
-        rgbFramebuffer[i] = nesPalette[i % 64];
-        uint8_t colorIndex = framebuffer[i];  // Get NES color index
-        rgbFramebuffer[i] = 0xFF000000 | nesPalette[colorIndex % 64];  // Convert to 32-bit ARGB
-    }
-    return rgbFramebuffer;
+    // for (int i = 0; i < 256 * 240; i++) {
+    //     rgbFramebuffer[i] = nesPalette[i % 64];
+    //     uint8_t colorIndex = framebuffer[i];  // Get NES color index
+    //     rgbFramebuffer[i] = 0xFF000000 | nesPalette[colorIndex % 64];  // Convert to 32-bit ARGB
+    // }
+    return bus.ppu.rgbFramebuffer;
 }
 
 void NES::RandomizeFramebuffer() {
