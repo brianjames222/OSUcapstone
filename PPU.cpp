@@ -92,6 +92,25 @@ void PPU::getTile(uint8_t tileIndex, uint8_t* tileData, bool table1) {
 
 void PPU::setPixel(uint8_t x, uint8_t y, uint32_t color) {
     rgbFramebuffer[y * 256 + x] = 0xFF000000 | color;
+    if (complete_frame == true) {
+        std::memcpy(nextFrame, rgbFramebuffer, sizeof(nextFrame));
+        complete_frame = false;
+    }
+}
+
+unsigned PPU::getColor(int index) {
+    std::array<uint32_t, 64> nesPalette = {
+        0x545454, 0x001E74, 0x0810A0, 0x300088, 0x44004C, 0x5C0020, 0x540400, 0x3C1800,
+        0x202A00, 0x083A00, 0x004000, 0x003C0A, 0x003238, 0x000000, 0x000000, 0x000000,
+        0x989696, 0x074C64, 0x3032EC, 0x5C1EEC, 0x8814B0, 0xA01464, 0x982220, 0x783C0A,
+        0x223C00, 0x0A6600, 0x006400, 0x00583A, 0x00393B, 0x001B2A, 0x1F1F1F, 0x111111,
+        0xA9A9A9, 0x023C9C, 0x2449CC, 0x3E40CF, 0x6B6C99, 0x7F77AA, 0x8B95C2, 0x8C8A7F,
+        0xFF00A0, 0xAA0D42, 0x8C1A4E, 0x801D53, 0x922C6F, 0x9E4A6E, 0x92515D, 0x774E53,
+        0x0F77BB, 0x0B9DE8, 0x2F67E0, 0x6A7FFF, 0xA2B9F1, 0x9CC6DB, 0x70A5E9, 0x5C82C7,
+        0x080F99, 0x13D1F6, 0x35C8FD, 0x7F8F9E, 0xC8E0F5, 0xF3FBFF, 0xC8EBFF, 0x7F9FF7
+    };
+
+    return nesPalette[index];
 }
 
 
@@ -101,7 +120,9 @@ void PPU::clock() {
 
 
     if (scanline < 241 && cycle < 256) {
-        setPixel(cycle, scanline, nesPalette[cycle % 64]);
+        // Code to test PPU scanlines with random colors
+        uint32_t current_color = 0xFF000000 | getColor((cycle +total_frames) % 64);
+        setPixel(cycle, scanline, current_color);
     }
     // if rendering of the screen is over, enable nmi vblank
     if (scanline == 241 && cycle == 1) {
@@ -117,6 +138,7 @@ void PPU::clock() {
         scanline++;
 
         if (scanline >= 261) {
+            total_frames++;
             scanline = -1;
             complete_frame = true;
         }

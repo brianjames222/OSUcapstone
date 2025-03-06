@@ -94,6 +94,7 @@ void Bus::clock() {
         // If no DMA transfer, cycle CPU
         else {
             cpu->cycleExecute();
+            cpuClockCounter++;
         }
 
     }

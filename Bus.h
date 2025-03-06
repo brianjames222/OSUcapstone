@@ -34,6 +34,7 @@ public:
     void connectROM(NESROM& ROM);
 
     uint32_t clockCounter = 0;
+    uint32_t cpuClockCounter = 0;
 
 private:
     // Device status

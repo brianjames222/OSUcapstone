@@ -237,19 +237,19 @@ int main(int, char**)
                 if (nes.on == false) {
                     nes.on = true;
                     nes.cycle();
-                    nes.RandomizeFramebuffer();
-                    if (nes.A_changed == true) {
-                        R = rand() / (float)RAND_MAX;
-                        G = rand() / (float)RAND_MAX;
-                        B = rand() / (float)RAND_MAX;
-                    }
+                    //nes.RandomizeFramebuffer();
+                    // if (nes.A_changed == true) {
+                    //     R = rand() / (float)RAND_MAX;
+                    //     G = rand() / (float)RAND_MAX;
+                    //     B = rand() / (float)RAND_MAX;
+                    // }
                     nes.on = false;
                 }
             }
 
             // Cycle the NES
             if (nes.on == true && nes.rom_loaded == true && nes.paused == false) {
-                nes.RandomizeFramebuffer();
+                //nes.RandomizeFramebuffer();
                 nes.cycle();
 
                 // Get the NES framebuffer (assuming it returns 32-bit RGBA data)

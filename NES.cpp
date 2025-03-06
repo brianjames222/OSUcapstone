@@ -49,7 +49,8 @@ void NES::initNES() {
         return;
     }
     cpu.reset();
-    cpu.PC = 0xC000;
+    //Uncomment for finite CPU testing with nestest.nes
+    //cpu.PC = 0xC000;
     on = true;
 }
 
@@ -76,18 +77,19 @@ void NES::run() {
 void NES::cycle() {
     if(on == true) {
         //Uncomment to test NES at full speed, might need to add more code if system is running too fast.
-        // double fps = 1./60.;
-        // auto start = std::chrono::high_resolution_clock::now();
-        // while (true) {
-        //     bus.clock();
-        //     auto end = std::chrono::high_resolution_clock::now();
-        //     std::chrono::duration<double> elapsed_time = end - start;
-        //     std::chrono::duration<double> frame_time(fps);
-        //     if ((elapsed_time) > frame_time) {
-        //         break;
-        //     }
-
-        bus.clock();
+         double fps = 1./60.;
+         auto start = std::chrono::high_resolution_clock::now();
+         while (true) {
+             bus.clock();
+             auto end = std::chrono::high_resolution_clock::now();
+             std::chrono::duration<double> elapsed_time = end - start;
+             std::chrono::duration<double> frame_time(fps);
+             if ((elapsed_time) > frame_time) {
+                 bus.cpuClockCounter = 0;
+                 break;
+             }
+         }
+        //bus.clock();
     }
 }
 
@@ -102,7 +104,7 @@ uint32_t* NES::getFramebuffer() {
     //     uint8_t colorIndex = framebuffer[i];  // Get NES color index
     //     rgbFramebuffer[i] = 0xFF000000 | nesPalette[colorIndex % 64];  // Convert to 32-bit ARGB
     // }
-    return bus.ppu.rgbFramebuffer;
+    return bus.ppu.nextFrame;
 }
 
 void NES::RandomizeFramebuffer() {
