@@ -607,7 +607,7 @@ void Tests::test_NES(std::string path) {
 	std::ofstream outfile("output.txt");
 
 	auto start = std::chrono::high_resolution_clock::now();
-	for (int i = 0;i < 4954; i++) {
+	for (int i = 0;i < 60; i++) {
 		outfile << std::hex <<std::uppercase << nes.cpu.PC << std::endl;
 		printf("count: %d\n", i+1);
 		uint8_t opcode = nes.cpu.readMemory(nes.cpu.PC);
@@ -620,6 +620,7 @@ void Tests::test_NES(std::string path) {
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed_time = end - start;
 	std::cout << "Elapsed Time" << elapsed_time.count() << "seconds\n";
+	nes.rom.printHeaderInfo(nes.rom.ROMheader);
 }
 
 void Tests::test_Bus() {
@@ -642,7 +643,7 @@ cpu.writeBus(0x2000, 0xC2);
 
 // Read from PPUCTRL
 //uint8_t result = cpu.readBus(0x2000);
-uint8_t result = bus.ppu.PPUCTRL;
+uint8_t result = bus.ppu.control.reg;
 
 std::cout << "PPUCTRL: '" << std::hex << static_cast<int>(result) << "'\n";
 assert(result == 0xC2);

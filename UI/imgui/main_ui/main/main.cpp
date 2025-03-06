@@ -7,7 +7,7 @@
 #include "../../backends/imgui_impl_opengl3.h"
 #include <stdio.h>
 #include <SDL2/SDL.h>
-#include "../../../../NES.cpp"
+#include "../../../../NES.h"
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <SDL_opengles2.h>
 #else
@@ -237,19 +237,19 @@ int main(int, char**)
                 if (nes.on == false) {
                     nes.on = true;
                     nes.cycle();
-                    nes.RandomizeFramebuffer();
-                    if (nes.A_changed == true) {
-                        R = rand() / (float)RAND_MAX;
-                        G = rand() / (float)RAND_MAX;
-                        B = rand() / (float)RAND_MAX;
-                    }
+                    //nes.RandomizeFramebuffer();
+                    // if (nes.A_changed == true) {
+                    //     R = rand() / (float)RAND_MAX;
+                    //     G = rand() / (float)RAND_MAX;
+                    //     B = rand() / (float)RAND_MAX;
+                    // }
                     nes.on = false;
                 }
             }
 
             // Cycle the NES
             if (nes.on == true && nes.rom_loaded == true && nes.paused == false) {
-                nes.RandomizeFramebuffer();
+                //nes.RandomizeFramebuffer();
                 nes.cycle();
 
                 // Get the NES framebuffer (assuming it returns 32-bit RGBA data)
