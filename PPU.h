@@ -145,8 +145,7 @@ public:
     unsigned getColor(int);
 
     // Name tables
-    std::array<uint8_t, 1024> nameTableA;
-    std::array<uint8_t, 1024> nameTableB;
+    std::array<uint8_t, 2048> nameTables;
 
     std::map<uint8_t, uint16_t> nameTableBaseAddresses = {
         {0b00000000, 0x23C0},
