@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 #include "PPU.h"
+#include "ROM.h"
 
 void PPU::cpuWrite(uint16_t addr, uint8_t data) {
     switch (addr) {
@@ -136,6 +137,36 @@ unsigned PPU::getColor(int index) {
     return nesPalette[index];
 }
 
+// Name tables --------------------------------------------------------------------------------------------------------
+
+uint16_t PPU::getMirroredNameTableAddress(uint16_t address) {
+
+    // flags6_mirror_bit will be 0 when horizontally mirroring, 1 when vertically mirroring
+    int flags6_mirror_bit = ROM->ROMheader.flags6 & 1;
+
+    uint16_t modified_address;
+    if (flags6_mirror_bit == 0) {
+        modified_address = address & 0x07FF;
+    } else {
+        modified_address = address & 0x03FF;
+    }
+    return modified_address;
+}
+
+// Attribute tables ---------------------------------------------------------------------------------------------------
+
+uint16_t PPU::getAttributeTableAddress() {
+    int tile_x = v.coarse_x;
+    int tile_y = v.coarse_y;
+    uint8_t nameTableSelection = v.nametable_x << 1 | v.nametable_y;
+
+    uint16_t nameTableBaseAddress = nameTableBaseAddresses[nameTableSelection];
+
+    int attributeTableIndex = (tile_y / 2) * 8 + tile_x;
+    uint16_t attributeTableAddress = nameTableBaseAddress + attributeTableIndex;
+
+    return attributeTableAddress;
+}
 
 void PPU::clock() {
     // TODO: add the code for one clock cycle of the PPU
