@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <chrono>
 #include "PPU.h"
 #include "ROM.h"
 #include "APU.h"

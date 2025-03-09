@@ -1,4 +1,7 @@
 #include "Bus.h"
+
+#include <thread>
+
 #include "CPU.cpp" // <-- need to implement CPU.h
 
 
@@ -12,7 +15,7 @@ Bus::Bus() {
 Bus::~Bus() = default;
 
 void Bus::write(uint16_t address, uint8_t data) {
-
+    //printf("address 0x%04X   data: 0x%02x\n", address, data);
     if (address >= 0x0000 && address <= 0x1FFF) {
         cpuRam[address & 0x07FF] = data;
     } else if (address >= 0x2000 && address <= 0x3FFF) {
@@ -29,7 +32,7 @@ void Bus::write(uint16_t address, uint8_t data) {
     } else if (address >= 0x4020 && address <= 0xFFFF) {
         // TODO: write to cartridge memory
         // Temporary way of getting rom information, current mappers write to old cpu memory
-        cpu->writeMemory(address, data);
+        cpu->writerom(address, data);
     }
 }
 
@@ -48,7 +51,7 @@ uint8_t Bus::read(uint16_t address) {
     } else if (address >= 0x4020 && address <= 0xFFFF) {
         // TODO: read from cartridge memory
         // Temporary way of getting rom information, current mappers write to old cpu memory
-        return cpu->readMemory(address);
+        return cpu->readrom(address);
     }
     return -1;
 }

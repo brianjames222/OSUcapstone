@@ -3,7 +3,8 @@
 
 void Tests::test_cpu() {
 	std::cout << "\nCPU Tests:\n";
-	CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
 
 	// Check start up values
 	cpu.printRegisters();
@@ -28,7 +29,8 @@ void Tests::test_cpu() {
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_opcodes() {
 	std::cout << "---------------------------\nOpcode Tests:\n\n";
-	CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
 
 	// Test Program
 	cpu.writeMemory(0x00, 0xA9); // LDA Immediate AA
@@ -89,7 +91,8 @@ void Tests::test_opcodes() {
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_ADC() {
 	std::cout << "---------------------------\nADC Tests:\n\n";
-CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
 
 // Test Program
 cpu.writeMemory(0x00, 0x69); // Load 5
@@ -163,20 +166,21 @@ std::cout << "\nADC Tests passed!\n\n";
 
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_stack() {
-	CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
 
 	uint16_t starting_stack_address = 0x0100 + cpu.S;
 	cpu.stack_push(0xBC);
 	uint16_t current_stack_address = 0x0100 + cpu.S;
-	assert(cpu.memory[current_stack_address + 1] == 0xBC);
+	assert(cpu.readMemory(current_stack_address + 1) == 0xBC);
 	uint8_t stack_top = cpu.stack_pop();
 	assert(stack_top == 0xBC);
 	current_stack_address = 0x0100 + cpu.S;
 	assert(current_stack_address == starting_stack_address);
 	cpu.stack_push16(0xABCD);
 	current_stack_address = 0x0100 + cpu.S;
-	assert(cpu.memory[current_stack_address + 2] == 0xAB);
-	assert(cpu.memory[current_stack_address + 1] == 0xCD);
+	assert(cpu.readMemory(current_stack_address + 2) == 0xAB);
+	assert(cpu.readMemory(current_stack_address + 1) == 0xCD);
 	stack_top = cpu.stack_pop();
 	assert(stack_top == 0xCD);
 	stack_top = cpu.stack_pop();
@@ -189,7 +193,8 @@ void Tests::test_stack() {
 
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_reset() {
-	CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
 
 	std::cout << "---------------------------\nReset test:\n\nCurrent values:\n";
 	cpu.printRegisters();
@@ -220,7 +225,8 @@ void Tests::test_reset() {
 
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_nmi() {
-	CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
 
 	uint8_t starting_stack_address = 0x0100 + cpu.S;
 	cpu.nmi_interrupt();
@@ -244,7 +250,8 @@ void Tests::test_nmi() {
 
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_irq() {
-	CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
 
 	// Set flag so interrupt will work
 	cpu.setFlag(CPU::FLAGS::I, false);
@@ -273,7 +280,8 @@ void Tests::test_irq() {
 
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_jmp() {
-	CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
 	cpu.reset();
 	uint16_t test_memory = 0xFFFF;
 
@@ -317,7 +325,8 @@ void Tests::test_jmp() {
 
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_stack_instructions() {
-	CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
 	cpu.reset();
 	uint16_t test_memory = 0xFFFF;
 	cpu.A = 0x34;
@@ -335,7 +344,8 @@ void Tests::test_stack_instructions() {
 
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_branch() {
-	CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
 
 	uint16_t test_memory = 0x0000;
 	cpu.writeMemory(test_memory, 0x79);
@@ -392,7 +402,8 @@ void Tests::test_branch() {
 }
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_ASL() {
-    CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
     cpu.reset();
 
     // Accumulator loaded with 25, ASL executed, accumulator should now hold 50
@@ -420,7 +431,8 @@ void Tests::test_ASL() {
 }
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_LSR() {
-    CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
     cpu.reset();
 
     // Accumulator loaded with 144, LSR executed, accumulator should now hold 72
@@ -442,7 +454,8 @@ void Tests::test_LSR() {
 }
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_ROL() {
-    CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
     cpu.reset();
 
     // Accumulator loaded with 25, ROL executed, accumulator should now hold 50
@@ -473,7 +486,8 @@ void Tests::test_ROL() {
 }
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_ROR() {
-    CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
     cpu.reset();
 
     // Accumulator loaded with 1, ROR executed, accumulator should now hold 0
@@ -504,7 +518,8 @@ void Tests::test_ROR() {
 }
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_CMP() {
-    CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
     cpu.reset();
 
     // Accumulator loaded with 144, address loaded with 80, CMP executed, Carry flag should be set
@@ -529,7 +544,8 @@ void Tests::test_CMP() {
 }
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_CPX() {
-    CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
     cpu.reset();
 
     // X register loaded with 144, address loaded with 80, CPX executed, Carry flag should be set
@@ -554,7 +570,8 @@ void Tests::test_CPX() {
 }
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_CPY() {
-    CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
     cpu.reset();
 
     // Y register loaded with 144, address loaded with 80, CPY executed, Carry flag should be set
@@ -579,7 +596,8 @@ void Tests::test_CPY() {
 }
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_CLD_SED_CLV() {
-    CPU cpu;
+	NES nes;
+	CPU& cpu = *nes.bus.cpu;
     cpu.reset();
 
     cpu.writeMemory(0x00, 0xF8); // SED
@@ -636,17 +654,37 @@ void Tests::test_Bus() {
 }
 
 void Tests::test_PPU_registers() {
-Bus bus;
-CPU& cpu = *bus.cpu;
-// Write to PPUCTRL
-cpu.writeBus(0x2000, 0xC2);
+	Bus bus;
+	CPU& cpu = *bus.cpu;
+	// Write to PPUCTRL
+	cpu.writeBus(0x2000, 0xC2);
 
-// Read from PPUCTRL
-//uint8_t result = cpu.readBus(0x2000);
-uint8_t result = bus.ppu.control.reg;
+	// Read from PPUCTRL
+	//uint8_t result = cpu.readBus(0x2000);
+	uint8_t result = bus.ppu.control.reg;
 
-std::cout << "PPUCTRL: '" << std::hex << static_cast<int>(result) << "'\n";
-assert(result == 0xC2);
+	std::cout << "PPUCTRL: '" << std::hex << static_cast<int>(result) << "'\n";
+	assert(result == 0xC2);
 
-std::cout << "PPU Register Tests Passed\n";
+	std::cout << "PPU Register Tests Passed\n";
+
+
+
+}
+
+void Tests::test_pattern_tables(std::string path) {
+	NES nes;
+	nes.load_rom(path.c_str()); // current test rom is ./nestest.nes
+	nes.initNES();
+	//nes.cpu.PC = 0xC000;
+	for (int i = 0;i < 300; i++) {
+		 //printf("count: %d\n", i+1);
+		// uint8_t opcode = nes.cpu.readMemory(nes.cpu.PC);
+		// printf("Opcode: %02X\n", opcode);
+		// nes.cpu.printRegisters();
+		nes.cycle();
+	}
+	//nes.bus.ppu.printPatternTable();
+	//nes.bus.ppu.printPaletteMemory();
+
 }
