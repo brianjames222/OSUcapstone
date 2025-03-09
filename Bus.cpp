@@ -63,14 +63,12 @@ void Bus::reset() const {
 void Bus::clock() {
     clockCounter++;
 
-    apu->clock();
     // Cycle ppu every clock cycle
     ppu.clock();
+    apu->clock();
 
     // CPU is three times slower than ppu
     if (clockCounter % 3 == 0) {
-        // cpu->clock()
-    }
 
         // Check if a DMA transfer is happening, it suspends the CPU
         if (DMATransfer) {
@@ -104,14 +102,13 @@ void Bus::clock() {
         }
 
     }
+     // if vblank started, inform cpu through nmi interrupt.
+     if (ppu.nmi) {
+         ppu.nmi = false;
+         cpu->nmi_interrupt();
+     }
 
-    // if vblank started, inform cpu through nmi interrupt.
-    if (ppu.nmi) {
-        ppu.nmi = false;
-        cpu->nmi_interrupt();
-    }
-
-    clockCounter++;
+    // clockCounter++;
 }
 
 void Bus::connectROM(NESROM& ROM) {
