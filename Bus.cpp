@@ -1,15 +1,16 @@
 #include "Bus.h"
 #include "CPU.cpp" // <-- need to implement CPU.h
 
-
 Bus::Bus() {
     cpu = new CPU();
     apu = new APU();
     cpu->connectBus(this);  // Connect CPU to Bus
-    APU apu;                // not needed?
 }
 
-Bus::~Bus() = default;
+Bus::~Bus() {
+    delete cpu;
+    delete apu;
+}
 
 void Bus::write(uint16_t address, uint8_t data) {
 
@@ -18,7 +19,7 @@ void Bus::write(uint16_t address, uint8_t data) {
     } else if (address >= 0x2000 && address <= 0x3FFF) {
         ppu.cpuWrite(address & 0x0007, data);
     } else if ((address >= 0x4000 && address <= 0x4013) || address == 0x4015 || address == 0x4017) {
-        apu->write_register(address, data);
+        apu->writeRegister(address, data);
     } else if (address == 0x4014) {
         DMATransfer = true;
         // DMA Page + DMA Address make a 16-bit address for the CPU bus
@@ -40,7 +41,7 @@ uint8_t Bus::read(uint16_t address) {
         // TODO: read from PPU registers and mirror
         //return ppuRegister[(address - 0x2000) % 0x8];
     } else if ((address >= 0x4000 && address <= 0x4013) || address == 0x4015 || address == 0x4017) {
-        return apu->read_register(address);
+        // return apu->cpuRead(address);
     } else if (address == 0x4014) {
         // TODO: read from address for DMA transfer
     } else if (address >= 0x4016 && address <= 0x4017) {
@@ -60,8 +61,11 @@ void Bus::reset() const {
 }
 
 void Bus::clock() {
+    clockCounter++;
+
     // Cycle ppu every clock cycle
     ppu.clock();
+    apu->clock();
 
     // CPU is three times slower than ppu
     if (clockCounter % 3 == 0) {
@@ -98,14 +102,13 @@ void Bus::clock() {
         }
 
     }
+     // if vblank started, inform cpu through nmi interrupt.
+     if (ppu.nmi) {
+         ppu.nmi = false;
+         cpu->nmi_interrupt();
+     }
 
-    // if vblank started, inform cpu through nmi interrupt.
-    if (ppu.nmi) {
-        ppu.nmi = false;
-        cpu->nmi_interrupt();
-    }
-
-    clockCounter++;
+    // clockCounter++;
 }
 
 void Bus::connectROM(NESROM& ROM) {

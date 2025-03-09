@@ -89,76 +89,76 @@ void Tests::test_opcodes() {
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_ADC() {
 	std::cout << "---------------------------\nADC Tests:\n\n";
-CPU cpu;
+	CPU cpu;
 
-// Test Program
-cpu.writeMemory(0x00, 0x69); // Load 5
-cpu.writeMemory(0x01, 0x05);
-cpu.writeMemory(0x02, 0x69); // Load 0
-cpu.writeMemory(0x03, 0x00);
-cpu.writeMemory(0x04, 0x69); // Load 80
-cpu.writeMemory(0x05, 0x50);
-cpu.writeMemory(0x06, 0x69); // Load -10, signed
-cpu.writeMemory(0x07, 0xF6);
+	// Test Program
+	cpu.writeMemory(0x00, 0x69); // Load 5
+	cpu.writeMemory(0x01, 0x05);
+	cpu.writeMemory(0x02, 0x69); // Load 0
+	cpu.writeMemory(0x03, 0x00);
+	cpu.writeMemory(0x04, 0x69); // Load 80
+	cpu.writeMemory(0x05, 0x50);
+	cpu.writeMemory(0x06, 0x69); // Load -10, signed
+	cpu.writeMemory(0x07, 0xF6);
 
-// Test A Register
-cpu.PC = 0x00;
-cpu.A = 0x05;
-cpu.execute();
-assert(cpu.A == 0x0A);
-std::cout << "   A Register good\n";
+	// Test A Register
+	cpu.PC = 0x00;
+	cpu.A = 0x05;
+	cpu.execute();
+	assert(cpu.A == 0x0A);
+	std::cout << "   A Register good\n";
 
-// Test Carry Flag
-cpu.PC = 0x00;
-cpu.A = 0x05;
-cpu.setFlag(CPU::FLAGS::C, true);
-cpu.execute();
-assert(cpu.A == 0x0B);
-std::cout << "   Carry flag modifier good\n";
+	// Test Carry Flag
+	cpu.PC = 0x00;
+	cpu.A = 0x05;
+	cpu.setFlag(CPU::FLAGS::C, true);
+	cpu.execute();
+	assert(cpu.A == 0x0B);
+	std::cout << "   Carry flag modifier good\n";
 
-// Test Carry Flag Value
-cpu.PC = 0x00;
-cpu.A = 0x05;
-cpu.execute();
-assert(cpu.getFlag(CPU::FLAGS::C) == false);
-cpu.PC = 0x00;
-cpu.A = 0xFF;
-cpu.execute();
-assert(cpu.getFlag(CPU::FLAGS::C) == true);
-std::cout << "   Carry flag result good\n";
+	// Test Carry Flag Value
+	cpu.PC = 0x00;
+	cpu.A = 0x05;
+	cpu.execute();
+	assert(cpu.getFlag(CPU::FLAGS::C) == false);
+	cpu.PC = 0x00;
+	cpu.A = 0xFF;
+	cpu.execute();
+	assert(cpu.getFlag(CPU::FLAGS::C) == true);
+	std::cout << "   Carry flag result good\n";
 
-// Test Zero Flag Value
-cpu.PC = 0x00;
-cpu.A = 0x05;
-cpu.execute();
-assert(cpu.getFlag(CPU::FLAGS::Z) == false);
-cpu.A = 0x00;
-cpu.execute();
-assert(cpu.getFlag(CPU::FLAGS::Z) == true);
-std::cout << "   Zero flag good\n";
+	// Test Zero Flag Value
+	cpu.PC = 0x00;
+	cpu.A = 0x05;
+	cpu.execute();
+	assert(cpu.getFlag(CPU::FLAGS::Z) == false);
+	cpu.A = 0x00;
+	cpu.execute();
+	assert(cpu.getFlag(CPU::FLAGS::Z) == true);
+	std::cout << "   Zero flag good\n";
 
-// Test Overflow Flag Value
-cpu.PC = 0x00;
-cpu.A = 0x05;
-cpu.execute();
-assert(cpu.getFlag(CPU::FLAGS::V) == false);
-cpu.PC = 0x04;
-cpu.A = 0x50;
-cpu.execute();
-assert(cpu.getFlag(CPU::FLAGS::V) == true);
-std::cout << "   Overflow flag good\n";
+	// Test Overflow Flag Value
+	cpu.PC = 0x00;
+	cpu.A = 0x05;
+	cpu.execute();
+	assert(cpu.getFlag(CPU::FLAGS::V) == false);
+	cpu.PC = 0x04;
+	cpu.A = 0x50;
+	cpu.execute();
+	assert(cpu.getFlag(CPU::FLAGS::V) == true);
+	std::cout << "   Overflow flag good\n";
 
-// Test Negative Flag Value
-cpu.PC = 0x00;
-cpu.A = 0x05;
-cpu.execute();
-  assert(cpu.getFlag(CPU::FLAGS::N) == false);
-cpu.PC = 0x06;
-cpu.A = 0x05;
-cpu.execute();
-std::cout << "   Negative flag good\n";
+	// Test Negative Flag Value
+	cpu.PC = 0x00;
+	cpu.A = 0x05;
+	cpu.execute();
+	  assert(cpu.getFlag(CPU::FLAGS::N) == false);
+	cpu.PC = 0x06;
+	cpu.A = 0x05;
+	cpu.execute();
+	std::cout << "   Negative flag good\n";
 
-std::cout << "\nADC Tests passed!\n\n";
+	std::cout << "\nADC Tests passed!\n\n";
 }
 
 //----------------------------------------------------------------------------------------------------------------------------
@@ -636,17 +636,77 @@ void Tests::test_Bus() {
 }
 
 void Tests::test_PPU_registers() {
-Bus bus;
-CPU& cpu = *bus.cpu;
-// Write to PPUCTRL
-cpu.writeBus(0x2000, 0xC2);
+	Bus bus;
+	CPU& cpu = *bus.cpu;
+	// Write to PPUCTRL
+	cpu.writeBus(0x2000, 0xC2);
 
-// Read from PPUCTRL
-//uint8_t result = cpu.readBus(0x2000);
-uint8_t result = bus.ppu.control.reg;
+	// Read from PPUCTRL
+	//uint8_t result = cpu.readBus(0x2000);
+	uint8_t result = bus.ppu.control.reg;
 
-std::cout << "PPUCTRL: '" << std::hex << static_cast<int>(result) << "'\n";
-assert(result == 0xC2);
+	std::cout << "PPUCTRL: '" << std::hex << static_cast<int>(result) << "'\n";
+	assert(result == 0xC2);
 
-std::cout << "PPU Register Tests Passed\n";
+	std::cout << "PPU Register Tests Passed\n";
+}
+
+void Tests::test_Pulse1() {
+    std::cout << "Starting Pulse 1 test...\n";
+
+    Bus bus;
+
+    // Test Pulse Channel 1 for ~440 Hz (An A note)
+    bus.write(0x4000, 0x83); // 50% duty, volume 3
+    bus.write(0x4002, 0xF2); // Timer low
+    bus.write(0x4003, 0x00); // Timer high (0x00F2 = 242)
+
+    float buffer[1024];
+    const int SAMPLE_RATE = 44100;
+    const int TEST_DURATION_MS = 2000; // 2 seconds
+    const int SAMPLES_PER_LOOP = 1024;
+    int totalSamples = (SAMPLE_RATE * TEST_DURATION_MS) / 1000; // 220500 samples
+    int loops = totalSamples / SAMPLES_PER_LOOP; // ~215 loops
+
+    std::cout << "Generating " << totalSamples << " samples over " << loops << " loops...\n";
+	std::cout << "(You should be hearing a ~440 Hz tone for about 2 seconds right now)" << std::endl;
+
+    Uint32 startTime = SDL_GetTicks();
+
+    for (int i = 0; i < loops; i++) {
+        bus.apu->generateSamples(buffer, SAMPLES_PER_LOOP);
+
+        Uint32 queuedBytes = bus.apu->getQueuedAudioSize();
+        if (queuedBytes < SAMPLE_RATE * sizeof(float) * 2) { // Buffer up to 2 seconds
+            bus.apu->queueAudio(buffer, SAMPLES_PER_LOOP * sizeof(float));
+        }
+
+        bool hasNonZero = false;
+        for (int j = 0; j < SAMPLES_PER_LOOP; j++) {
+            if (buffer[j] != 0.0f) {
+                hasNonZero = true;
+                break;
+            }
+        }
+        assert(hasNonZero && "Pulse 1 should produce non-zero samples");
+
+	    // Step APU clock (approximate 1789773 Hz CPU clock)
+	    for (int c = 0; c < 1789773 / SAMPLE_RATE; c++) {
+	    	bus.clock();
+	    }
+
+        // Delay to match sample rate, adjusted for real-time playback
+        Uint32 elapsedTime = SDL_GetTicks() - startTime;
+        Uint32 expectedTime = (i + 1) * (1000 * SAMPLES_PER_LOOP / SAMPLE_RATE);
+        if (elapsedTime < expectedTime) {
+            SDL_Delay(expectedTime - elapsedTime);
+        }
+    }
+
+    // Wait for the queued audio to finish playing
+    while (bus.apu->getQueuedAudioSize() > 0) {
+        SDL_Delay(10); // Check every 10ms
+    }
+
+    std::cout << "Pulse 1 test completed.\n";
 }
