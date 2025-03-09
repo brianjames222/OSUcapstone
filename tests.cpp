@@ -8,7 +8,6 @@
 
 #include "NES.cpp"
 #include "Bus.h"
-#include "APU.h"
 
 class Tests {
 public:
@@ -661,50 +660,64 @@ public:
 	std::cout << "PPU Register Tests Passed\n";
 	}
 
-	void test_pulse1_sound() {
-		std::cout << "Running Pulse 1 Test..." << std::endl;
+	void testPulse1() {
+	    std::cout << "Starting Pulse 1 test...\n";
 
-		APU apu;
-		std::vector<int16_t> output_buffer;
+	    Bus bus;
 
-		// Enable Pulse 1
-		apu.write_register(0x4015, 0x01); // Enable Pulse 1
+	    // Test Pulse Channel 1 for ~440 Hz (An A note)
+	    bus.write(0x4000, 0x83); // 50% duty, volume 3
+	    bus.write(0x4002, 0xF2); // Timer low
+	    bus.write(0x4003, 0x00); // Timer high (0x00F2 = 242)
 
-		// Set Pulse 1 Control Register
-		apu.write_register(0x4000, 0b01000000); // 50% duty cycle, constant volume = 10
+	    float buffer[1024];
+	    const int SAMPLE_RATE = 44100;
+	    const int TEST_DURATION_MS = 2000; // 2 seconds
+	    const int SAMPLES_PER_LOOP = 1024;
+	    int totalSamples = (SAMPLE_RATE * TEST_DURATION_MS) / 1000; // 220500 samples
+	    int loops = totalSamples / SAMPLES_PER_LOOP; // ~215 loops
 
-		// Set Timer
-		apu.write_register(0x4002, 0xF0); // Low byte of timer
-		apu.write_register(0x4003, 0x08); // High byte of timer (lowers frequency)
+	    std::cout << "Generating " << totalSamples << " samples over " << loops << " loops...\n";
+		std::cout << "(You should be hearing a ~440 Hz tone for about 2 seconds right now)" << std::endl;
 
-		uint8_t status = apu.read_register(0x4015);
-		if (!(status & 0x01)) {
-			std::cout << "Test Failed: Pulse 1 is NOT enabled!" << std::endl;
-			return;
-		} else {
-			std::cout << "Pulse 1 is enabled." << std::endl;
-		}
+	    Uint32 startTime = SDL_GetTicks();
 
-		// Run the APU for a few frames
-		for (int i = 0; i < 10000; i++) {
-			apu.clock();  // Run the APU
-			if (i % 100 == 0) {
-				apu.mixer(output_buffer);
-			}
-		}
+	    for (int i = 0; i < loops; i++) {
+	        bus.apu->generateSamples(buffer, SAMPLES_PER_LOOP);
 
-		// Check if output buffer has sound
-		if (output_buffer.empty()) {
-			std::cout << "Test Failed: No sound data generated." << std::endl;
-		} else {
-			std::cout << "Test Passed: Pulse 1 is generating sound." << std::endl;
+	        Uint32 queuedBytes = bus.apu->getQueuedAudioSize();
+	        if (queuedBytes < SAMPLE_RATE * sizeof(float) * 2) { // Buffer up to 2 seconds
+	            bus.apu->queueAudio(buffer, SAMPLES_PER_LOOP * sizeof(float));
+	        }
 
-			// // Print first 10 samples to verify waveform occurring
-			// std::cout << "First 10 Samples: ";
-			// for (int i = 0; i < 10 && i < output_buffer.size(); i++) {
-			// 	std::cout << output_buffer[i] << " ";
-			// }
-			// std::cout << std::endl;
-		}
+	        bool hasNonZero = false;
+	        for (int j = 0; j < SAMPLES_PER_LOOP; j++) {
+	            if (buffer[j] != 0.0f) {
+	                hasNonZero = true;
+	                break;
+	            }
+	        }
+	        assert(hasNonZero && "Pulse 1 should produce non-zero samples");
+
+	    	// Step APU clock (approximate 1789773 Hz CPU clock)
+	    	for (int c = 0; c < 1789773 / SAMPLE_RATE; c++) {
+	    		bus.clock();
+	    	}
+
+	        // Delay to match sample rate, adjusted for real-time playback
+	        Uint32 elapsedTime = SDL_GetTicks() - startTime;
+	        Uint32 expectedTime = (i + 1) * (1000 * SAMPLES_PER_LOOP / SAMPLE_RATE);
+	        if (elapsedTime < expectedTime) {
+	            SDL_Delay(expectedTime - elapsedTime);
+	        }
+	    }
+
+	    // Wait for the queued audio to finish playing
+	    while (bus.apu->getQueuedAudioSize() > 0) {
+	        SDL_Delay(10); // Check every 10ms
+	    }
+
+	    std::cout << "Pulse 1 test completed.\n";
 	}
+
 };

@@ -4,9 +4,9 @@
 #include <array>
 #include <cstdint>
 #include "PPU.cpp" // Need to make header file for PPU
+#include "APU.h"
 
 class CPU;
-class APU;
 
 class Bus {
 public:
@@ -26,8 +26,7 @@ public:
     // Reset function
     void reset() const;
     // Clock function
-    void clock() const;
-
+    void clock();
 
 private:
     uint32_t clockCounter = 0;

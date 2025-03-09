@@ -1,73 +1,58 @@
 #ifndef APU_H
 #define APU_H
 
-#include <array>
 #include <cstdint>
-#include <vector>
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
-// Sound channels
-struct PulseChannel {
-    bool enabled = false;
-    uint8_t duty = 0;       // 0-3 decides shape of waveform
-    uint16_t timer = 0;     // frequency timer
-    uint8_t length_counter = 0;
-    uint8_t envelope = 0;
-    uint8_t volume = 0;
-    bool constant_volume = false;
+class APU {
+public:
+    APU();
+    ~APU();
 
-    uint16_t timer_counter = 0;     // internal timer counter
-    uint8_t envelope_counter = 0;
-    uint8_t envelope_divider = 0;
-    bool envelope_loop = false;
-    bool envelope_start = false;
+    void writeRegister(uint16_t address, uint8_t value);
+    void generateSamples(float* stream, int length);
+    void clearAudioQueue();
+    Uint32 getQueuedAudioSize();
+    void queueAudio(const void* data, Uint32 len);
 
-    uint8_t duty_position = 0;
+    void clock();       // Step APU internals (envelope, length counter)
+    void reset();       // Reset APU state
 
-    void update_timer();            // processes timer decrement
-    void update_envelope();         // handles envelope volume
-    void update_length_counter();   // handles length countdown
-    uint8_t generate_sample();      // generates square wave output
+private:
+    // Pulse 1 registers
+    uint8_t pulse1_duty;        // $4000: Duty and envelope/volume
+    uint8_t pulse1_sweep;       // $4001: Sweep (not implemented)
+    uint8_t pulse1_timer_low;   // $4002: Timer low byte
+    uint8_t pulse1_length;      // $4003: Length counter and timer high
+
+    // Pulse 1 internal state
+    uint16_t pulse1_timer;      // 11-bit timer value
+    float pulse1_timer_counter; // Timing accumulator
+    uint8_t pulse1_duty_pos;    // Duty cycle position
+    uint8_t pulse1_volume;      // Current volume (from envelope or constant)
+    bool pulse1_enabled;        // Channel enabled flag
+
+    // Envelope state
+    bool envelope_loop;         // $4000 bit 5: Loop envelope / length counter halt
+    bool envelope_constant;     // $4000 bit 4: Constant volume flag
+    uint8_t envelope_period;    // $4000 bits 0-3: Envelope period or constant volume
+    uint8_t envelope_counter;   // Countdown for envelope decay
+    uint8_t envelope_volume;    // Current envelope volume (0-15)
+    bool envelope_start;        // Set when $4003 is written to restart envelope
+
+    // Length counter state
+    uint8_t length_counter;     // Counts down to silence channel
+    bool length_counter_halt;   // From $4000 bit 5 (same as envelope_loop)
+
+    SDL_AudioSpec audioSpec;
+    SDL_AudioDeviceID audioDevice;
+
+    static const uint8_t DUTY_WAVEFORMS[4][8];
+    static const uint8_t LENGTH_TABLE[32]; // Lookup table for length counter
 };
+
 
 // TODO: Implement other sound channels here --> Triangle, Noise, DMC
 
-class APU {
-public:
-    APU();                                                 // Constructor
-    ~APU();                                                // Destructor
-    void reset();                                          // Resets all registers
-    void write_register(uint16_t address, uint8_t value);  // Write to APU registers
-    uint8_t read_register(uint16_t address);               // Read from APU registers
-    void clock();                                          // Syncs APU to frames
-    uint8_t get_pulse_output();                            // retrieves pulse 1 output
-    void mixer(std::vector<int16_t>& output_buffer);
-
-    static void audio_callback(void* userdata, Uint8* stream, int len); // SDL2 audio callback
-
-private:
-    std::array<uint8_t, 0x18> registers{};                 // APU memory-mapped registers
-    int frame_counter = 0;                                 // Used for sequencing APU operations
-    int frame_counter_mode = 4;                            // Default --> 4-step sequence
-
-    // Sound channels
-    PulseChannel pulse1;
-    PulseChannel pulse2;
-    // TODO: More channels here --> Triangle, Noise, DMC
-
-    // Audio Buffer
-    std::vector<int16_t> audio_buffer;
-
-    // SDL2 Audio System
-    SDL_AudioDeviceID audio_device;
-    SDL_AudioSpec audio_spec;
-
-    // Frame sequencer functions
-    void step_envelope();
-    void step_sweep();
-    void step_length_counter();
-};
-
 #endif
-
