@@ -40,8 +40,7 @@ uint8_t Bus::read(uint16_t address) {
     if (address >= 0x0000 && address <= 0x1FFF) {
         return cpuRam[address & 0x07FF];
     } else if (address >= 0x2000 && address <= 0x3FFF) {
-        // TODO: read from PPU registers and mirror
-        //return ppuRegister[(address - 0x2000) % 0x8];
+        return ppu.cpuRead(address & 0x0007);
     } else if ((address >= 0x4000 && address <= 0x4013) || address == 0x4015 || address == 0x4017) {
         return apu->read_register(address);
     } else if (address == 0x4014) {

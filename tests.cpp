@@ -677,7 +677,7 @@ void Tests::test_pattern_tables(std::string path) {
 	nes.load_rom(path.c_str()); // current test rom is ./nestest.nes
 	nes.initNES();
 	//nes.cpu.PC = 0xC000;
-	for (int i = 0;i < 300; i++) {
+	for (int i = 0;i < 265000; i++) {
 		 //printf("count: %d\n", i+1);
 		// uint8_t opcode = nes.cpu.readMemory(nes.cpu.PC);
 		// printf("Opcode: %02X\n", opcode);

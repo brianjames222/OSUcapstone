@@ -5,6 +5,10 @@
 #include <iostream>
 #include <iomanip>
 #include "PPU.h"
+
+#include <thread>
+#include <unistd.h>
+
 #include "ROM.h"
 
 void PPU::cpuWrite(uint16_t addr, uint8_t data) {
@@ -60,6 +64,37 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data) {
 
             break;
     }
+}
+
+uint8_t PPU::cpuRead(uint16_t address) {
+    uint8_t return_data = 0x00;
+    switch(address) {
+        case 0x0000: // Control register, not readable
+            break;
+        case 0x0001: // Mask register, not readable
+            break;
+        case 0x0002: // Status flag, return top 3 bits of status register, plus 5 bits of previous bus transaction
+            return_data = status.reg & 0xE0 | dataBuffer & 0x1F;
+            break;
+        case 0x0003: // OAM address, not readable
+            break;
+        case 0x0004: // OAM data
+            return_data = OAMDATA[OAMADDR];
+            break;
+        case 0x0005: // Scroll register, not readable
+            break;
+        case 0x0006: // PPU addresss, not readable
+            break;
+        case 0x0007: // PPU Data
+            return_data = dataBuffer;
+            dataBuffer = readPPU(v.vram_register);
+            if (v.vram_register >= 0x3F00) return_data = dataBuffer;
+            v.vram_register += (control.increment_type ? 32: 1);
+            break;
+
+
+    }
+    return return_data;
 }
 
 void PPU::writePPU(uint16_t addr, uint8_t data) {
@@ -119,8 +154,10 @@ void PPU::printPaletteMemory() {
 void PPU::getTile(uint8_t tileIndex, uint8_t* tileData, bool table1) {
 	// get the index by multiplying the tileIndex (0 - 255) by 16 (each tile is 16 bytes)
     uint16_t index = tileIndex * 16;
-    if (!table1) index += 256;			// second table
-    
+    if (table1 == false) {
+        index += 1024;			// second table
+    }
+
     /* Pretty sure this implementation is actually wrong, forgot to account for each individual bit
     for (int i = 0; i < 8; i++) {
         tileData[i] = (patternTables[index + i] << 1) | (patternTables[index + i + 8] & 0x01); // Combine bit planes
@@ -132,7 +169,6 @@ void PPU::getTile(uint8_t tileIndex, uint8_t* tileData, bool table1) {
         //printf("pattern Table location: %d \n", index+i);
         uint8_t low = patternTables[index + i];           // plane 0 - lower bit of each pixel
         uint8_t high = patternTables[index + i + 8];      // plane 1 - higher bit of each pixel
-
         // extract bits for each pixel in a row
         for (int j = 0; j < 8; ++j) {
             // Extract the bits from both low and high bit planes
@@ -141,7 +177,6 @@ void PPU::getTile(uint8_t tileIndex, uint8_t* tileData, bool table1) {
 
             // Combine the bits (bit1 is the higher bit, so we shift it left by 1)
             uint8_t combinedPixel = (bit1 << 1) | bit0;      // Combine bit1 and bit0 into a 2-bit value
-
             // Store the combined result in the tileData array
             tileData[i * 8 + j] = combinedPixel;
 
@@ -159,6 +194,50 @@ void PPU::decodePatternTable() {
             patternTablesDecoded[i * 64 + j] = currentTile[j];
         }
     }
+
+    for (int i = 0; i < 64; i++) {
+        uint8_t currentTile[64];
+        getTile(i, currentTile, false);
+
+        for (int j = 0; j < 64; j++) {
+            patternTablesDecoded[i * 64 + j + 4096] = currentTile[j];
+        }
+    }
+}
+void PPU::printDecodedPatternTable() {
+
+    for (int i = 0; i < 64; i++) {
+        std::cout << "Tile " << i << ":" << std::endl;
+
+        for (int j = 0; j < 64; j++) {
+            std::cout << static_cast<int>(patternTablesDecoded[i * 64 + j]) << " ";
+            if ((j + 1) % 8 == 0) {
+                std::cout << std::endl;
+            }
+        }
+        std::cout << std::endl;
+    }
+}
+
+void PPU::displayPatternTableOnScreen() {
+    u_int8_t current_tile;
+    if (cycle < 128 && scanline < 240) {
+        current_tile = patternTablesDecoded[(int)((scanline) / 8) * 1024 +((scanline * 8) % 64) + (int)(cycle/ 8) * 64 + (cycle % 8)];
+    }
+    else {
+        current_tile = 0;
+    }
+    //u_int8_t current_palette = readPPU(0x3F00 + (4 << 2) + current_tile) & 0x3F;
+    uint32_t current_color;
+    if (current_tile == 3) {
+        current_color = getColor(3);
+    }
+    else {
+        current_color = getColor(14);
+    }
+    //uint32_t current_color = getColor(current_palette);
+    //printf("Current color %08x \n", current_palette);
+    setPixel(cycle, scanline, current_color);
 }
 
 
@@ -220,14 +299,8 @@ void PPU::clock() {
     // TODO: add the code for one clock cycle of the PPU
     // There should be a lot of logic to implement as the ppu is going through the scanlines.
 
-
     if (scanline < 241 && cycle < 256) {
-        // Code to test PPU scanlines with random colors
-        u_int8_t current_tile = patternTablesDecoded[scanline * 64 + cycle];
-        u_int8_t current_palette = readPPU(0x3F00 + (1 << 2) + current_tile) & 0x3F;
-        uint32_t current_color = getColor(current_palette);
-        //printf("Current color %08x \n", current_palette);
-        setPixel(cycle, scanline, current_color);
+        displayPatternTableOnScreen();
     }
     // if rendering of the screen is over, enable nmi vblank
     if (scanline == 241 && cycle == 1) {

@@ -107,6 +107,8 @@ public:
     // Method for writing data to PPU registers
     void cpuWrite(uint16_t addr, uint8_t data);
 
+    uint8_t cpuRead(uint16_t address);
+
     void writePPU(uint16_t addr, uint8_t data);
 
     uint8_t readPPU(uint16_t addr);
@@ -118,10 +120,13 @@ public:
     
     // Pattern tables------------------------------------------------------------------------------------
     std::array<uint8_t, 4096 * 2> patternTables; // two pattern tables of 256 tiles each (4096 / 16)
-    std::array<uint8_t, 4096 * 1> patternTablesDecoded; // two pattern tables of 256 tiles each (4096 / 16) with combined bits
+    std::array<uint8_t, 4096 * 2> patternTablesDecoded; // two pattern tables of 256 tiles each (4096 / 16) with combined bits
 
     // Palette
     u_int8_t paletteMemory[32];
+
+    // Data buffer
+    uint8_t dataBuffer = 0x00;
 
 	// read and write may be modified / unused (e.x. caller specifies table + tile, function figures out what to return)
 	// useful for testing?
@@ -134,6 +139,10 @@ public:
     void printPaletteMemory();
 
     void decodePatternTable();
+
+    void printDecodedPatternTable();
+
+    void displayPatternTableOnScreen();
 
     // method to get a tile, returned as an 8-byte array of pixel info (0-3)
     void getTile(uint8_t tileIndex, uint8_t* tileData, bool table1);

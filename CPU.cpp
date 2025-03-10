@@ -143,8 +143,8 @@ public:
     if (cycles == 0) {
       // Read the opcode
       uint8_t opcode = readMemory(PC++);
-      printf("Opcode: %02X\n", opcode);
-      printRegisters();
+      // printf("Opcode: %02X\n", opcode);
+      // printRegisters();
 
       // Get the address mode and instruction type from the opcode
       //std::cout << "Opcode: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(opcode) << std::endl;
@@ -970,7 +970,6 @@ public:
 
 	// branch if Negative flag is not set (Plus)
 	int BPL(uint16_t address) {
-    printf("BPL Addresss: %04x \n", address);
     int res = 0;
 		if (!getFlag(N)) {
       res++;
@@ -982,7 +981,6 @@ public:
       }
 
 			PC = PC + value;
-		  printf("PC %04x \n", PC);
 		}
     return res;
 	}
@@ -1585,6 +1583,10 @@ public:
     stack_push(P);
     setFlag(FLAGS::I, 1);
     PC = 0xFFFA;
+    uint16_t lo = readMemory(PC);
+    uint16_t hi = readMemory(PC + 1);
+    PC = (hi << 8) | lo;
+    cycles += 8;
   }
 
   // CPU Handling of an IRQ Interrupt

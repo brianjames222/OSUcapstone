@@ -7,13 +7,14 @@ void NES::load_rom(const char *filename) {
         rom_loaded = true;
         uint16_t memory_address = 0x0000;
         bus.connectROM(rom);
-        bus.ppu.decodePatternTable();
+
 
         // write CHR ROM to ppu memory
         for (int i = 0; i < 1024 * 2; i++) {
             bus.ppu.writePatternTable(memory_address, rom.chrRom[memory_address]);
             memory_address++;
         }
+        bus.ppu.decodePatternTable();
         memory_address = 0x0000;
 
         // Write prg ROM to CPU Memory
@@ -77,20 +78,20 @@ void NES::run() {
 
 void NES::cycle() {
     if(on == true) {
-        //Uncomment to test NES at full speed, might need to add more code if system is running too fast.
-         // double fps = 1./60.;
-         // auto start = std::chrono::high_resolution_clock::now();
-         // while (true) {
-         //     bus.clock();
-         //     auto end = std::chrono::high_resolution_clock::now();
-         //     std::chrono::duration<double> elapsed_time = end - start;
-         //     std::chrono::duration<double> frame_time(fps);
-         //     if ((elapsed_time) > frame_time) {
-         //         bus.cpuClockCounter = 0;
-         //         break;
-         //     }
-         // }
-        bus.clock();
+        // Uncomment to test NES at full speed, might need to add more code if system is running too fast.
+          double fps = 1./60.;
+          auto start = std::chrono::high_resolution_clock::now();
+          while (true) {
+              bus.clock();
+              auto end = std::chrono::high_resolution_clock::now();
+              std::chrono::duration<double> elapsed_time = end - start;
+              std::chrono::duration<double> frame_time(fps);
+              if ((elapsed_time) > frame_time) {
+                  bus.cpuClockCounter = 0;
+                  break;
+              }
+          }
+        //bus.clock();
     }
 }
 
