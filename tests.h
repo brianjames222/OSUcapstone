@@ -34,6 +34,7 @@ public:
     void test_NES(std::string path);
     void test_Bus();
     void test_PPU_registers();
+    void test_pattern_tables(std::string path);
 };
 
 
