@@ -8,11 +8,13 @@ void NES::load_rom(const char *filename) {
         uint16_t memory_address = 0x0000;
         bus.connectROM(rom);
 
+
         // write CHR ROM to ppu memory
         for (int i = 0; i < 1024 * 2; i++) {
             bus.ppu.writePatternTable(memory_address, rom.chrRom[memory_address]);
             memory_address++;
         }
+        bus.ppu.decodePatternTable();
         memory_address = 0x0000;
 
         // Write prg ROM to CPU Memory
@@ -25,8 +27,8 @@ void NES::load_rom(const char *filename) {
             for (int i = 0; i < 1024 * 16; i++) {
                 uint8_t prgByte = rom.prgRom[memory_address];
                 memory_address ++;
-                cpu.writeMemory(memory_address_cpu, prgByte);
-                cpu.writeMemory(memory_address_cpu_mirror, prgByte);
+                cpu.writerom(memory_address_cpu, prgByte);
+                cpu.writerom(memory_address_cpu_mirror, prgByte);
                 memory_address_cpu ++;
                 memory_address_cpu_mirror ++;
             }
@@ -37,7 +39,7 @@ void NES::load_rom(const char *filename) {
             for (int i = 0; i < 1024 * 32; i++) {
                 uint8_t prgByte = rom.prgRom[memory_address];
                 memory_address ++;
-                cpu.writeMemory(memory_address_cpu, prgByte);
+                cpu.writerom(memory_address_cpu, prgByte);
                 memory_address_cpu ++;
             }
         }
@@ -56,7 +58,7 @@ void NES::initNES() {
 
 void NES::run() {
     while (on) {
-        cpu.PC = 0xC000;
+        //cpu.PC = 0xC000;
         int counter = 0;
         for (int i = 0;i < 10000; i++) {
             uint8_t opcode = cpu.readMemory(cpu.PC);
@@ -76,19 +78,19 @@ void NES::run() {
 
 void NES::cycle() {
     if(on == true) {
-        //Uncomment to test NES at full speed, might need to add more code if system is running too fast.
-         double fps = 1./60.;
-         auto start = std::chrono::high_resolution_clock::now();
-         while (true) {
-             bus.clock();
-             auto end = std::chrono::high_resolution_clock::now();
-             std::chrono::duration<double> elapsed_time = end - start;
-             std::chrono::duration<double> frame_time(fps);
-             if ((elapsed_time) > frame_time) {
-                 bus.cpuClockCounter = 0;
-                 break;
-             }
-         }
+        // Uncomment to test NES at full speed, might need to add more code if system is running too fast.
+          double fps = 1./60.;
+          auto start = std::chrono::high_resolution_clock::now();
+          while (true) {
+              bus.clock();
+              auto end = std::chrono::high_resolution_clock::now();
+              std::chrono::duration<double> elapsed_time = end - start;
+              std::chrono::duration<double> frame_time(fps);
+              if ((elapsed_time) > frame_time) {
+                  bus.cpuClockCounter = 0;
+                  break;
+              }
+          }
         //bus.clock();
     }
 }

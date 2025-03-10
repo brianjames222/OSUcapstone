@@ -45,17 +45,17 @@ public:
 
   void connectBus(Bus* bus) {this->bus = bus;}
 
-  //Example read and write through the bus.
-  uint8_t readBus(uint16_t address) {
-    return bus->read(address);
-  }
+
 
   void writeBus(uint16_t address, uint8_t value) {
     bus->write(address, value);
   }
 
-  // Returns value at memory address
-  uint8_t readMemory(const uint16_t address) const {
+  uint8_t readBus(u_int16_t address) {
+    return bus->read(address);
+  }
+
+  uint8_t readrom(uint16_t address) {
     if (address < memory.size()) {
       return memory[address];
     } else {
@@ -64,10 +64,19 @@ public:
     }
   }
 
+  uint8_t writerom(uint16_t address, uint8_t data) {
+    if (address < memory.size()) memory[address] = data;
+    else std::cerr << "Address out of bounds: " << address << '\n';
+  }
+
+  // Returns value at memory address
+  uint8_t readMemory(const uint16_t address) const {
+    return bus->read(address);
+  }
+
   // Writes value to memory address
   void writeMemory(const uint16_t address, const uint8_t value) {
-      if (address < memory.size()) memory[address] = value;
-      else std::cerr << "Address out of bounds: " << address << '\n';
+    bus->write(address, value);
   }
 
   // Sets or clears a bit of the status register
@@ -86,7 +95,7 @@ public:
   // Print the CPU registers
   void printRegisters() const {
     printf("A: [%02X]\nX: [%02X]\nY: [%02X]\nPC: [%04X]\nS: [%02X]\nP: [%02X]\n",
-      A, X, Y, PC, S, P);
+      A, X, Y, PC-1, S, P);
   }
 
   // Print the contents of the memory
@@ -134,6 +143,8 @@ public:
     if (cycles == 0) {
       // Read the opcode
       uint8_t opcode = readMemory(PC++);
+      // printf("Opcode: %02X\n", opcode);
+      // printRegisters();
 
       // Get the address mode and instruction type from the opcode
       //std::cout << "Opcode: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(opcode) << std::endl;
@@ -454,6 +465,13 @@ public:
   instructionTable[0xDA] = {&CPU::NOP, &CPU::Implicit};
   instructionTable[0xFA] = {&CPU::NOP, &CPU::Implicit};
   instructionTable[0x80] = {&CPU::NOP, &CPU::IndirectX};
+  instructionTable[0x1C] = {&CPU::NOP, &CPU::Absolute};
+  instructionTable[0x3C] = {&CPU::NOP, &CPU::Absolute};
+  instructionTable[0x3C] = {&CPU::NOP, &CPU::Absolute};
+  instructionTable[0x5C] = {&CPU::NOP, &CPU::Absolute};
+  instructionTable[0x7C] = {&CPU::NOP, &CPU::Absolute};
+  instructionTable[0xDC] = {&CPU::NOP, &CPU::Absolute};
+  instructionTable[0xFC] = {&CPU::NOP, &CPU::Absolute};
   }
 
   // --------------------------------------  Instructions
@@ -494,6 +512,7 @@ public:
 
   // "STA stores the accumulator value into memory."
   int STA(uint16_t address) {
+
     writeMemory(address, A);
     return 0;
   }
@@ -568,8 +587,7 @@ public:
     // Set C flag if overflow
     setFlag(CPU::FLAGS::C, result > 0xFF);
 
-    // Set Z flag if zero
-    setFlag(CPU::FLAGS::Z, result == 0);
+
 
     // Set V flag if signed overflow
     uint8_t trunc_result = result & 0xFF;
@@ -578,6 +596,9 @@ public:
     } else {
       setFlag(CPU::FLAGS::V, false);
     }
+
+    // Set Z flag if zero
+    setFlag(CPU::FLAGS::Z, trunc_result == 0);
 
     // Set N flag if negative
     setFlag(CPU::FLAGS::N, trunc_result & 0x80);
@@ -590,27 +611,16 @@ public:
   // Subtract value from A with carry flag
   int SBC(uint16_t address) {
     uint8_t value = readMemory(address);
-    uint16_t result = A + ~value + C;
 
-    // Set C flag if overflow
-    setFlag(C, ~(result & 0x00));
+    uint16_t result = value ^ 0x00FF;
 
-    // Set Z flag if zero
-    setFlag(Z, result == 0);
+    uint16_t temp_value = (uint16_t)A + result + (uint16_t)getFlag(C);
 
-    // Set V flag if signed overflow
-    uint8_t trunc_result = result & 0xFF;
-    if ((trunc_result ^ A) & (trunc_result ^ ~value) & 0x80) {
-      setFlag(V, true);
-    } else {
-      setFlag(V, false);
-    }
-
-    // Set N flag if negative
-    setFlag(N, result & 0x80);
-
-    // Update A
-    A = trunc_result;
+    setFlag(C, temp_value & 0xFF00);
+    setFlag(Z, ((temp_value & 0x00FF) == 0));
+    setFlag(V, (temp_value ^ (uint16_t)A) & (temp_value ^ result) & 0x0080);
+    setFlag(N, temp_value & 0x0080);
+    A = temp_value & 0x00FF;
 
     return 0;
   }
@@ -1126,11 +1136,12 @@ public:
     }
     int value_lsb = value & 1;
     uint8_t shifted_value = value >> 1;
-    int shifted_value_msb = (shifted_value >> 7) & 1;
+
     // The value held in the Carry flag is shifted into the MSB of the new value
     if (getFlag(C) == 1) {
       shifted_value |= 0x80;
     }
+    int shifted_value_msb = (shifted_value & 0x80);
     setFlag(C, value_lsb);
     setFlag(N, shifted_value_msb);
     setFlag(Z, shifted_value == 0);
@@ -1181,9 +1192,6 @@ public:
 
   // No Operation
   int NOP(uint16_t address) {
-    if (address != 0xFFFF) {
-      throw std::runtime_error("NOP called without implied mode");
-    }
 
     return 0;
   }
@@ -1474,7 +1482,16 @@ public:
   // Return a full 16 bit address from a pointer in the zero page + X
   AddressResult IndirectX() {
     uint16_t ptrAddr = (readMemory(PC++) + X) & 0xFF;
-    uint16_t addr = readMemory(ptrAddr) | (readMemory(ptrAddr + 1) & 0xFF) << 8;
+    uint16_t lo = readMemory((uint16_t)(ptrAddr) & 0xFFFF);
+    uint16_t hi;
+    if (ptrAddr == 0xFF) {
+      hi = (readMemory(0x0000) & 0xFF) << 8;
+    }
+    else {
+      hi = (readMemory(ptrAddr + 1) & 0xFF) << 8;
+    }
+
+    uint16_t addr = lo | hi;
     int cycles = 6;
     bool additionalCycles = false;
 
@@ -1484,7 +1501,15 @@ public:
   // Return a full 16 bit address from a pointer in the zero page + Y
   AddressResult IndirectY() {
     uint16_t ptrAddr = readMemory(PC++);
-    uint16_t addr = readMemory(ptrAddr) | (readMemory(ptrAddr + 1) & 0xFF) << 8;
+    uint16_t lo = readMemory(ptrAddr);
+    uint16_t hi;
+    if (ptrAddr == 0xFF) {
+      hi = (readMemory(0x0000) & 0xFF) << 8;
+    }
+    else {
+      hi = (readMemory(ptrAddr + 1) & 0xFF) << 8;
+    }
+    uint16_t addr = lo | hi;
     addr += Y;
     int cycles = 5;
     // Add 1 cycle if page crossed
@@ -1558,6 +1583,10 @@ public:
     stack_push(P);
     setFlag(FLAGS::I, 1);
     PC = 0xFFFA;
+    uint16_t lo = readMemory(PC);
+    uint16_t hi = readMemory(PC + 1);
+    PC = (hi << 8) | lo;
+    cycles += 8;
   }
 
   // CPU Handling of an IRQ Interrupt
