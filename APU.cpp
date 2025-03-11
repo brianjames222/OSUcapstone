@@ -44,7 +44,7 @@ uint8_t APU::read_register(uint16_t address) {
           return status;
 	}
 
-	printf("Invalid APU register read: %04X\n", address);
+	//printf("Invalid APU register read: %04X\n", address);
 	return 0;
 }
 

@@ -155,7 +155,7 @@ void PPU::getTile(uint8_t tileIndex, uint8_t* tileData, bool table1) {
 	// get the index by multiplying the tileIndex (0 - 255) by 16 (each tile is 16 bytes)
     uint16_t index = tileIndex * 16;
     if (table1 == false) {
-        index += 1024;			// second table
+        index += 4096;			// second table
     }
 
     /* Pretty sure this implementation is actually wrong, forgot to account for each individual bit
@@ -186,7 +186,7 @@ void PPU::getTile(uint8_t tileIndex, uint8_t* tileData, bool table1) {
 }
 
 void PPU::decodePatternTable() {
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < 256; i++) {
         uint8_t currentTile[64];
         getTile(i, currentTile, true);
 
@@ -195,18 +195,18 @@ void PPU::decodePatternTable() {
         }
     }
 
-    for (int i = 0; i < 64; i++) {
-        uint8_t currentTile[64];
-        getTile(i, currentTile, false);
+     for (int i = 0; i < 256; i++) {
+         uint8_t currentTile[64];
+         getTile(i, currentTile, false);
 
-        for (int j = 0; j < 64; j++) {
-            patternTablesDecoded[i * 64 + j + 4096] = currentTile[j];
-        }
-    }
+         for (int j = 0; j < 64; j++) {
+             patternTablesDecoded[i * 64 + j + (4096 * 4)] = currentTile[j];
+         }
+     }
 }
 void PPU::printDecodedPatternTable() {
 
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < 512; i++) {
         std::cout << "Tile " << i << ":" << std::endl;
 
         for (int j = 0; j < 64; j++) {
@@ -220,7 +220,7 @@ void PPU::printDecodedPatternTable() {
 }
 
 void PPU::displayPatternTableOnScreen() {
-    u_int8_t current_tile;
+    uint8_t current_tile;
     if (cycle < 128 && scanline < 240) {
         current_tile = patternTablesDecoded[(int)((scanline) / 8) * 1024 +((scanline * 8) % 64) + (int)(cycle/ 8) * 64 + (cycle % 8)];
     }
@@ -230,10 +230,16 @@ void PPU::displayPatternTableOnScreen() {
     //u_int8_t current_palette = readPPU(0x3F00 + (4 << 2) + current_tile) & 0x3F;
     uint32_t current_color;
     if (current_tile == 3) {
-        current_color = getColor(3);
+        current_color = getColor(22);
+    }
+    else if (current_tile == 2) {
+        current_color = getColor(14);
+    }
+    else if (current_tile == 1) {
+        current_color = getColor(32);
     }
     else {
-        current_color = getColor(14);
+        current_color = getColor(1);
     }
     //uint32_t current_color = getColor(current_palette);
     //printf("Current color %08x \n", current_palette);
@@ -251,9 +257,9 @@ void PPU::setPixel(uint8_t x, uint8_t y, uint32_t color) {
 
 unsigned PPU::getColor(int index) {
     std::array<uint32_t, 64> nesPalette = {
-        0x545454, 0x001E74, 0x0810A0, 0x300088, 0x44004C, 0x5C0020, 0x540400, 0x3C1800,
+        0x545454, 0x962400, 0x0810A0, 0x300088, 0x44004C, 0x5C0020, 0x540400, 0x3C1800,
         0x202A00, 0x083A00, 0x004000, 0x003C0A, 0x003238, 0x000000, 0x000000, 0x000000,
-        0x989696, 0x074C64, 0x3032EC, 0x5C1EEC, 0x8814B0, 0xA01464, 0x982220, 0x783C0A,
+        0x989696, 0x074C64, 0x3032EC, 0x5C1EEC, 0x8814B0, 0xA01464, 0x0000FF, 0x783C0A,
         0x223C00, 0x0A6600, 0x006400, 0x00583A, 0x00393B, 0x001B2A, 0x1F1F1F, 0x111111,
         0xA9A9A9, 0x023C9C, 0x2449CC, 0x3E40CF, 0x6B6C99, 0x7F77AA, 0x8B95C2, 0x8C8A7F,
         0xFF00A0, 0xAA0D42, 0x8C1A4E, 0x801D53, 0x922C6F, 0x9E4A6E, 0x92515D, 0x774E53,
