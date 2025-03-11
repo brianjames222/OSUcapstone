@@ -55,9 +55,10 @@ uint8_t Bus::read(uint16_t address) {
     return -1;
 }
 
-void Bus::reset() const {
+void Bus::reset() {
     cpu->reset();
     apu->reset();
+    ppu.reset();
     // TODO: add resets for other components
 }
 
