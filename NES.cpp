@@ -10,7 +10,7 @@ void NES::load_rom(const char *filename) {
 
 
         // write CHR ROM to ppu memory
-        for (int i = 0; i < 1024 * 2; i++) {
+        for (int i = 0; i < 1024 * 8; i++) {
             bus.ppu.writePatternTable(memory_address, rom.chrRom[memory_address]);
             memory_address++;
         }

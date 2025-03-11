@@ -119,8 +119,8 @@ public:
     NESROM* ROM{};
     
     // Pattern tables------------------------------------------------------------------------------------
-    std::array<uint8_t, 4096 * 2> patternTables; // two pattern tables of 256 tiles each (4096 / 16)
-    std::array<uint8_t, 4096 * 2> patternTablesDecoded; // two pattern tables of 256 tiles each (4096 / 16) with combined bits
+    std::array<uint8_t, 4096 * 4> patternTables; // two pattern tables of 256 tiles each (4096 / 16)
+    std::array<uint8_t, 4096 * 16> patternTablesDecoded; // two pattern tables of 256 tiles each (4096 / 16) with combined bits
 
     // Palette
     u_int8_t paletteMemory[32];
