@@ -28,7 +28,7 @@ public:
     uint8_t read(uint16_t address);
 
     // Reset function
-    void reset() const;
+    void reset();
     // Clock function
     void clock();
     // Connect Game Rom to Bus

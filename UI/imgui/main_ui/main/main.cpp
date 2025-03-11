@@ -261,7 +261,7 @@ int main(int, char**)
 
             // Display registers
             ImGui::Text("Registers");
-            ImGui::TextColored(ImVec4(R, G, B, 1.0f), "A: [%02x]", nes.cpu.A);
+            //ImGui::TextColored(ImVec4(R, G, B, 1.0f), "A: [%02x]", nes.cpu.A);
             ImGui::Text("A: [%02x]", nes.cpu.A);
             ImGui::Text("X: [%02x]", nes.cpu.X);
             ImGui::Text("Y: [%02x]", nes.cpu.Y);

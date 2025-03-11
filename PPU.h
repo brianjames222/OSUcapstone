@@ -52,8 +52,22 @@ public:
         }; uint8_t reg;
     } control;
 
+    union PPUMASK {
+        struct {
+            uint8_t grayscale: 1;
+            uint8_t render_background_left: 1;
+            uint8_t render_sprites_left: 1;
+            uint8_t enable_background_rendering: 1;
+            uint8_t enable_sprite_rendering: 1;
+            uint8_t emphasize_red: 1;
+            uint8_t emphasize_green: 1;
+            uint8_t emphasize_blue: 1;
+        };
+        uint8_t reg;
+    } mask;
+
     //uint8_t PPUCTRL = 0x00;         // Controller
-    uint8_t PPUMASK = 0x00;         // Mask
+    //uint8_t PPUMASK = 0x00;         // Mask
     //uint8_t PPUSTATUS = 0x00;       // Status
     uint8_t OAMADDR = 0x00;         // Sprite RAM address
     uint8_t PPUSCROLL = 0x00;       // X and Y scroll
@@ -144,6 +158,8 @@ public:
 
     void displayPatternTableOnScreen();
 
+    void displayNameTableOnScreen(uint8_t table);
+
     // method to get a tile, returned as an 8-byte array of pixel info (0-3)
     void getTile(uint8_t tileIndex, uint8_t* tileData, bool table1);
 
@@ -151,8 +167,8 @@ public:
 
     void clock();
 
-    uint16_t cycle = 0;
-    uint16_t scanline = 0;
+    int16_t cycle = 0;
+    int16_t scanline = 0;
     uint16_t total_frames = 1;
     bool complete_frame = false;
     bool nmi = false;
@@ -162,6 +178,8 @@ public:
     uint32_t nextFrame[256 * 240]{};
 
     unsigned getColor(int);
+
+    void printNameTable();
 
     // Name tables
     std::array<uint8_t, 2048> nameTables;
@@ -179,6 +197,7 @@ public:
     // Uses data from PPU v register to calculate attribute table address for current tile
     uint16_t getAttributeTableAddress();
 
+    void reset();
 };
 
 #endif // PPU_H

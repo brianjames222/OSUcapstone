@@ -16,12 +16,13 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data) {
     switch (addr) {
         case 0x0000: // CRTL
             control.reg = data;
+            t.nametable_x = control.nametable_x;
+            t.nametable_y = control.nametable_y;
             break;
         case 0x0001: // MASK
-            PPUMASK = data;
+            mask.reg = data;
             break;
         case 0x0002: // STATUS
-            status.reg = data;
             break;
         case 0x0003: // OAM Address
             OAMADDR = data;
@@ -59,9 +60,8 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data) {
         case 0x0007: // PPU Data
 
             // Todo: increment I bit of CRTL register by 1 or 32 depending on vertical or horizontal mode
-            writePPU(v.vram_register, data);
-            v.vram_register += (control.increment_type ? 32: 1);
-
+                writePPU(v.vram_register, data);
+                v.vram_register += (control.increment_type ? 32: 1);
             break;
     }
 }
@@ -74,7 +74,9 @@ uint8_t PPU::cpuRead(uint16_t address) {
         case 0x0001: // Mask register, not readable
             break;
         case 0x0002: // Status flag, return top 3 bits of status register, plus 5 bits of previous bus transaction
-            return_data = status.reg & 0xE0 | dataBuffer & 0x1F;
+            return_data = (status.reg & 0xE0) | (dataBuffer & 0x1F);
+            status.vblank = 0;
+            w = 0;
             break;
         case 0x0003: // OAM address, not readable
             break;
@@ -100,7 +102,45 @@ uint8_t PPU::cpuRead(uint16_t address) {
 void PPU::writePPU(uint16_t addr, uint8_t data) {
     //TODO: Write to ppu bus between 0x0000 and 0x3FFF
     //printf("PPU::writePPU: addr: %04x, data: %02x\n", addr, data);
-    if (addr >= 0x3F00 && addr <= 0x3FFF) {
+    addr &= 0x3FFF;
+    if (addr >= 0x000 && addr <= 0x1FFF) {
+        patternTables[addr] = data;
+    }
+    else if (addr >= 0x2000 && addr <= 0x3EFF) {
+
+        addr &= 0x0FFF;
+        // Vertical mirror
+        if (ROM->ROMheader.flags6 == 1) {
+            if (addr >= 0x0000 && addr <= 0x03FF) {
+                nameTables[addr & 0x03FF] = data;
+            }
+            if (addr >= 0x0400 && addr <= 0x07FF) {
+                nameTables[(addr & 0x03FF) + 1024] = data;
+            }
+            if (addr >= 0x0800 && addr <= 0x0BFF) {
+                nameTables[addr & 0x03FF] = data;
+            }
+            if (addr >= 0x0C00 && addr <= 0x0FFF) {
+                nameTables[(addr & 0x03FF) + 1024] = data;
+            }
+        }
+        // Horizontal mirror
+        if (ROM->ROMheader.flags6 == 0) {
+            if (addr >= 0x0000 && addr <= 0x03FF) {
+                nameTables[addr & 0x03FF] = data;
+            }
+            if (addr >= 0x0400 && addr <= 0x07FF) {
+                nameTables[addr & 0x03FF] = data;
+            }
+            if (addr >= 0x0800 && addr <= 0x0BFF) {
+                nameTables[(addr & 0x03FF) + 1024] = data;
+            }
+            if (addr >= 0x0C00 && addr <= 0x0FFF) {
+                nameTables[(addr & 0x03FF) + 1024] = data;
+            }
+        }
+    }
+    else if (addr >= 0x3F00 && addr <= 0x3FFF) {
         addr &= 0x001F;
         if (addr == 0x0010) addr = 0x0000;
         if (addr == 0x0014) addr = 0x0004;
@@ -112,13 +152,53 @@ void PPU::writePPU(uint16_t addr, uint8_t data) {
 
 uint8_t PPU::readPPU(uint16_t addr) {
     //TODO: Read from ppu bus between 0x0000 and 0x3FFF
-    if (addr >= 0x3F00 && addr <= 0x3FFF) {
+    uint8_t data = 0x00;
+    addr &= 0x3FFF;
+    if (addr >= 0x0000 && addr <= 0x01FF) {
+        data = patternTables[addr];
+        return data;
+    }
+    else if (addr >= 0x2000 && addr <= 0x3EFF) {
+        addr &= 0x0FFF;
+        // Vertical mirror
+        if (ROM->ROMheader.flags6 == 1) {
+            if (addr >= 0x0000 && addr <= 0x03FF) {
+                data = nameTables[addr & 0x03FF];
+            }
+            if (addr >= 0x0400 && addr <= 0x07FF) {
+                data = nameTables[(addr & 0x03FF) + 1024];
+            }
+            if (addr >= 0x0800 && addr <= 0x0BFF) {
+                data = nameTables[addr & 0x03FF];
+            }
+            if (addr >= 0x0C00 && addr <= 0x0FFF) {
+                data = nameTables[(addr & 0x03FF) + 1024];
+            }
+        }
+        // Horizontal mirror
+        if (ROM->ROMheader.flags6 == 0) {
+            if (addr >= 0x0000 && addr <= 0x03FF) {
+                data = nameTables[addr & 0x03FF];
+            }
+            if (addr >= 0x0400 && addr <= 0x07FF) {
+                data = nameTables[addr & 0x03FF];
+            }
+            if (addr >= 0x0800 && addr <= 0x0BFF) {
+                data = nameTables[(addr & 0x03FF) + 1024];
+            }
+            if (addr >= 0x0C00 && addr <= 0x0FFF) {
+                data = nameTables[(addr & 0x03FF) + 1024];
+            }
+        }
+        return data;
+    }
+    else if (addr >= 0x3F00 && addr <= 0x3FFF) {
         addr &= 0x001F;
         if (addr == 0x0010) addr = 0x0000;
         if (addr == 0x0014) addr = 0x0004;
         if (addr == 0x0018) addr = 0x0008;
         if (addr == 0x001C) addr = 0x000C;
-        return paletteMemory[addr];
+        return paletteMemory[addr] & (mask.grayscale ? 0x30: 0x3F);
     }
 }
 
@@ -246,6 +326,17 @@ void PPU::displayPatternTableOnScreen() {
     setPixel(cycle, scanline, current_color);
 }
 
+void PPU::displayNameTableOnScreen(uint8_t table) {
+    uint8_t nameTableByte = nameTables[(table * 1024) + ((scanline / 8) * 32) + (cycle / 8)];
+
+    uint8_t current_tile = patternTablesDecoded[(nameTableByte * 64) + ((scanline * 8) % 64) + (cycle % 8) + (control.background_pattern * 16384)];
+    uint32_t current_color;
+
+    current_color = getColor(readPPU(0x3F00 + (0 << 2) + current_tile) % 64);
+
+    setPixel(cycle, scanline, current_color);
+}
+
 
 void PPU::setPixel(uint8_t x, uint8_t y, uint32_t color) {
     rgbFramebuffer[y * 256 + x] = 0xFF000000 | color;
@@ -257,14 +348,14 @@ void PPU::setPixel(uint8_t x, uint8_t y, uint32_t color) {
 
 unsigned PPU::getColor(int index) {
     std::array<uint32_t, 64> nesPalette = {
-        0x545454, 0x962400, 0x0810A0, 0x300088, 0x44004C, 0x5C0020, 0x540400, 0x3C1800,
-        0x202A00, 0x083A00, 0x004000, 0x003C0A, 0x003238, 0x000000, 0x000000, 0x000000,
-        0x989696, 0x074C64, 0x3032EC, 0x5C1EEC, 0x8814B0, 0xA01464, 0x0000FF, 0x783C0A,
-        0x223C00, 0x0A6600, 0x006400, 0x00583A, 0x00393B, 0x001B2A, 0x1F1F1F, 0x111111,
-        0xA9A9A9, 0x023C9C, 0x2449CC, 0x3E40CF, 0x6B6C99, 0x7F77AA, 0x8B95C2, 0x8C8A7F,
-        0xFF00A0, 0xAA0D42, 0x8C1A4E, 0x801D53, 0x922C6F, 0x9E4A6E, 0x92515D, 0x774E53,
-        0x0F77BB, 0x0B9DE8, 0x2F67E0, 0x6A7FFF, 0xA2B9F1, 0x9CC6DB, 0x70A5E9, 0x5C82C7,
-        0x080F99, 0x13D1F6, 0x35C8FD, 0x7F8F9E, 0xC8E0F5, 0xF3FBFF, 0xC8EBFF, 0x7F9FF7
+        0x545454, 0xB41D01, 0xA01008, 0x880030, 0x4C0044, 0x20005C, 0x000454, 0x00183C,
+        0x002A20, 0x003A08, 0x004000, 0x0A3C00, 0x383200, 0x000000, 0x000000, 0x000000,
+        0x969698, 0x644C07, 0xEC3230, 0xEC1E5C, 0xB01488, 0x6414A0, 0x0000FF, 0x0A3C78,
+        0x003C22, 0x00660A, 0x006400, 0x3A5800, 0x3B3900, 0x2A1B00, 0x1F1F1F, 0x111111,
+        0xA9A9A9, 0x9C3C02, 0xCC4924, 0xCF403E, 0x996C6B, 0xAA777F, 0xC2958B, 0x7F8A8C,
+        0xA000FF, 0x420DAA, 0x4E1A8C, 0x531D80, 0x6F2C92, 0x6E4A9E, 0x525192, 0x534E77,
+        0xBB770F, 0xE89D0B, 0xE0672F, 0xFF7F6A, 0xF2B9A2, 0xDBC69C, 0xE9A570, 0xC7825C,
+        0x990F08, 0xF6D113, 0xFDC835, 0x9E8F7F, 0xF5E0C8, 0xFFFBF3, 0xFFEBC8, 0xF79F7F
     };
 
     return 0xFF000000 | nesPalette[index];
@@ -272,6 +363,15 @@ unsigned PPU::getColor(int index) {
 
 // Name tables --------------------------------------------------------------------------------------------------------
 
+void PPU::printNameTable() {
+    for (uint8_t y = 0; y < 30; y++) {
+        for (uint8_t x = 0; x < 32; x++) {
+            printf("%02x  ",nameTables[y * 32 + x] );
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
 uint16_t PPU::getMirroredNameTableAddress(uint16_t address) {
 
     // flags6_mirror_bit will be 0 when horizontally mirroring, 1 when vertically mirroring
@@ -301,12 +401,42 @@ uint16_t PPU::getAttributeTableAddress() {
     return attributeTableAddress;
 }
 
+void PPU::reset() {
+    x = 0x00;
+    w = 0x00;
+    dataBuffer = 0x00;
+    scanline = 0;
+    cycle = 0;
+    status.reg = 0x00;
+    mask.reg = 0x00;
+    control.reg = 0x00;
+    v.vram_register = 0x0000;
+    t.vram_register = 0x0000;
+
+}
+
 void PPU::clock() {
     // TODO: add the code for one clock cycle of the PPU
     // There should be a lot of logic to implement as the ppu is going through the scanlines.
+    //printf("scanline %04x cycle %04x \n", scanline, cycle);
+
+    if (scanline >= -1 && scanline < 240) {
+        if (scanline >= -1 && scanline < 240) {
+            if (scanline == -1 && cycle == 1) {
+                status.vblank = 0;
+                status.sprite_overflow = 0;
+                status.sprite_zerohit = 0;
+            }
+        }
+    }
+
 
     if (scanline < 241 && cycle < 256) {
-        displayPatternTableOnScreen();
+        //displayPatternTableOnScreen();
+        displayNameTableOnScreen(0);
+        status.sprite_zerohit = 1;
+        //printNameTable();
+        //printf("\n");
     }
     // if rendering of the screen is over, enable nmi vblank
     if (scanline == 241 && cycle == 1) {
