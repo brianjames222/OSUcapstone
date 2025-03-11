@@ -137,7 +137,7 @@ public:
     std::array<uint8_t, 4096 * 16> patternTablesDecoded; // two pattern tables of 256 tiles each (4096 / 16) with combined bits
 
     // Palette
-    u_int8_t paletteMemory[32];
+    uint8_t paletteMemory[32];
 
     // Data buffer
     uint8_t dataBuffer = 0x00;
