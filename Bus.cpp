@@ -34,7 +34,6 @@ void Bus::write(uint16_t address, uint8_t data) {
 		    if (data == 0x01) {
 		        controller1Polling = true;
 		        controller1Latch = controller1State;
-		        //std::cout << "true polling: 0x" << std::hex << static_cast<int>(controller1Latch) << std::dec << "\n";
 		    } else {
 		    	controller1Polling = false;
 		    	polling1Complete = true;
@@ -62,7 +61,7 @@ uint8_t Bus::read(uint16_t address) {
         	uint8_t state = 0x00;
         	if (polling1Complete) {
         		// read out bits of $4016
-				uint8_t state = controller1Latch & 0x01;
+				state = controller1Latch & 0x01;
 				if (controller1Read == 0) {								// better than checking if equal to 0 because of amount of bits?
 					polling1Complete = false;								// we returned the last bit, so switch back to the regular mode
 					controller1Read = 7;
@@ -141,6 +140,12 @@ void Bus::clock() {
         ppu.nmi = false;
         cpu->nmi_interrupt();
     }
+    
+    /* // test the input state
+    if (polling1Complete) {
+    	std::cout << "button state: 0x" << std::hex << static_cast<int>(controller1State) << std::dec << "\n";
+    	std::cout << "register: 0x" << std::hex << static_cast<int>(controller1Latch) << std::dec << "\n\n";
+    }*/
 	
     clockCounter++;
 }
