@@ -37,6 +37,7 @@ void Bus::write(uint16_t address, uint8_t data) {
 		        //std::cout << "true polling: 0x" << std::hex << static_cast<int>(controller1Latch) << std::dec << "\n";
 		    } else {
 		    	controller1Polling = false;
+		    	polling1Complete = true;
         	}
         }
     } else if (address >= 0x4020 && address <= 0xFFFF) {
@@ -59,13 +60,19 @@ uint8_t Bus::read(uint16_t address) {
         // $4017 read only for controller port 2
         if (address == 0x4016) {
         	uint8_t state = 0x00;
-        	if (controller1Polling) {
-        		// return the value of the A button
-        		state = controller1State & 0x01;
-			} else {
-				// read out bits of $4016
+        	if (polling1Complete) {
+        		// read out bits of $4016
 				uint8_t state = controller1Latch & 0x01;
-				controller1Latch >>=1;
+				if (controller1Read == 0) {								// better than checking if equal to 0 because of amount of bits?
+					polling1Complete = false;								// we returned the last bit, so switch back to the regular mode
+					controller1Read = 7;
+				} else {
+					controller1Latch >>=1;									// else shift down for the next button read
+					controller1Read--;
+				}
+			} else {
+				// return the value of the A button if we didn't just finish polling
+        		state = controller1State & 0x01;
 			}
 			return state;
         }

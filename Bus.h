@@ -70,6 +70,8 @@ private:
     
     // latching only needs to be seen by the bus
     uint8_t controller1Latch = 0x00;				// effectively a variable to act as $4016
+    bool polling1Complete = false;					// whether or not a polling cycle just finished
+    int controller1Read = 7;						// counter variable to ensure 8 bits are returned when reading from $4016
 
     // state of controller 2 buttons (if needed)
     /*uint8_t controller2State = 0x00;
