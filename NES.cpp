@@ -27,8 +27,8 @@ void NES::load_rom(const char *filename) {
             for (int i = 0; i < 1024 * 16; i++) {
                 uint8_t prgByte = rom.prgRom[memory_address];
                 memory_address ++;
-                cpu.writerom(memory_address_cpu, prgByte);
-                cpu.writerom(memory_address_cpu_mirror, prgByte);
+                bus.cpu->writeBus(memory_address_cpu, prgByte);
+                bus.cpu->writeBus(memory_address_cpu_mirror, prgByte);
                 memory_address_cpu ++;
                 memory_address_cpu_mirror ++;
             }
@@ -39,7 +39,7 @@ void NES::load_rom(const char *filename) {
             for (int i = 0; i < 1024 * 32; i++) {
                 uint8_t prgByte = rom.prgRom[memory_address];
                 memory_address ++;
-                cpu.writerom(memory_address_cpu, prgByte);
+                bus.cpu->writeBus(memory_address_cpu, prgByte);
                 memory_address_cpu ++;
             }
         }
@@ -50,7 +50,7 @@ void NES::initNES() {
     if (on == true) {
         return;
     }
-    cpu.reset();
+    bus.cpu->reset();
     //Uncomment for finite CPU testing with nestest.nes
     //cpu.PC = 0xC000;
     on = true;
@@ -61,14 +61,14 @@ void NES::run() {
         //cpu.PC = 0xC000;
         int counter = 0;
         for (int i = 0;i < 10000; i++) {
-            uint8_t opcode = cpu.readMemory(cpu.PC);
+            uint8_t opcode = bus.cpu->readBus(bus.cpu->PC);
             printf("Opcode: %02X\n", opcode);
             printf("counter %d \n", counter);
-            cpu.printRegisters();
-            cpu.execute();
+            bus.cpu->printRegisters();
+            bus.cpu->execute();
 
 
-            uint8_t test_passed = cpu.readMemory(0x002);
+            uint8_t test_passed = bus.cpu->readBus(0x002);
             printf("test_passed 0x%02X\n\n", test_passed);
             counter++;
             std::this_thread::sleep_for(std::chrono::milliseconds(10));

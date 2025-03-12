@@ -1,5 +1,8 @@
 #include "tests.h"
-#include "CPU.cpp"
+#include "CPU.h"
+#include "Bus.h"
+#include <cassert>
+#include <iostream>
 
 void Tests::test_cpu() {
 	std::cout << "\nCPU Tests:\n";
@@ -8,22 +11,32 @@ void Tests::test_cpu() {
 
 	// Check start up values
 	cpu.printRegisters();
+	assert(cpu.A == 0x00);
+	assert(cpu.X == 0x00);
+	assert(cpu.Y == 0x00);
+	assert(cpu.S == 0xFD);
+	assert(cpu.P == 0x00);
 
 	// Check write
-	cpu.writeMemory(0x10, 0xAB);
-	cpu.writeMemory(0x0000, 0xAB);
-	cpu.printMemory();
+	cpu.writeBus(0x10, 0xAB);
+	cpu.writeBus(0x0000, 0xAB);
+	assert(cpu.readBus(0x10) == 0xAB);
+	assert(cpu.readBus(0x0000) == 0xAB);
 
 	// OOB, should return error
-	cpu.writeMemory(0x801, 0xAB); // 2049
-	cpu.readMemory(0xFFF); // 4095
+	cpu.writeBus(0x801, 0xAB); // 2049
+	cpu.readBus(0xFFF); // 4095
 
 	cpu.setFlag(CPU::FLAGS::Z, true);
 	cpu.printRegisters();
 	printf("Status Flag Z: %d\n", cpu.getFlag(CPU::FLAGS::Z));
 
-	std::cout << "Memory at 0x10: 0x" << std::hex << static_cast<int>(cpu.readMemory(0x10)) << "\n";
-	printf("Value at address 0x0000: %02X\n", cpu.readMemory(0x0000));
+	std::cout << "Memory at 0x10: 0x" << std::hex << static_cast<int>(cpu.readBus(0x10)) << "\n";
+	printf("Value at address 0x0000: %02X\n", cpu.readBus(0x0000));
+	assert(cpu.readBus(0x10) == 0xAB);
+	assert(cpu.readBus(0x0000) == 0xAB);
+
+	std::cout << "CPU test passed!\n";
 }
 
 //----------------------------------------------------------------------------------------------------------------------------
@@ -33,34 +46,34 @@ void Tests::test_opcodes() {
 	CPU& cpu = *nes.bus.cpu;
 
 	// Test Program
-	cpu.writeMemory(0x00, 0xA9); // LDA Immediate AA
-	cpu.writeMemory(0x01, 0xAA);
-	cpu.writeMemory(0x02, 0xA5); // LDA Zero Page
-	cpu.writeMemory(0x03, 0x35);
-	cpu.writeMemory(0x35, 0xBB); // Load BB into 0x35
-	cpu.writeMemory(0x04, 0xB5); // LDA Zero Page X
-	cpu.writeMemory(0x05, 0x35);
-	cpu.writeMemory(0x38, 0xCC); // Load CC into 0x38
-	cpu.writeMemory(0x06, 0xAD); // LDA Absolute
-	cpu.writeMemory(0x07, 0x01);
-	cpu.writeMemory(0x08, 0x02);
-	cpu.writeMemory(0x0201, 0xDD); // Load DD into 0x0201
-	cpu.writeMemory(0x09, 0xBD); // LDA Absolute X
-	cpu.writeMemory(0x0A, 0x01);
-	cpu.writeMemory(0x0B, 0x02);
-	cpu.writeMemory(0x0204, 0xEE); // Load EE into 0x0204
-	cpu.writeMemory(0x0C, 0xB9); // LDA Absolute Y
-	cpu.writeMemory(0x0D, 0x01);
-	cpu.writeMemory(0x0E, 0x02);
-	cpu.writeMemory(0x0203, 0xFF); // Load FF into 0x0203
-	cpu.writeMemory(0x0F, 0xA1); // LDA Indirect X
-	cpu.writeMemory(0x10, 0x20);
-	cpu.writeMemory(0x23, 0xAA); // Write 0x01AA to 0x23/24
-	cpu.writeMemory(0x24, 0x01);
-	cpu.writeMemory(0x01AA, 0xAA); // Load AA into 0x01AA
-	cpu.writeMemory(0x11, 0xB1); // LDA Indirect Y
-	cpu.writeMemory(0x12, 0x23);
-	cpu.writeMemory(0x01AC, 0xBB); // Load BB into 0x01AC
+	cpu.writeBus(0x00, 0xA9); // LDA Immediate AA
+	cpu.writeBus(0x01, 0xAA);
+	cpu.writeBus(0x02, 0xA5); // LDA Zero Page
+	cpu.writeBus(0x03, 0x35);
+	cpu.writeBus(0x35, 0xBB); // Load BB into 0x35
+	cpu.writeBus(0x04, 0xB5); // LDA Zero Page X
+	cpu.writeBus(0x05, 0x35);
+	cpu.writeBus(0x38, 0xCC); // Load CC into 0x38
+	cpu.writeBus(0x06, 0xAD); // LDA Absolute
+	cpu.writeBus(0x07, 0x01);
+	cpu.writeBus(0x08, 0x02);
+	cpu.writeBus(0x0201, 0xDD); // Load DD into 0x0201
+	cpu.writeBus(0x09, 0xBD); // LDA Absolute X
+	cpu.writeBus(0x0A, 0x01);
+	cpu.writeBus(0x0B, 0x02);
+	cpu.writeBus(0x0204, 0xEE); // Load EE into 0x0204
+	cpu.writeBus(0x0C, 0xB9); // LDA Absolute Y
+	cpu.writeBus(0x0D, 0x01);
+	cpu.writeBus(0x0E, 0x02);
+	cpu.writeBus(0x0203, 0xFF); // Load FF into 0x0203
+	cpu.writeBus(0x0F, 0xA1); // LDA Indirect X
+	cpu.writeBus(0x10, 0x20);
+	cpu.writeBus(0x23, 0xAA); // Write 0x01AA to 0x23/24
+	cpu.writeBus(0x24, 0x01);
+	cpu.writeBus(0x01AA, 0xAA); // Load AA into 0x01AA
+	cpu.writeBus(0x11, 0xB1); // LDA Indirect Y
+	cpu.writeBus(0x12, 0x23);
+	cpu.writeBus(0x01AC, 0xBB); // Load BB into 0x01AC
 
 	// Initialize PC
 	cpu.PC = 0x0000;
@@ -95,14 +108,14 @@ void Tests::test_ADC() {
 	CPU& cpu = *nes.bus.cpu;
 
 // Test Program
-cpu.writeMemory(0x00, 0x69); // Load 5
-cpu.writeMemory(0x01, 0x05);
-cpu.writeMemory(0x02, 0x69); // Load 0
-cpu.writeMemory(0x03, 0x00);
-cpu.writeMemory(0x04, 0x69); // Load 80
-cpu.writeMemory(0x05, 0x50);
-cpu.writeMemory(0x06, 0x69); // Load -10, signed
-cpu.writeMemory(0x07, 0xF6);
+cpu.writeBus(0x00, 0x69); // Load 5
+cpu.writeBus(0x01, 0x05);
+cpu.writeBus(0x02, 0x69); // Load 0
+cpu.writeBus(0x03, 0x00);
+cpu.writeBus(0x04, 0x69); // Load 80
+cpu.writeBus(0x05, 0x50);
+cpu.writeBus(0x06, 0x69); // Load -10, signed
+cpu.writeBus(0x07, 0xF6);
 
 // Test A Register
 cpu.PC = 0x00;
@@ -172,15 +185,15 @@ void Tests::test_stack() {
 	uint16_t starting_stack_address = 0x0100 + cpu.S;
 	cpu.stack_push(0xBC);
 	uint16_t current_stack_address = 0x0100 + cpu.S;
-	assert(cpu.readMemory(current_stack_address + 1) == 0xBC);
+	assert(cpu.readBus(current_stack_address + 1) == 0xBC);
 	uint8_t stack_top = cpu.stack_pop();
 	assert(stack_top == 0xBC);
 	current_stack_address = 0x0100 + cpu.S;
 	assert(current_stack_address == starting_stack_address);
 	cpu.stack_push16(0xABCD);
 	current_stack_address = 0x0100 + cpu.S;
-	assert(cpu.readMemory(current_stack_address + 2) == 0xAB);
-	assert(cpu.readMemory(current_stack_address + 1) == 0xCD);
+	assert(cpu.readBus(current_stack_address + 2) == 0xAB);
+	assert(cpu.readBus(current_stack_address + 1) == 0xCD);
 	stack_top = cpu.stack_pop();
 	assert(stack_top == 0xCD);
 	stack_top = cpu.stack_pop();
@@ -195,6 +208,7 @@ void Tests::test_stack() {
 void Tests::test_reset() {
 	NES nes;
 	CPU& cpu = *nes.bus.cpu;
+	std::cout << "Test setup: PC = " << std::hex << cpu.PC << "\n";
 
 	std::cout << "---------------------------\nReset test:\n\nCurrent values:\n";
 	cpu.printRegisters();
@@ -206,9 +220,9 @@ void Tests::test_reset() {
 	std::cout << "\nUpdated values:\n";
 	cpu.printRegisters();
 
-	// Populate fixed memory address
-	cpu.writeMemory(0xFFFC, 0xA9);
-	cpu.writeMemory(0xFFFD, 0xC2);
+// Populate reset vector in internal RAM (mirrored to 0xFFFC/0xFFFD)
+    nes.bus.cpuRam[0x07FC] = 0xA9; // Low byte of reset vector (0xFFFC & 0x07FF)
+    nes.bus.cpuRam[0x07FD] = 0xC2; // High byte of reset vector (0xFFFD & 0x07FF)
 
 	// Reset CPU state
 	cpu.reset();
@@ -235,11 +249,11 @@ void Tests::test_nmi() {
 
 	// Check if PC address is being set correctly
     uint16_t read_address = 0xFFFA;
-    cpu.writeMemory(read_address, 0x12);
-    cpu.writeMemory(read_address + 1, 0x34);
+    cpu.writeBus(read_address, 0x12);
+    cpu.writeBus(read_address + 1, 0x34);
 
-    uint8_t lo = cpu.readMemory(read_address);
-    uint8_t hi = cpu.readMemory(read_address + 1);
+    uint8_t lo = cpu.readBus(read_address);
+    uint8_t hi = cpu.readBus(read_address + 1);
 
     cpu.PC = (hi << 8) | lo;
 
@@ -265,11 +279,11 @@ void Tests::test_irq() {
 
 	// Check if PC address is being set correctly
 	uint16_t read_address = 0xFFFE;
-	cpu.writeMemory(read_address, 0x12);
-	cpu.writeMemory(read_address + 1, 0x34);
+	cpu.writeBus(read_address, 0x12);
+	cpu.writeBus(read_address + 1, 0x34);
 
-	uint8_t lo = cpu.readMemory(read_address);
-	uint8_t hi = cpu.readMemory(read_address + 1);
+	uint8_t lo = cpu.readBus(read_address);
+	uint8_t hi = cpu.readBus(read_address + 1);
 
 	cpu.PC = (hi << 8) | lo;
 
@@ -310,11 +324,11 @@ void Tests::test_jmp() {
 	// Test Indirect Jump
 
 	cpu.PC = 0x0000;
-	cpu.writeMemory(cpu.PC, 0x34);
-	cpu.writeMemory(cpu.PC + 1, 0x12);
+	cpu.writeBus(cpu.PC, 0x34);
+	cpu.writeBus(cpu.PC + 1, 0x12);
 
-	cpu.writeMemory(0x1234, 0x78);
-	cpu.writeMemory(0x1235, 0x56);
+	cpu.writeBus(0x1234, 0x78);
+	cpu.writeBus(0x1235, 0x56);
 
 	cpu.JMP(cpu.IndirectJMP().address);
 
@@ -348,7 +362,7 @@ void Tests::test_branch() {
 	CPU& cpu = *nes.bus.cpu;
 
 	uint16_t test_memory = 0x0000;
-	cpu.writeMemory(test_memory, 0x79);
+	cpu.writeBus(test_memory, 0x79);
 	test_memory = cpu.Relative().address;
 
 	// branch if Zero set
@@ -408,24 +422,24 @@ void Tests::test_ASL() {
 
     // Accumulator loaded with 25, ASL executed, accumulator should now hold 50
     cpu.A = 0x19;
-    cpu.writeMemory(0x00, 0x0A); // ASL Accumulator
+    cpu.writeBus(0x00, 0x0A); // ASL Accumulator
     cpu.execute();
     assert(cpu.A == 0x32);
 
     // Accumulator loaded with 144, ASL executed, accumulator should now hold 32 and carry flag should be set
     cpu.A = 0x90;
-    cpu.writeMemory(0x01, 0x0A);
+    cpu.writeBus(0x01, 0x0A);
     cpu.execute();
     assert(cpu.A == 0x20);
     assert(cpu.getFlag(CPU::FLAGS::C) == 1);
 
     // ASL Non-Accumulator Testing. Address 0xABCD loaded with 25, ASL executed, address should now hold 50
-    cpu.writeMemory(0x02, 0x0E); // ASL Absolute
-    cpu.writeMemory(0x03, 0xCD);
-    cpu.writeMemory(0x04, 0xAB);
-    cpu.writeMemory(0xABCD, 0x19); // Load 0x19 into address 0xABCD
+    cpu.writeBus(0x02, 0x0E); // ASL Absolute
+    cpu.writeBus(0x03, 0xCD);
+    cpu.writeBus(0x04, 0xAB);
+    cpu.writeBus(0xABCD, 0x19); // Load 0x19 into address 0xABCD
     cpu.execute();
-    assert(cpu.readMemory(0xABCD) == 0x32);
+    assert(cpu.readBus(0xABCD) == 0x32);
 
     std::cout << "---------------------------\nASL Instruction tests passed!\n";
 }
@@ -437,18 +451,18 @@ void Tests::test_LSR() {
 
     // Accumulator loaded with 144, LSR executed, accumulator should now hold 72
     cpu.A = 0x90;
-    cpu.writeMemory(0x00, 0x4A); // LSR Accumulator
+    cpu.writeBus(0x00, 0x4A); // LSR Accumulator
     cpu.execute();
     assert(cpu.A == 0x48);
     assert(cpu.getFlag(CPU::FLAGS::C) == 0);
 
     // LSR Non-Accumulator Testing. Address 0xABCD loaded with 144, LSR executed, address should now hold 72
-    cpu.writeMemory(0x01, 0x4E); // LSR Absolute
-    cpu.writeMemory(0x02, 0xCD);
-    cpu.writeMemory(0x03, 0xAB);
-    cpu.writeMemory(0xABCD, 0x90); // Load 0x90 into address 0xABCD
+    cpu.writeBus(0x01, 0x4E); // LSR Absolute
+    cpu.writeBus(0x02, 0xCD);
+    cpu.writeBus(0x03, 0xAB);
+    cpu.writeBus(0xABCD, 0x90); // Load 0x90 into address 0xABCD
     cpu.execute();
-    assert(cpu.readMemory(0xABCD) == 0x48);
+    assert(cpu.readBus(0xABCD) == 0x48);
 
     std::cout << "---------------------------\nLSR Instruction tests passed!\n";
 }
@@ -460,26 +474,26 @@ void Tests::test_ROL() {
 
     // Accumulator loaded with 25, ROL executed, accumulator should now hold 50
     cpu.A = 0x19;
-    cpu.writeMemory(0x00, 0x2A); // ROL Accumulator
+    cpu.writeBus(0x00, 0x2A); // ROL Accumulator
     cpu.execute();
     assert(cpu.A == 0x32);
 
     // Accumulator loaded with 128, ROL executed, accumulator should now hold 0
     cpu.setFlag(CPU::FLAGS::C, 0); // Reset Carry Flag
     cpu.A = 0x80;
-    cpu.writeMemory(0x01, 0x2A);
+    cpu.writeBus(0x01, 0x2A);
     cpu.execute();
     assert(cpu.A == 0x0);
     assert(cpu.getFlag(CPU::FLAGS::C) == 1); // Carry Flag should now hold 1
 
     // ROL Non-Accumulator Testing. Address 0xABCD loaded with 128, ROL executed, Carry Flag set, address should now hold 1
     cpu.setFlag(CPU::FLAGS::C, 1); // Set Carry Flag
-    cpu.writeMemory(0x02, 0x2E); // ROL Absolute
-    cpu.writeMemory(0x03, 0xCD);
-    cpu.writeMemory(0x04, 0xAB);
-    cpu.writeMemory(0xABCD, 0x80);
+    cpu.writeBus(0x02, 0x2E); // ROL Absolute
+    cpu.writeBus(0x03, 0xCD);
+    cpu.writeBus(0x04, 0xAB);
+    cpu.writeBus(0xABCD, 0x80);
     cpu.execute();
-    assert(cpu.readMemory(0xABCD) == 0x1);
+    assert(cpu.readBus(0xABCD) == 0x1);
     assert(cpu.getFlag(CPU::FLAGS::C) == 1); // Carry Flag should now hold 1
 
     std::cout << "---------------------------\nROL Instruction tests passed!\n";
@@ -492,7 +506,7 @@ void Tests::test_ROR() {
 
     // Accumulator loaded with 1, ROR executed, accumulator should now hold 0
     cpu.A = 0x1;
-    cpu.writeMemory(0x00, 0x6A); // ROR Accumulator
+    cpu.writeBus(0x00, 0x6A); // ROR Accumulator
     cpu.execute();
     assert(cpu.A == 0x0);
     assert(cpu.getFlag(CPU::FLAGS::C) == 1);
@@ -500,18 +514,18 @@ void Tests::test_ROR() {
     // Accumulator loaded with 25, ROR executed, Carry Flag not set, accumulator should now hold 12
     cpu.setFlag(CPU::FLAGS::C, 0); // Reset Carry Flag
     cpu.A = 0x19;
-    cpu.writeMemory(0x01, 0x6A);
+    cpu.writeBus(0x01, 0x6A);
     cpu.execute();
     assert(cpu.A == 0xC);
 
     // ROR Non-Accumulator Testing. Address 0xABCD loaded with 1, ROR executed, Carry Flag set, address should now hold 128
     cpu.setFlag(CPU::FLAGS::C, 1); // Set Carry Flag
-    cpu.writeMemory(0x02, 0x6E); // ROR Absolute
-    cpu.writeMemory(0x03, 0xCD);
-    cpu.writeMemory(0x04, 0xAB);
-    cpu.writeMemory(0xABCD, 0x1); // Load 0x1 into address 0xABCD
+    cpu.writeBus(0x02, 0x6E); // ROR Absolute
+    cpu.writeBus(0x03, 0xCD);
+    cpu.writeBus(0x04, 0xAB);
+    cpu.writeBus(0xABCD, 0x1); // Load 0x1 into address 0xABCD
     cpu.execute();
-    assert(cpu.readMemory(0xABCD) == 0x80);
+    assert(cpu.readBus(0xABCD) == 0x80);
     assert(cpu.getFlag(CPU::FLAGS::C) == 1);
 
     std::cout << "---------------------------\nROR Instruction tests passed!\n";
@@ -524,19 +538,19 @@ void Tests::test_CMP() {
 
     // Accumulator loaded with 144, address loaded with 80, CMP executed, Carry flag should be set
     cpu.A = 0x90;
-    cpu.writeMemory(0x00, 0xCD); // CMP Absolute
-    cpu.writeMemory(0x01, 0xCD);
-    cpu.writeMemory(0x02, 0xAB);
-    cpu.writeMemory(0xABCD, 0x50);
+    cpu.writeBus(0x00, 0xCD); // CMP Absolute
+    cpu.writeBus(0x01, 0xCD);
+    cpu.writeBus(0x02, 0xAB);
+    cpu.writeBus(0xABCD, 0x50);
     cpu.execute();
     assert(cpu.getFlag(CPU::FLAGS::C) == 1);
 
     // Accumulator loaded with 80, address loaded with 144, CMP executed, Carry flag should not be set
     cpu.A = 0x50;
-    cpu.writeMemory(0x03, 0xCD);
-    cpu.writeMemory(0x04, 0xCD);
-    cpu.writeMemory(0x05, 0xAB);
-    cpu.writeMemory(0xABCD, 0x90);
+    cpu.writeBus(0x03, 0xCD);
+    cpu.writeBus(0x04, 0xCD);
+    cpu.writeBus(0x05, 0xAB);
+    cpu.writeBus(0xABCD, 0x90);
     cpu.execute();
     assert(cpu.getFlag(CPU::FLAGS::C) == 0);
 
@@ -550,19 +564,19 @@ void Tests::test_CPX() {
 
     // X register loaded with 144, address loaded with 80, CPX executed, Carry flag should be set
     cpu.X = 0x90;
-    cpu.writeMemory(0x00, 0xEC); // CPX Absolute
-    cpu.writeMemory(0x01, 0xCD);
-    cpu.writeMemory(0x02, 0xAB);
-    cpu.writeMemory(0xABCD, 0x50);
+    cpu.writeBus(0x00, 0xEC); // CPX Absolute
+    cpu.writeBus(0x01, 0xCD);
+    cpu.writeBus(0x02, 0xAB);
+    cpu.writeBus(0xABCD, 0x50);
     cpu.execute();
     assert(cpu.getFlag(CPU::FLAGS::C) == 1);
 
     // X register loaded with 80, address loaded with 144, CPX executed, Carry flag should not be set
     cpu.X = 0x50;
-    cpu.writeMemory(0x03, 0xEC);
-    cpu.writeMemory(0x04, 0xCD);
-    cpu.writeMemory(0x05, 0xAB);
-    cpu.writeMemory(0xABCD, 0x90);
+    cpu.writeBus(0x03, 0xEC);
+    cpu.writeBus(0x04, 0xCD);
+    cpu.writeBus(0x05, 0xAB);
+    cpu.writeBus(0xABCD, 0x90);
     cpu.execute();
     assert(cpu.getFlag(CPU::FLAGS::C) == 0);
 
@@ -576,19 +590,19 @@ void Tests::test_CPY() {
 
     // Y register loaded with 144, address loaded with 80, CPY executed, Carry flag should be set
     cpu.Y = 0x90;
-    cpu.writeMemory(0x00, 0xCC); // CPY Absolute
-    cpu.writeMemory(0x01, 0xCD);
-    cpu.writeMemory(0x02, 0xAB);
-    cpu.writeMemory(0xABCD, 0x50);
+    cpu.writeBus(0x00, 0xCC); // CPY Absolute
+    cpu.writeBus(0x01, 0xCD);
+    cpu.writeBus(0x02, 0xAB);
+    cpu.writeBus(0xABCD, 0x50);
     cpu.execute();
     assert(cpu.getFlag(CPU::FLAGS::C) == 1);
 
     // Y register loaded with 80, address loaded with 144, CPY executed, Carry flag should not be set
     cpu.Y = 0x50;
-    cpu.writeMemory(0x03, 0xCC);
-    cpu.writeMemory(0x04, 0xCD);
-    cpu.writeMemory(0x05, 0xAB);
-    cpu.writeMemory(0xABCD, 0x90);
+    cpu.writeBus(0x03, 0xCC);
+    cpu.writeBus(0x04, 0xCD);
+    cpu.writeBus(0x05, 0xAB);
+    cpu.writeBus(0xABCD, 0x90);
     cpu.execute();
     assert(cpu.getFlag(CPU::FLAGS::C) == 0);
 
@@ -600,16 +614,16 @@ void Tests::test_CLD_SED_CLV() {
 	CPU& cpu = *nes.bus.cpu;
     cpu.reset();
 
-    cpu.writeMemory(0x00, 0xF8); // SED
+    cpu.writeBus(0x00, 0xF8); // SED
     cpu.execute();
     assert(cpu.getFlag(CPU::FLAGS::D) == 1);
 
-    cpu.writeMemory(0x01, 0xD8); // CLD
+    cpu.writeBus(0x01, 0xD8); // CLD
     cpu.execute();
     assert(cpu.getFlag(CPU::FLAGS::D) == 0);
 
     cpu.setFlag(CPU::FLAGS::V, 1);
-    cpu.writeMemory(0x02, 0xB8); // CLV
+    cpu.writeBus(0x02, 0xB8); // CLV
     cpu.execute();
     assert(cpu.getFlag(CPU::FLAGS::V) == 0);
 
@@ -626,11 +640,11 @@ void Tests::test_NES(std::string path) {
 
 	auto start = std::chrono::high_resolution_clock::now();
 	for (int i = 0;i < 60; i++) {
-		outfile << std::hex <<std::uppercase << nes.cpu.PC << std::endl;
+		outfile << std::hex <<std::uppercase << nes.bus.cpu->PC << std::endl;
 		printf("count: %d\n", i+1);
-		uint8_t opcode = nes.cpu.readMemory(nes.cpu.PC);
+		uint8_t opcode = nes.bus.cpu->readBus(nes.bus.cpu->PC);
 		printf("Opcode: %02X\n", opcode);
-		nes.cpu.printRegisters();
+		nes.bus.cpu->printRegisters();
 		nes.cycle();
 
 	}
@@ -679,7 +693,7 @@ void Tests::test_pattern_tables(std::string path) {
 	//nes.cpu.PC = 0xC000;
 	for (int i = 0;i < 265000; i++) {
 		 //printf("count: %d\n", i+1);
-		// uint8_t opcode = nes.cpu.readMemory(nes.cpu.PC);
+		// uint8_t opcode = nes.cpu.readBus(nes.cpu.PC);
 		// printf("Opcode: %02X\n", opcode);
 		// nes.cpu.printRegisters();
 		nes.cycle();

@@ -20,17 +20,16 @@ public:
     CPU* cpu;
     APU* apu;
     PPU  ppu;
-    std::array<uint8_t, 2 * 1024> cpuRam{};
+    std::array<uint8_t, 2 * 1024> cpuRam{}; // 2KB of CPU RAM
     NESROM* rom;
     										
     // Bus read and write functions
     void write(uint16_t address, uint8_t data);
     uint8_t read(uint16_t address);
 
-    // Reset function
     void reset();
-    // Clock function
     void clock();
+
     // Connect Game Rom to Bus
     void connectROM(NESROM& ROM);
 
