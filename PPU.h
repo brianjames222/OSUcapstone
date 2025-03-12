@@ -191,6 +191,16 @@ public:
         {0b00000011, 0x2FC0}
     };
 
+    uint8_t next_bg_tile_id = 0x00;
+    uint8_t next_bg_tile_attribute = 0x00;
+    uint8_t next_bg_tile_lsb = 0x00;
+    uint8_t next_bg_tile_msb = 0x00;
+
+    uint16_t bg_shifter_tile_lo = 0x0000;
+    uint16_t bg_shifter_tile_hi = 0x0000;
+    uint16_t bg_shifter_attribute_lo = 0x0000;
+    uint16_t bg_shifter_attribute_hi = 0x0000;
+
     // Given an address, determines mirroring scheme and returns modified address
     uint16_t getMirroredNameTableAddress(uint16_t address);
 

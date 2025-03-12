@@ -106,7 +106,7 @@ uint32_t* NES::getFramebuffer() {
     //     uint8_t colorIndex = framebuffer[i];  // Get NES color index
     //     rgbFramebuffer[i] = 0xFF000000 | nesPalette[colorIndex % 64];  // Convert to 32-bit ARGB
     // }
-    return bus.ppu.nextFrame;
+    return bus.ppu.rgbFramebuffer;
 }
 
 void NES::RandomizeFramebuffer() {

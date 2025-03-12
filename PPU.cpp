@@ -154,7 +154,7 @@ uint8_t PPU::readPPU(uint16_t addr) {
     //TODO: Read from ppu bus between 0x0000 and 0x3FFF
     uint8_t data = 0x00;
     addr &= 0x3FFF;
-    if (addr >= 0x0000 && addr <= 0x01FF) {
+    if (addr >= 0x0000 && addr <= 0x1FFF) {
         data = patternTables[addr];
         return data;
     }
@@ -184,10 +184,10 @@ uint8_t PPU::readPPU(uint16_t addr) {
                 data = nameTables[addr & 0x03FF];
             }
             if (addr >= 0x0800 && addr <= 0x0BFF) {
-                data = nameTables[(addr & 0x03FF) + 1024];
+                data = nameTables[(addr & 0x03FF) + 0x0400];
             }
             if (addr >= 0x0C00 && addr <= 0x0FFF) {
-                data = nameTables[(addr & 0x03FF) + 1024];
+                data = nameTables[(addr & 0x03FF) + 0x0400];
             }
         }
         return data;
@@ -296,6 +296,16 @@ void PPU::printDecodedPatternTable() {
             }
         }
         std::cout << std::endl;
+    }
+}
+
+void printPaletteMemory(uint8_t paletteMemory[32]) {
+    // Print the palette memory in a readable format
+    for (int i = 0; i < 32; i++) {
+        // Print the color values in hexadecimal with padding
+        std::cout << "Palette " << std::setw(2) << std::setfill('0') << i
+                  << ": 0x" << std::setw(2) << std::setfill('0') << std::hex << (int)paletteMemory[i]
+                  << std::dec << std::endl;
     }
 }
 
@@ -416,28 +426,145 @@ void PPU::reset() {
 }
 
 void PPU::clock() {
-    // TODO: add the code for one clock cycle of the PPU
-    // There should be a lot of logic to implement as the ppu is going through the scanlines.
-    //printf("scanline %04x cycle %04x \n", scanline, cycle);
-
-    if (scanline >= -1 && scanline < 240) {
-        if (scanline >= -1 && scanline < 240) {
-            if (scanline == -1 && cycle == 1) {
-                status.vblank = 0;
-                status.sprite_overflow = 0;
-                status.sprite_zerohit = 0;
-            }
-        }
-    }
-
-
+    // Debugging tools
     if (scanline < 241 && cycle < 256) {
         //displayPatternTableOnScreen();
-        displayNameTableOnScreen(0);
-        status.sprite_zerohit = 1;
+        //displayNameTableOnScreen(0);
+        //status.sprite_zerohit = 1;
         //printNameTable();
         //printf("\n");
     }
+
+    // Increments the coarse x in the vram during rendering.
+    auto IncrementScrollX = [&]() {
+        // Check if rendering is enabled
+        if (mask.enable_background_rendering || mask.enable_sprite_rendering) {
+            // if the coarse x is at the end of the table, wrap around and go to the next table
+            if (v.coarse_x == 31) {
+                v.coarse_x = 0;
+                v.nametable_x = ~v.nametable_x;
+            }
+            // Otherwise increment
+            else {
+                v.coarse_x++;
+            }
+        }
+    };
+
+    // Increment fine y  and coarse y during rendering
+    auto IncrementScrollY = [&]() {
+        if (mask.enable_background_rendering || mask.enable_sprite_rendering) {
+            if (v.fine_y < 7) {
+                v.fine_y++;
+            }
+            else {
+                v.fine_y = 0;
+                if (v.coarse_y == 29) {
+                    v.coarse_y = 0;
+                    v.nametable_y = ~v.nametable_y;
+                }
+                else if (v.coarse_y == 31) {
+                    v.coarse_y = 0;
+                }
+                else {
+                    v.coarse_y++;
+                }
+            }
+        }
+    };
+
+    auto loadShiftRegisters = [&]() {
+        bg_shifter_tile_lo = (bg_shifter_tile_lo & 0xFF00 | (next_bg_tile_lsb));
+        bg_shifter_tile_hi = (bg_shifter_tile_hi & 0xFF00 | (next_bg_tile_msb));
+
+        uint8_t lo_bit = (next_bg_tile_attribute & 0x40) >> 6;
+        if (lo_bit == 0) {
+            bg_shifter_attribute_lo = (bg_shifter_attribute_lo & 0xFF00) | 0x00;
+        }
+        else {
+            bg_shifter_attribute_lo = (bg_shifter_attribute_lo & 0xFF00) | 0xFF;
+        }
+        uint8_t hi_bit = (next_bg_tile_attribute & 0x80) >> 7;
+        if (hi_bit == 0) {
+            bg_shifter_attribute_hi = (bg_shifter_attribute_hi & 0xFF00) | 0x00;
+        }
+        else {
+            bg_shifter_attribute_hi = (bg_shifter_attribute_hi & 0xFF00) | 0x0F;
+
+        }
+    };
+
+    auto updateShifters = [&]() {
+        if (mask.enable_background_rendering) {
+            bg_shifter_tile_lo <<= 1;
+            bg_shifter_tile_hi <<= 1;
+            bg_shifter_attribute_lo <<= 1;
+            bg_shifter_attribute_hi <<= 1;
+        }
+    };
+
+    auto TransferAddressY = [&]() {
+        if (mask.enable_background_rendering || mask.enable_sprite_rendering) {
+            v.nametable_y = t.nametable_y;
+            v.fine_y = t.fine_y;
+            v.coarse_y = t.coarse_y;
+        }
+    };
+
+    // // Transfers x scrolling information from temp vram to vram
+    auto TransferAddressX = [&]() {
+        if (mask.enable_background_rendering || mask.enable_sprite_rendering) {
+            v.nametable_x = t.nametable_x;
+            v.coarse_x = t.coarse_x;
+        }
+    };
+
+    // get information to load into shift registers
+    uint16_t action = ((cycle-1) % 8);
+    if (scanline >= -1 && scanline <240) {
+        if (cycle > 0 && cycle < 257 || cycle > 320 && cycle <337) {
+            updateShifters();
+
+            if (action == 0) {
+                loadShiftRegisters();
+                next_bg_tile_id = readPPU(0x2000 | (v.vram_register & 0x0FFF));
+
+            }
+            else if (action == 2) {
+                next_bg_tile_attribute = readPPU(0x23C0 | (v.nametable_y << 11)
+                    | (v.nametable_x << 10)
+                    | ((v.coarse_y >> 2) << 3)
+                    | (v.coarse_x >> 2));
+                if (v.coarse_y & 0x02) next_bg_tile_attribute >>= 4;
+                if (v.coarse_x & 0x02) next_bg_tile_attribute >>=2;
+                next_bg_tile_attribute &=0x03;
+            }
+            else if (action == 4) {
+                next_bg_tile_lsb = readPPU((control.background_pattern * 4096) + (next_bg_tile_id * 16) + v.fine_y);
+            }
+            else if(action == 6) {
+                next_bg_tile_msb = readPPU((control.background_pattern * 4096) + (next_bg_tile_id * 16) + v.fine_y + 8);
+            }
+            else if(action == 7) {
+                IncrementScrollX();
+            }
+        }
+
+    }
+
+    if (cycle == 256) {
+        IncrementScrollY();
+    }
+
+    if (cycle == 257) {
+        loadShiftRegisters();
+        TransferAddressX();
+    }
+
+    if (scanline == -1 && cycle >= 280 && cycle < 305) {
+        TransferAddressY();
+    }
+
     // if rendering of the screen is over, enable nmi vblank
     if (scanline == 241 && cycle == 1) {
         status.vblank = 1;
@@ -446,6 +573,19 @@ void PPU::clock() {
             nmi = true;
         }
     }
+
+    uint8_t bit0 = ((bg_shifter_tile_lo << x) & 0x80) >>7;
+    uint8_t bit1 = ((bg_shifter_tile_hi << x) & 0x80) >>7;
+     uint8_t combinedPixel = (bit1 << 1) | bit0;
+
+    uint8_t palette_bit0 = (bg_shifter_attribute_lo << x) & 0x80 >>7;
+    uint8_t palette_bit1 = (bg_shifter_attribute_hi << x) & 0x80 >>7;
+    uint8_t palette_combinedPixel = (palette_bit1 << 1) | palette_bit0;
+
+    if (scanline < 241 && cycle < 256) {
+        setPixel(cycle, scanline, getColor(readPPU(0x3F00 + (palette_combinedPixel << 2) + combinedPixel) % 64));
+    }
+
     cycle++;
     if (cycle >= 341) {
         cycle = 0;

@@ -47,6 +47,7 @@ uint8_t Bus::read(uint16_t address) {
         // TODO: read from address for DMA transfer
     } else if (address >= 0x4016 && address <= 0x4017) {
         // TODO: read from address and save controller state
+        return 0;
     } else if (address >= 0x4020 && address <= 0xFFFF) {
         // TODO: read from cartridge memory
         // Temporary way of getting rom information, current mappers write to old cpu memory
