@@ -5,6 +5,8 @@
 #include <thread>
 #include <cstdlib>
 #include <ctime>
+// for input handling
+#include <SDL.h>
 
 #include "Bus.h"
 #include "ROM.h"
@@ -41,6 +43,9 @@ public:
     void run();
     void cycle();
     void end();
+    
+    // for emulating keyboard -> controller
+    void handleInput();
 
     uint32_t* getFramebuffer();
     void RandomizeFramebuffer();

@@ -95,10 +95,38 @@ void NES::cycle() {
     }
 }
 
+// take input from the keyboard and write to the input register accordingly
+void NES::handleInput() {
+    //SDL_Event event;
+    uint8_t buttonState = 0x00;
+
+    // process SDL events
+    /*while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) {
+            // Handle quit event
+        }
+    }*/
+
+    // get the current state of the keyboard
+    const uint8_t* keystates = SDL_GetKeyboardState(nullptr);
+
+    // update button states based on keybindings
+    if (keystates[SDL_SCANCODE_A])		buttonState |= static_cast<uint8_t>(bus.Button::A);
+    if (keystates[SDL_SCANCODE_B])		buttonState |= static_cast<uint8_t>(bus.Button::B);
+    if (keystates[SDL_SCANCODE_RETURN])	buttonState |= static_cast<uint8_t>(bus.Button::START); // enter
+    if (keystates[SDL_SCANCODE_RSHIFT])	buttonState |= static_cast<uint8_t>(bus.Button::SELECT); // shift
+    if (keystates[SDL_SCANCODE_UP])		buttonState |= static_cast<uint8_t>(bus.Button::UP);
+    if (keystates[SDL_SCANCODE_DOWN])	buttonState |= static_cast<uint8_t>(bus.Button::DOWN);
+    if (keystates[SDL_SCANCODE_LEFT])	buttonState |= static_cast<uint8_t>(bus.Button::LEFT);
+    if (keystates[SDL_SCANCODE_RIGHT])	buttonState |= static_cast<uint8_t>(bus.Button::RIGHT);
+
+	// update the controller state if $4016 is not being written to
+	if (!bus.controller1Polling) bus.updateControllerInput(buttonState);
+}
+
 void NES::end() {
     on = false;
 }
-
 
 uint32_t* NES::getFramebuffer() {
     // for (int i = 0; i < 256 * 240; i++) {
