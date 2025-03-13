@@ -22,10 +22,25 @@ public:
     PPU  ppu;
     std::array<uint8_t, 2 * 1024> cpuRam{};
     NESROM* rom;
+    
+    // 8 bits for reading / writing $4016/$4017, for controller input
+    enum class Button : uint8_t {
+		A = 0x01,
+		B = 0x02,
+		SELECT = 0x04,
+		START = 0x08,
+		UP = 0x10,
+		DOWN = 0x20,
+		LEFT = 0x40,
+		RIGHT = 0x80
+	};
     										
     // Bus read and write functions
     void write(uint16_t address, uint8_t data);
     uint8_t read(uint16_t address);
+    
+    // for input handling
+    void updateControllerInput(uint8_t buttonState);
 
     // Reset function
     void reset();
@@ -36,6 +51,11 @@ public:
 
     uint32_t clockCounter = 0;
     uint32_t cpuClockCounter = 0;
+    
+    // whether or not the controller register is being written to
+    bool controller1Polling = false;
+    // the current state of the buttons
+    uint8_t controller1State = 0x00;
 
 private:
     // Device status
@@ -46,6 +66,17 @@ private:
     uint8_t DMAPage = 0x00;
     uint8_t DMAAddress = 0x00;
     uint8_t DMAData = 0x00;
+    
+    
+    // latching only needs to be seen by the bus
+    uint8_t controller1Latch = 0x00;				// effectively a variable to act as $4016
+    bool polling1Complete = false;					// whether or not a polling cycle just finished
+    int controller1Read = 7;						// counter variable to ensure 8 bits are returned when reading from $4016
+
+    // state of controller 2 buttons (if needed)
+    /*uint8_t controller2State = 0x00;
+    uint8_t controller2Latch = 0x00;
+    bool controller2Polling = false;*/
 
 };
 

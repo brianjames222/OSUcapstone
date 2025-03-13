@@ -27,8 +27,18 @@ void Bus::write(uint16_t address, uint8_t data) {
         // DMA Page + DMA Address make a 16-bit address for the CPU bus
         DMAPage = data;
         DMAAddress = 0x00;
-    } else if (address >= 0x4016 && address <= 0x4017) {
-        // TODO: write to address and save controller state
+    } else if (address == 0x4016 || address == 0x4017) {
+        // no write to $4017
+        if (address == 0x4016) {
+		    // set latch and poll the controller
+		    if (data == 0x01) {
+		        controller1Polling = true;
+		        controller1Latch = controller1State;
+		    } else {
+		    	controller1Polling = false;
+		    	polling1Complete = true;
+        	}
+        }
     } else if (address >= 0x4020 && address <= 0xFFFF) {
         // TODO: write to cartridge memory
         // Temporary way of getting rom information, current mappers write to old cpu memory
@@ -45,14 +55,37 @@ uint8_t Bus::read(uint16_t address) {
         return apu->read_register(address);
     } else if (address == 0x4014) {
         // TODO: read from address for DMA transfer
-    } else if (address >= 0x4016 && address <= 0x4017) {
-        // TODO: read from address and save controller state
+    } else if (address == 0x4016 || address == 0x4017) {
+        // $4017 read only for controller port 2
+        if (address == 0x4016) {
+        	uint8_t state = 0x00;
+        	if (polling1Complete) {
+        		// read out bits of $4016
+				state = controller1Latch & 0x01;
+				if (controller1Read == 0) {								// better than checking if equal to 0 because of amount of bits?
+					polling1Complete = false;								// we returned the last bit, so switch back to the regular mode
+					controller1Read = 7;
+				} else {
+					controller1Latch >>=1;									// else shift down for the next button read
+					controller1Read--;
+				}
+			} else {
+				// return the value of the A button if we didn't just finish polling
+        		state = controller1State & 0x01;
+			}
+			return state;
+        }
+        return 0xFF; // invalid value
     } else if (address >= 0x4020 && address <= 0xFFFF) {
         // TODO: read from cartridge memory
         // Temporary way of getting rom information, current mappers write to old cpu memory
         return cpu->readrom(address);
     }
     return -1;
+}
+
+void Bus::updateControllerInput(uint8_t buttonState) {
+    controller1State = buttonState;
 }
 
 void Bus::reset() {
@@ -107,7 +140,13 @@ void Bus::clock() {
         ppu.nmi = false;
         cpu->nmi_interrupt();
     }
-
+    
+    /* // test the input state
+    if (polling1Complete) {
+    	std::cout << "button state: 0x" << std::hex << static_cast<int>(controller1State) << std::dec << "\n";
+    	std::cout << "register: 0x" << std::hex << static_cast<int>(controller1Latch) << std::dec << "\n\n";
+    }*/
+	
     clockCounter++;
 }
 
