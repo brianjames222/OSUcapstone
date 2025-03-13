@@ -51,7 +51,7 @@ public:
     bus->write(address, value);
   }
 
-  uint8_t readBus(u_int16_t address) {
+  uint8_t readBus(uint16_t address) {
     return bus->read(address);
   }
 
