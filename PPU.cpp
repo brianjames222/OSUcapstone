@@ -358,17 +358,20 @@ void PPU::setPixel(uint8_t x, uint8_t y, uint32_t color) {
 
 unsigned PPU::getColor(int index) {
     std::array<uint32_t, 64> nesPalette = {
-        0x545454, 0xB41D01, 0xA01008, 0x880030, 0x4C0044, 0x20005C, 0x000454, 0x00183C,
-        0x002A20, 0x003A08, 0x004000, 0x0A3C00, 0x383200, 0x000000, 0x000000, 0x000000,
-        0x969698, 0x644C07, 0xEC3230, 0xEC1E5C, 0xB01488, 0x6414A0, 0x0000FF, 0x0A3C78,
-        0x003C22, 0x00660A, 0x006400, 0x3A5800, 0x3B3900, 0x2A1B00, 0x1F1F1F, 0x111111,
-        0xA9A9A9, 0x9C3C02, 0xCC4924, 0xCF403E, 0x996C6B, 0xAA777F, 0xC2958B, 0x7F8A8C,
-        0xA000FF, 0x420DAA, 0x4E1A8C, 0x531D80, 0x6F2C92, 0x6E4A9E, 0x525192, 0x534E77,
-        0xBB770F, 0xE89D0B, 0xE0672F, 0xFF7F6A, 0xF2B9A2, 0xDBC69C, 0xE9A570, 0xC7825C,
-        0x990F08, 0xF6D113, 0xFDC835, 0x9E8F7F, 0xF5E0C8, 0xFFFBF3, 0xFFEBC8, 0xF79F7F
+        0x545454, 0xB41D01, 0xA01008, 0x880030, 0x4C0044, 0x20005C, 0x000454, 0x00183C, 0x002A20, 0x003A08, 0x004000, 0x0A3C00, 0x383200, 0x000000, 0x000000, 0x000000,
+        0x969698, 0x644C07, 0xEC3230, 0xEC1E5C, 0xB01488, 0x6414A0, 0x0000FF, 0x0A3C78, 0x003C22, 0x00660A, 0x006400, 0x3A5800, 0x3B3900, 0x2A1B00, 0x1F1F1F, 0x111111,
+        0xA9A9A9, 0x9C3C02, 0xCC4924, 0xCF403E, 0x996C6B, 0xAA777F, 0xC2958B, 0x009EFA, 0xA000FF, 0x420DAA, 0x4E1A8C, 0x531D80, 0xF7D52B, 0x6E4A9E, 0x525192, 0x534E77,
+        0xFFFFFF, 0xE89D0B, 0xE0672F, 0xFF7F6A, 0xF2B9A2, 0xDBC69C, 0x70A5E9, 0xC7825C, 0x990F08, 0xF6D113, 0xFDC835, 0x9E8F7F, 0xF5E0C8, 0xFFFBF3, 0xFFEBC8, 0xF79F7F
     };
 
     return 0xFF000000 | nesPalette[index];
+}
+
+void PPU::shiftLeft(uint8_t arr[], int size) {
+    // Shift all elements to the left by one position
+    for (int i = 0; i < size - 1; ++i) {
+        arr[i] = arr[i + 1];  // Move each element to the left
+    }
 }
 
 // Name tables --------------------------------------------------------------------------------------------------------
@@ -472,25 +475,13 @@ void PPU::clock() {
             }
         }
     };
-
     auto loadShiftRegisters = [&]() {
         bg_shifter_tile_lo = (bg_shifter_tile_lo & 0xFF00 | (next_bg_tile_lsb));
         bg_shifter_tile_hi = (bg_shifter_tile_hi & 0xFF00 | (next_bg_tile_msb));
-
-        uint8_t lo_bit = (next_bg_tile_attribute & 0x40) >> 6;
-        if (lo_bit == 0) {
-            bg_shifter_attribute_lo = (bg_shifter_attribute_lo & 0xFF00) | 0x00;
-        }
-        else {
-            bg_shifter_attribute_lo = (bg_shifter_attribute_lo & 0xFF00) | 0xFF;
-        }
-        uint8_t hi_bit = (next_bg_tile_attribute & 0x80) >> 7;
-        if (hi_bit == 0) {
-            bg_shifter_attribute_hi = (bg_shifter_attribute_hi & 0xFF00) | 0x00;
-        }
-        else {
-            bg_shifter_attribute_hi = (bg_shifter_attribute_hi & 0xFF00) | 0x0F;
-
+        bg_shifter_attribute_lo  = (bg_shifter_attribute_lo  & 0xFF00) | ((next_bg_tile_attribute & 0b01) ? 0xFF : 0x00);
+        bg_shifter_attribute_hi  = (bg_shifter_attribute_hi  & 0xFF00) | ((next_bg_tile_attribute & 0b10) ? 0xFF : 0x00);
+        for (int i = 0; i < 8; ++i) {
+            arr[0+i] = (next_bg_tile_attribute);
         }
     };
 
@@ -500,6 +491,7 @@ void PPU::clock() {
             bg_shifter_tile_hi <<= 1;
             bg_shifter_attribute_lo <<= 1;
             bg_shifter_attribute_hi <<= 1;
+            shiftLeft(arr, 16);
         }
     };
 
@@ -576,14 +568,10 @@ void PPU::clock() {
 
     uint8_t bit0 = ((bg_shifter_tile_lo << x) & 0x80) >>7;
     uint8_t bit1 = ((bg_shifter_tile_hi << x) & 0x80) >>7;
-     uint8_t combinedPixel = (bit1 << 1) | bit0;
-
-    uint8_t palette_bit0 = (bg_shifter_attribute_lo << x) & 0x80 >>7;
-    uint8_t palette_bit1 = (bg_shifter_attribute_hi << x) & 0x80 >>7;
-    uint8_t palette_combinedPixel = (palette_bit1 << 1) | palette_bit0;
+    uint8_t combinedPixel = (bit1 << 1) | bit0;
 
     if (scanline < 241 && cycle < 256) {
-        setPixel(cycle, scanline, getColor(readPPU(0x3F00 + (palette_combinedPixel << 2) + combinedPixel) % 64));
+        setPixel(cycle, scanline, getColor(readPPU(0x3F00 + (arr[0 + x]<< 2) + combinedPixel) % 64));
     }
 
     cycle++;

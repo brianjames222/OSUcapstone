@@ -159,6 +159,7 @@ public:
     void displayPatternTableOnScreen();
 
     void displayNameTableOnScreen(uint8_t table);
+    void shiftLeft(uint8_t arr[], int size);
 
     // method to get a tile, returned as an 8-byte array of pixel info (0-3)
     void getTile(uint8_t tileIndex, uint8_t* tileData, bool table1);
@@ -200,6 +201,8 @@ public:
     uint16_t bg_shifter_tile_hi = 0x0000;
     uint16_t bg_shifter_attribute_lo = 0x0000;
     uint16_t bg_shifter_attribute_hi = 0x0000;
+
+    uint8_t arr[16] = {0};
 
     // Given an address, determines mirroring scheme and returns modified address
     uint16_t getMirroredNameTableAddress(uint16_t address);
