@@ -1,8 +1,4 @@
 #include "tests.h"
-#include "CPU.h"
-#include "Bus.h"
-#include <cassert>
-#include <iostream>
 
 void Tests::test_cpu() {
 	std::cout << "\nCPU Tests:\n";
