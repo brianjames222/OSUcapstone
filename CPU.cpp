@@ -7,6 +7,7 @@
 #include <array>
 #include <iostream>
 #include <iomanip>
+#include <thread>
 #include "Bus.h"
 
 class CPU {

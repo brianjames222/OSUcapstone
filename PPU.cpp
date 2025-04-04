@@ -166,13 +166,13 @@ uint8_t PPU::readPPU(uint16_t addr) {
                 data = nameTables[addr & 0x03FF];
             }
             if (addr >= 0x0400 && addr <= 0x07FF) {
-                data = nameTables[(addr & 0x03FF) + 1024];
+                data = nameTables[(addr & 0x03FF) + 0x0400];
             }
             if (addr >= 0x0800 && addr <= 0x0BFF) {
                 data = nameTables[addr & 0x03FF];
             }
             if (addr >= 0x0C00 && addr <= 0x0FFF) {
-                data = nameTables[(addr & 0x03FF) + 1024];
+                data = nameTables[(addr & 0x03FF) + 0x0400];
             }
         }
         // Horizontal mirror
@@ -360,7 +360,7 @@ unsigned PPU::getColor(int index) {
     std::array<uint32_t, 64> nesPalette = {
         0x545454, 0xB41D01, 0xA01008, 0x880030, 0x4C0044, 0x20005C, 0x000454, 0x00183C, 0x002A20, 0x003A08, 0x004000, 0x0A3C00, 0x383200, 0x000000, 0x000000, 0x000000,
         0x969698, 0x644C07, 0xEC3230, 0xEC1E5C, 0xB01488, 0x6414A0, 0x0000FF, 0x0A3C78, 0x003C22, 0x00660A, 0x006400, 0x3A5800, 0x3B3900, 0x2A1B00, 0x1F1F1F, 0x111111,
-        0xA9A9A9, 0x9C3C02, 0xCC4924, 0xCF403E, 0x996C6B, 0xAA777F, 0xC2958B, 0x009EFA, 0xA000FF, 0x420DAA, 0x4E1A8C, 0x531D80, 0xF7D52B, 0x6E4A9E, 0x525192, 0x534E77,
+        0xA9A9A9, 0x9C3C02, 0xCC4924, 0xCF403E, 0x996C6B, 0xAA777F, 0xC2958B, 0x009EFA, 0xA000FF, 0x00EB74, 0x4E1A8C, 0x531D80, 0xF7D52B, 0x6E4A9E, 0x525192, 0x534E77,
         0xFFFFFF, 0xE89D0B, 0xE0672F, 0xFF7F6A, 0xF2B9A2, 0xDBC69C, 0x70A5E9, 0xC7825C, 0x990F08, 0xF6D113, 0xFDC835, 0x9E8F7F, 0xF5E0C8, 0xFFFBF3, 0xFFEBC8, 0xF79F7F
     };
 
@@ -481,7 +481,7 @@ void PPU::clock() {
         bg_shifter_attribute_lo  = (bg_shifter_attribute_lo  & 0xFF00) | ((next_bg_tile_attribute & 0b01) ? 0xFF : 0x00);
         bg_shifter_attribute_hi  = (bg_shifter_attribute_hi  & 0xFF00) | ((next_bg_tile_attribute & 0b10) ? 0xFF : 0x00);
         for (int i = 0; i < 8; ++i) {
-            arr[0+i] = (next_bg_tile_attribute);
+            arr[7+i] = (next_bg_tile_attribute);
         }
     };
 
@@ -492,6 +492,19 @@ void PPU::clock() {
             bg_shifter_attribute_lo <<= 1;
             bg_shifter_attribute_hi <<= 1;
             shiftLeft(arr, 16);
+        }
+        if (mask.enable_sprite_rendering && cycle >= 1 && cycle < 258) {
+            for (int i = 0; i < numOfSprites; i++) {
+                // decrement sprite until its ready to render
+                if (spriteScanline[i].x > 0) {
+                    spriteScanline[i].x--;
+                }
+                // Once its rendered, shift it out of the array
+                else {
+                    sprite_shifter_pattern_lo[i] <<= 1;
+                    sprite_shifter_pattern_hi[i] <<= 1;
+                }
+            }
         }
     };
 
@@ -510,6 +523,17 @@ void PPU::clock() {
             v.coarse_x = t.coarse_x;
         }
     };
+    if (scanline >= -1 && scanline < 240) {
+        if (scanline == -1 && cycle ==1) {
+            status.vblank = 0;
+            status.sprite_zerohit = 0;
+            status.sprite_overflow = 0;
+            for (int i = 0; i < 8; i++) {
+                sprite_shifter_pattern_lo[i] = 0;
+                sprite_shifter_pattern_hi[i] = 0;
+            }
+        }
+    }
 
     // get information to load into shift registers
     uint16_t action = ((cycle-1) % 8);
@@ -557,6 +581,97 @@ void PPU::clock() {
         TransferAddressY();
     }
 
+    // Foreground rendering --------------------------------------------------------------------------------------------
+
+    // Find out which sprites belong on the next scan line
+    if (cycle == 257 && scanline >= 0) {
+        std::memset(spriteScanline, 0xFF, 8 * sizeof(ObjectAttributeMemory));
+        numOfSprites = 0;
+
+        uint8_t OAMEntry = 0;
+        bSpriteZeroHitPossible = false;
+        while (OAMEntry < 64 && numOfSprites < 9) {
+            int16_t diff = ((int16_t)scanline - static_cast<int16_t>(OAM[OAMEntry].y));
+            if (diff >= 0 && diff < (control.sprite_size ? 16 : 8)) {
+                if (numOfSprites < 8) {
+                    // Check if next scanline contains a sprite zero
+                    if (OAMEntry == 0) {
+                        bSpriteZeroHitPossible = true;
+                    }
+                    memcpy(&spriteScanline[numOfSprites], &OAM[OAMEntry], sizeof(ObjectAttributeMemory));
+                    numOfSprites++;
+                }
+            }
+            OAMEntry++;
+        }
+        status.sprite_overflow = (numOfSprites > 8);
+    }
+
+    if (cycle == 340) {
+        for (uint8_t i=0; i < numOfSprites; i++ ) {
+            uint8_t sprite_pattern_bits_lo, sprite_pattern_bits_hi;
+            uint16_t sprite_pattern_addr_lo, sprite_pattern_addr_hi;
+
+            // 8x8 sprite mode
+            if (!control.sprite_size) {
+                // If the sprite is not flipped vertically
+                if (!(spriteScanline[i].attribute & 0x80)) {
+                    sprite_pattern_addr_lo = (control.sprite_pattern << 12) | (spriteScanline[i].id << 4) | (scanline - spriteScanline[i].y);
+                }
+                // Sprite is flipped vertically
+                else {
+                    sprite_pattern_addr_lo = (control.sprite_pattern << 12) | (spriteScanline[i].id << 4) | (7-(scanline - spriteScanline[i].y));
+                }
+            }
+            // 8x16 sprite mode
+            else {
+                // If the sprite is not flipped vertically
+                if (!(spriteScanline[i].attribute & 0x80)) {
+                    if (scanline - spriteScanline[i].y < 8) {
+                        // Read the top half tile
+                        sprite_pattern_addr_lo = ((spriteScanline[i].id & 0x01) << 12) | ((spriteScanline[i].id & 0xFE) << 4) | ((scanline - spriteScanline[i].y) & 0x07);
+                    }
+                    else {
+                        // Read the bottom half tile
+                        sprite_pattern_addr_lo = ((spriteScanline[i].id & 0x01) << 12) | (((spriteScanline[i].id & 0xFE)+1) << 4) | ((scanline - spriteScanline[i].y) & 0x07);
+                    }
+                }
+                // Sprite is flipped vertically
+                else {
+                    if (scanline - spriteScanline[i].y < 8) {
+                        // Read the bottom half tile
+                        sprite_pattern_addr_lo = ((spriteScanline[i].id & 0x01) << 12) | (((spriteScanline[i].id & 0xFE)+1) << 4) | ((scanline - spriteScanline[i].y) & 0x07);
+                    }
+                    else {
+                        // Read the top half tile
+                        sprite_pattern_addr_lo = ((spriteScanline[i].id & 0x01) << 12) | ((spriteScanline[i].id & 0xFE) << 4) | ((scanline - spriteScanline[i].y) & 0x07);
+                    }
+                }
+            }
+            sprite_pattern_addr_hi = sprite_pattern_addr_lo + 8;
+            sprite_pattern_bits_lo = readPPU(sprite_pattern_addr_lo);
+            sprite_pattern_bits_hi = readPPU(sprite_pattern_addr_hi);
+
+            if (spriteScanline[i].attribute & 0x40) {
+                auto flipbyte = [](uint8_t b) {
+                    b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+                    b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+                    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+                    return b;
+                };
+
+                // Flip sprite horizontally
+                sprite_pattern_bits_lo = flipbyte(sprite_pattern_bits_lo);
+                sprite_pattern_bits_hi = flipbyte(sprite_pattern_bits_hi);
+            }
+
+            sprite_shifter_pattern_lo[i] = sprite_pattern_bits_lo;
+            sprite_shifter_pattern_hi[i] = sprite_pattern_bits_hi;
+        }
+    }
+
+
+
     // if rendering of the screen is over, enable nmi vblank
     if (scanline == 241 && cycle == 1) {
         status.vblank = 1;
@@ -565,15 +680,87 @@ void PPU::clock() {
             nmi = true;
         }
     }
+    // Background
 
-    uint8_t bit0 = ((bg_shifter_tile_lo << x) & 0x80) >>7;
-    uint8_t bit1 = ((bg_shifter_tile_hi << x) & 0x80) >>7;
+    uint8_t bit0 = ((bg_shifter_tile_lo << x) & 0x8000) >>15;
+    uint8_t bit1 = ((bg_shifter_tile_hi << x) & 0x8000) >>15;
     uint8_t combinedPixel = (bit1 << 1) | bit0;
 
-    if (scanline < 241 && cycle < 256) {
-        setPixel(cycle, scanline, getColor(readPPU(0x3F00 + (arr[0 + x]<< 2) + combinedPixel) % 64));
+    // Foreground
+    uint8_t fg_pixel = 0x00;
+    uint8_t fg_palette = 0x00;
+    uint8_t fg_priority = 0x00;
+
+    if (mask.enable_sprite_rendering) {
+        bSpriteZeroBeingRendered = false;
+        for (uint8_t i = 0; i < numOfSprites; i++) {
+            if (spriteScanline[i].x == 0) {
+                uint8_t fg_pixel_lo = (sprite_shifter_pattern_lo[i] & 0x80) > 0;
+                uint8_t fg_pixel_hi = (sprite_shifter_pattern_hi[i] & 0x80) > 0;
+                fg_pixel = (fg_pixel_hi << 1) | fg_pixel_lo;
+
+                fg_palette = (spriteScanline[i].attribute & 0x03) + 0x04;
+                fg_priority = (spriteScanline[i].attribute & 0x20) == 0;
+
+                if (fg_pixel != 0) {
+                    if (i == 0 ) {
+                        bSpriteZeroBeingRendered = true;
+                    }
+                    break;
+                }
+            }
+        }
     }
 
+    uint8_t pixel = 0x00;
+    uint8_t palette = 0x00;
+
+    // If both are zero, both are transparent
+    if (combinedPixel == 0 && fg_pixel == 0) {
+        pixel = 0x00;
+        palette = 0x00;
+    }
+    // The foreground is visible and the background is transparent
+    else if (combinedPixel == 0 && fg_pixel > 0 ) {
+        pixel = fg_pixel;
+        palette = fg_palette;
+    }
+    else if (combinedPixel > 0 && fg_pixel == 0) {
+        pixel = combinedPixel;
+        palette = arr[0+x];
+    }
+    else if (combinedPixel > 0 && fg_pixel > 0 ) {
+        if (fg_priority) {
+            pixel = fg_pixel;
+            palette = fg_palette;
+        }
+        else {
+            pixel = combinedPixel;
+            palette = arr[0+x];
+        }
+
+        if (bSpriteZeroBeingRendered && bSpriteZeroHitPossible) {
+            if (mask.enable_background_rendering && mask.enable_sprite_rendering) {
+                if (~(mask.render_background_left | mask.render_sprites_left)) {
+                    if (cycle >= 9 && cycle < 258) {
+                        status.sprite_zerohit = 1;
+                    }
+                }
+                else {
+                    if (cycle >= 1 && cycle < 258) {
+                        status.sprite_zerohit = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    // Set pixel to screen
+    if (scanline < 241 && cycle < 256) {
+        setPixel(cycle, scanline, getColor(readPPU(0x3F00 + (palette<< 2) + pixel) % 64));
+    }
+
+    // Advance cycle and scanline
     cycle++;
     if (cycle >= 341) {
         cycle = 0;

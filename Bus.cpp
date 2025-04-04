@@ -46,7 +46,16 @@ uint8_t Bus::read(uint16_t address) {
     } else if (address == 0x4014) {
         // TODO: read from address for DMA transfer
     } else if (address >= 0x4016 && address <= 0x4017) {
-        // TODO: read from address and save controller state
+        if (address == 0x4016) {
+            if (controller_read == 8) {
+                copyController = controller1;
+                controller_read = 0;
+            }
+            uint8_t data = copyController.reg & 1;
+            copyController.reg = copyController.reg >> 1;
+            controller_read++;
+            return data;
+        }
         return 0;
     } else if (address >= 0x4020 && address <= 0xFFFF) {
         // TODO: read from cartridge memory
