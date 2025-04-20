@@ -16,6 +16,10 @@
 // System includes
 #include <stdint.h>     // intptr_t
 #include <stdio.h>
+#include <bits/fs_fwd.h>
+#include <bits/fs_path.h>
+
+#include "portable-file-dialogs.h"
 
 int main(int, char**)
 {
@@ -286,7 +290,10 @@ int main(int, char**)
             ImGui::Begin("Registers");
             if (ImGui::Button("Load Rom")) {
                 nes.on = false;
-                nes.load_rom("Mario.nes");
+                auto selection = pfd::open_file("NES files", std::filesystem::current_path(), {"NES Files", "*.nes"}).result();
+                if (!selection.empty()) {
+                    nes.load_rom(selection[0].c_str());
+                }
                 nes.initNES();
             }
 

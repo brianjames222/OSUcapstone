@@ -29,6 +29,8 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data) {
             break;
         case 0x0004: // OAM Data
             OAMDATA[OAMADDR] = data;
+            // This is maybe a fix from running PPU test roms
+            OAMADDR++;
             break;
         case 0x0005: // SCROLL
             // first write to scroll register
