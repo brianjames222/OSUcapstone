@@ -81,8 +81,12 @@ void NES::cycle() {
         // Uncomment to test NES at full speed, might need to add more code if system is running too fast.
           double fps = 1./60.;
           auto start = std::chrono::high_resolution_clock::now();
+          int count = 0;
           while (true) {
-              bus.clock();
+              if (!(count % 2 == 0)) {
+                  bus.clock();
+              }
+              count++;
               auto end = std::chrono::high_resolution_clock::now();
               std::chrono::duration<double> elapsed_time = end - start;
               std::chrono::duration<double> frame_time(fps);
