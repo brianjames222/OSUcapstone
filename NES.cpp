@@ -43,6 +43,13 @@ void NES::load_rom(const char *filename) {
                 memory_address_cpu ++;
             }
         }
+        // Debugging reset vector
+        uint8_t lo = bus.read(0xFFFC);
+        uint8_t hi = bus.read(0xFFFD);
+        uint16_t resetVector = (hi << 8) | lo;
+        printf("Reset Vector @FFFC = %02X\n", lo);
+        printf("Reset Vector @FFFD = %02X\n", hi);
+        printf("Reset Vector Address = %04X\n", resetVector);
     }
 }
 

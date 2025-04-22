@@ -216,9 +216,9 @@ void Tests::test_reset() {
 	std::cout << "\nUpdated values:\n";
 	cpu.printRegisters();
 
-// Populate reset vector in internal RAM (mirrored to 0xFFFC/0xFFFD)
-    nes.bus.cpuRam[0x07FC] = 0xA9; // Low byte of reset vector (0xFFFC & 0x07FF)
-    nes.bus.cpuRam[0x07FD] = 0xC2; // High byte of reset vector (0xFFFD & 0x07FF)
+	// Populate reset vector in internal RAM (mirrored to 0xFFFC/0xFFFD)
+	nes.bus.write(0xFFFC, 0xA9); // Low byte
+	nes.bus.write(0xFFFD, 0xC2); // High byte
 
 	// Reset CPU state
 	cpu.reset();
@@ -629,6 +629,8 @@ void Tests::test_CLD_SED_CLV() {
 void Tests::test_NES(std::string path) {
 	NES nes;
 	nes.load_rom(path.c_str()); // current test rom is ./nestest.nes
+	nes.rom.printHeaderInfo(nes.rom.ROMheader);
+
 	printf("ROM HEADER FLAG 6: %d \n", nes.bus.ppu.ROM->ROMheader.flags6);
 	nes.initNES();
 
@@ -648,7 +650,6 @@ void Tests::test_NES(std::string path) {
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed_time = end - start;
 	std::cout << "Elapsed Time" << elapsed_time.count() << "seconds\n";
-	nes.rom.printHeaderInfo(nes.rom.ROMheader);
 }
 
 void Tests::test_Bus() {
