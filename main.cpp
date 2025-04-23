@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (testPath.empty()) {
-    testPath = "./nestest.nes";
+    testPath = "./DK.nes";
   }
 
 	// // TESTS -- uncomment as needed
