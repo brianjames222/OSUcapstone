@@ -25,10 +25,12 @@ int main(int, char**)
 {
     NES nes;
 
-
     float R = 1;
     float G = 1;
     float B = 1;
+
+    bool showDebug = false;
+
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
     {
@@ -70,7 +72,7 @@ int main(int, char**)
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window* window = SDL_CreateWindow("NES EMULATOR", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+    SDL_Window* window = SDL_CreateWindow("NES EMULATOR", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 720, 720, window_flags);
     if (window == nullptr)
     {
         printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
@@ -161,9 +163,18 @@ int main(int, char**)
             }
 
             // Render the NES screen
-            ImVec2 defaultSize(800,800);
-            ImGui::SetNextWindowSize(defaultSize, ImGuiCond_FirstUseEver);
-            ImGui::Begin("NES Screen");
+            ImVec2 viewportSize = ImGui::GetMainViewport()->Size;
+            float menuBarHeight = ImGui::GetFrameHeight(); // Offset by menu bar height
+            ImGui::SetNextWindowPos(ImVec2(0, menuBarHeight), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(viewportSize.x, viewportSize.y - menuBarHeight), ImGuiCond_Always);
+
+            ImGui::Begin("NES Screen", nullptr,
+                ImGuiWindowFlags_NoTitleBar |
+                ImGuiWindowFlags_NoResize |
+                ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoCollapse |
+                ImGuiWindowFlags_NoBringToFrontOnFocus
+            );
             //ImGui::Begin("NES Emulator", nullptr, ImGuiWindowFlags_NoResize;		// don't allow resizing?
             ImVec2 widgetSize = ImGui::GetContentRegionAvail();
 
@@ -196,7 +207,6 @@ int main(int, char**)
             keyboard = SDL_GetKeyboardState(NULL);
             // Handle the Return key
             if (keyboard[SDL_SCANCODE_RETURN]) {
-                printf("Return has been pressed\n");
                 nes.bus.controller1.start = 1;
             } else {
                 nes.bus.controller1.start = 0;
@@ -204,7 +214,6 @@ int main(int, char**)
 
             // Handle the Up arrow key
             if (keyboard[SDL_SCANCODE_W]) {
-                printf("Up arrow has been pressed\n");
                 nes.bus.controller1.up = 1;
             } else {
                 nes.bus.controller1.up = 0;
@@ -212,7 +221,6 @@ int main(int, char**)
 
             // Handle the Down arrow key
             if (keyboard[SDL_SCANCODE_S]) {
-                printf("Down arrow has been pressed\n");
                 nes.bus.controller1.down = 1;
             } else {
                 nes.bus.controller1.down = 0;
@@ -220,7 +228,6 @@ int main(int, char**)
 
             // Handle the Left arrow key
             if (keyboard[SDL_SCANCODE_A]) {
-                printf("Left arrow has been pressed\n");
                 nes.bus.controller1.left = 1;
             } else {
                 nes.bus.controller1.left = 0;
@@ -228,7 +235,6 @@ int main(int, char**)
 
             // Handle the Right arrow key
             if (keyboard[SDL_SCANCODE_D]) {
-                printf("Right arrow has been pressed\n");
                 nes.bus.controller1.right = 1;
             } else {
                 nes.bus.controller1.right = 0;
@@ -236,7 +242,6 @@ int main(int, char**)
 
             // Handle the Control key
             if (keyboard[SDL_SCANCODE_LCTRL]) {
-                printf("Control key has been pressed\n");
                 nes.bus.controller1.select = 1;
             } else {
                 nes.bus.controller1.select = 0;
@@ -244,7 +249,6 @@ int main(int, char**)
 
             // Handle the X key
             if (keyboard[SDL_SCANCODE_M]) {
-                printf("X key has been pressed\n");
                 nes.bus.controller1.a = 1;
             } else {
                 nes.bus.controller1.a = 0;
@@ -252,16 +256,10 @@ int main(int, char**)
 
             // Handle the Z key
             if (keyboard[SDL_SCANCODE_N]) {
-                printf("Z key has been pressed\n");
                 nes.bus.controller1.b = 1;
             } else {
                 nes.bus.controller1.b = 0;
             }
-
-
-
-
-            //if (keyboard[SDLK_RETURN]) printf("return has been pressed");
 
             GLuint textureID;
 
@@ -283,71 +281,81 @@ int main(int, char**)
             ImGui::Image(reinterpret_cast<ImTextureID>(reinterpret_cast<void *>(static_cast<intptr_t>(textureID))), ImVec2(renderWidth, renderHeight)); // Render the texture with the NES screen size
             ImGui::End();
 
-            // Display the current registers of the system along with control buttons
-            ImGui::Begin("Registers");
-            if (ImGui::Button("Load Rom")) {
-                nes.on = false;
-                auto selection = pfd::open_file("NES files", std::filesystem::current_path(), {"NES Files", "*.nes"}).result();
-                if (!selection.empty()) {
-                    nes.load_rom(selection[0].c_str());
-                }
-                nes.initNES();
-            }
-
-            // Pause button
-            ImGui::SameLine();
-            if (ImGui::Button("PAUSE")) {
-                nes.end();
-                nes.paused = true;
-            }
-
-            // Continue button
-            ImGui::SameLine();
-            if (ImGui::Button("CONTINUE")) {
-                nes.paused = false;
-                nes.on = true;
-            }
-
-            // Cycle button
-            ImGui::SameLine();
-            if (ImGui::Button("CYCLE")) {
-                if (nes.on == false) {
-                    nes.on = true;
-                    nes.cycle();
-                    //nes.RandomizeFramebuffer();
-                    // if (nes.A_changed == true) {
-                    //     R = rand() / (float)RAND_MAX;
-                    //     G = rand() / (float)RAND_MAX;
-                    //     B = rand() / (float)RAND_MAX;
-                    // }
+            // Display settings buttons
+            ImGui::BeginMainMenuBar();
+            if (ImGui::BeginMenu("File")) {
+                if (ImGui::MenuItem("Load ROM")) {
                     nes.on = false;
+                    auto selection = pfd::open_file("NES files", std::filesystem::current_path(), {"NES Files", "*.nes"}).result();
+                    if (!selection.empty()) {
+                        nes.load_rom(selection[0].c_str());
+                    }
+                    nes.initNES();
                 }
+                ImGui::EndMenu();
             }
-
-            // Cycle the NES
-            if (nes.on == true && nes.rom_loaded == true && nes.paused == false) {
-                //nes.RandomizeFramebuffer();
-                nes.cycle();
-
-                // Get the NES framebuffer (assuming it returns 32-bit RGBA data)
-                uint32_t* pixels = nes.getFramebuffer();
-
-
-
+            if (ImGui::BeginMenu("Debug")) {
+                ImGui::MenuItem("Show Debug Window", nullptr, &showDebug);
+                ImGui::EndMenu();
             }
+            ImGui::EndMainMenuBar();
 
-            // Display registers
-            ImGui::Text("Registers");
-            //ImGui::TextColored(ImVec4(R, G, B, 1.0f), "A: [%02x]", nes.cpu.A);
-            ImGui::Text("A: [%02x]", nes.cpu.A);
-            ImGui::Text("X: [%02x]", nes.cpu.X);
-            ImGui::Text("Y: [%02x]", nes.cpu.Y);
-            ImGui::Text("PC: [%04x]", nes.cpu.PC);
-            ImGui::Text("S: [%04x]", nes.cpu.S);
-            ImGui::Text("P: [%04x]", nes.cpu.P);
+            // Display the current registers, controller input, and additional controls
+            if (showDebug) {
+                ImGui::Begin("Debug");
+                // Pause button
+                if (ImGui::Button("PAUSE")) {
+                    nes.end();
+                    nes.paused = true;
+                }
 
-            ImGui::End();
+                // Continue button
+                ImGui::SameLine();
+                if (ImGui::Button("CONTINUE")) {
+                    nes.paused = false;
+                    nes.on = true;
+                }
+
+                // Cycle button
+                ImGui::SameLine();
+                if (ImGui::Button("CYCLE")) {
+                    if (nes.on == false) {
+                        nes.on = true;
+                        nes.cycle();
+                        //nes.RandomizeFramebuffer();
+                        // if (nes.A_changed == true) {
+                        //     R = rand() / (float)RAND_MAX;
+                        //     G = rand() / (float)RAND_MAX;
+                        //     B = rand() / (float)RAND_MAX;
+                        // }
+                        nes.on = false;
+                    }
+                }
+
+                // Display registers and buttons
+                ImGui::Text("Registers      Buttons");
+                //ImGui::TextColored(ImVec4(R, G, B, 1.0f), "A: [%02x]", nes.cpu.A);
+                ImGui::Text("A:    [%02x]     A:      [%01x]", nes.cpu.A, nes.bus.controller1.a);
+                ImGui::Text("X:    [%02x]     B:      [%01x]", nes.cpu.X, nes.bus.controller1.b);
+                ImGui::Text("Y:    [%02x]     Select: [%01x]", nes.cpu.Y, nes.bus.controller1.select);
+                ImGui::Text("PC: [%04x]     Start:  [%01x]", nes.cpu.PC, nes.bus.controller1.start);
+                ImGui::Text("S:  [%04x]     Up:     [%01x]", nes.cpu.S, nes.bus.controller1.up);
+                ImGui::Text("P:  [%04x]     Down:   [%01x]", nes.cpu.P, nes.bus.controller1.down);
+                ImGui::Text("               Left:   [%01x]", nes.bus.controller1.left);
+                ImGui::Text("               Right:  [%01x]", nes.bus.controller1.right);
+
+                ImGui::End();
+            }
         }
+
+        // Cycle the NES
+                if (nes.on == true && nes.rom_loaded == true && nes.paused == false) {
+                    //nes.RandomizeFramebuffer();
+                    nes.cycle();
+
+                    // Get the NES framebuffer (assuming it returns 32-bit RGBA data)
+                    uint32_t* pixels = nes.getFramebuffer();
+                }
 
         // Rendering
         ImGui::Render();
