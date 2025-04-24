@@ -25,7 +25,6 @@ int main(int, char**)
 {
     NES nes;
 
-
     float R = 1;
     float G = 1;
     float B = 1;
@@ -196,7 +195,6 @@ int main(int, char**)
             keyboard = SDL_GetKeyboardState(NULL);
             // Handle the Return key
             if (keyboard[SDL_SCANCODE_RETURN]) {
-                printf("Return has been pressed\n");
                 nes.bus.controller1.start = 1;
             } else {
                 nes.bus.controller1.start = 0;
@@ -204,7 +202,6 @@ int main(int, char**)
 
             // Handle the Up arrow key
             if (keyboard[SDL_SCANCODE_W]) {
-                printf("Up arrow has been pressed\n");
                 nes.bus.controller1.up = 1;
             } else {
                 nes.bus.controller1.up = 0;
@@ -212,7 +209,6 @@ int main(int, char**)
 
             // Handle the Down arrow key
             if (keyboard[SDL_SCANCODE_S]) {
-                printf("Down arrow has been pressed\n");
                 nes.bus.controller1.down = 1;
             } else {
                 nes.bus.controller1.down = 0;
@@ -220,7 +216,6 @@ int main(int, char**)
 
             // Handle the Left arrow key
             if (keyboard[SDL_SCANCODE_A]) {
-                printf("Left arrow has been pressed\n");
                 nes.bus.controller1.left = 1;
             } else {
                 nes.bus.controller1.left = 0;
@@ -228,7 +223,6 @@ int main(int, char**)
 
             // Handle the Right arrow key
             if (keyboard[SDL_SCANCODE_D]) {
-                printf("Right arrow has been pressed\n");
                 nes.bus.controller1.right = 1;
             } else {
                 nes.bus.controller1.right = 0;
@@ -236,7 +230,6 @@ int main(int, char**)
 
             // Handle the Control key
             if (keyboard[SDL_SCANCODE_LCTRL]) {
-                printf("Control key has been pressed\n");
                 nes.bus.controller1.select = 1;
             } else {
                 nes.bus.controller1.select = 0;
@@ -244,7 +237,6 @@ int main(int, char**)
 
             // Handle the X key
             if (keyboard[SDL_SCANCODE_M]) {
-                printf("X key has been pressed\n");
                 nes.bus.controller1.a = 1;
             } else {
                 nes.bus.controller1.a = 0;
@@ -252,16 +244,10 @@ int main(int, char**)
 
             // Handle the Z key
             if (keyboard[SDL_SCANCODE_N]) {
-                printf("Z key has been pressed\n");
                 nes.bus.controller1.b = 1;
             } else {
                 nes.bus.controller1.b = 0;
             }
-
-
-
-
-            //if (keyboard[SDLK_RETURN]) printf("return has been pressed");
 
             GLuint textureID;
 
@@ -336,15 +322,17 @@ int main(int, char**)
 
             }
 
-            // Display registers
-            ImGui::Text("Registers");
+            // Display registers and buttons
+            ImGui::Text("Registers      Buttons");
             //ImGui::TextColored(ImVec4(R, G, B, 1.0f), "A: [%02x]", nes.cpu.A);
-            ImGui::Text("A: [%02x]", nes.cpu.A);
-            ImGui::Text("X: [%02x]", nes.cpu.X);
-            ImGui::Text("Y: [%02x]", nes.cpu.Y);
-            ImGui::Text("PC: [%04x]", nes.cpu.PC);
-            ImGui::Text("S: [%04x]", nes.cpu.S);
-            ImGui::Text("P: [%04x]", nes.cpu.P);
+            ImGui::Text("A:    [%02x]     A:      [%01x]", nes.cpu.A, nes.bus.controller1.a);
+            ImGui::Text("X:    [%02x]     B:      [%01x]", nes.cpu.X, nes.bus.controller1.b);
+            ImGui::Text("Y:    [%02x]     Select: [%01x]", nes.cpu.Y, nes.bus.controller1.select);
+            ImGui::Text("PC: [%04x]     Start:  [%01x]", nes.cpu.PC, nes.bus.controller1.start);
+            ImGui::Text("S:  [%04x]     Up:     [%01x]", nes.cpu.S, nes.bus.controller1.up);
+            ImGui::Text("P:  [%04x]     Down:   [%01x]", nes.cpu.P, nes.bus.controller1.down);
+            ImGui::Text("               Left:   [%01x]", nes.bus.controller1.left);
+            ImGui::Text("               Right:  [%01x]", nes.bus.controller1.right);
 
             ImGui::End();
         }
