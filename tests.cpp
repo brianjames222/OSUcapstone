@@ -203,7 +203,9 @@ void Tests::test_stack() {
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_reset() {
 	NES nes;
+
 	CPU& cpu = *nes.bus.cpu;
+
 	std::cout << "Test setup: PC = " << std::hex << cpu.PC << "\n";
 
 	std::cout << "---------------------------\nReset test:\n\nCurrent values:\n";
@@ -217,6 +219,7 @@ void Tests::test_reset() {
 	cpu.printRegisters();
 
 	// Populate reset vector in internal RAM (mirrored to 0xFFFC/0xFFFD)
+	nes.bus.rom = nullptr;
 	nes.bus.write(0xFFFC, 0xA9); // Low byte
 	nes.bus.write(0xFFFD, 0xC2); // High byte
 
@@ -235,6 +238,7 @@ void Tests::test_reset() {
 
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_nmi() {
+	std::cout << ">>> test_nmi() starting\n";
 	NES nes;
 	CPU& cpu = *nes.bus.cpu;
 
@@ -260,6 +264,7 @@ void Tests::test_nmi() {
 
 //----------------------------------------------------------------------------------------------------------------------------
 void Tests::test_irq() {
+	std::cout << ">>> test_irq() starting\n";
 	NES nes;
 	CPU& cpu = *nes.bus.cpu;
 
@@ -628,28 +633,66 @@ void Tests::test_CLD_SED_CLV() {
 
 void Tests::test_NES(std::string path) {
 	NES nes;
-	nes.load_rom(path.c_str()); // current test rom is ./nestest.nes
-	nes.rom.printHeaderInfo(nes.rom.ROMheader);
 
+	// Connect CPU to the bus
+	nes.bus.cpu = &nes.cpu;
+	nes.cpu.connectBus(&nes.bus);
+
+	// Load ROM
+	nes.load_rom(path.c_str()); // Current test rom is ./nestest.nes
+	nes.rom.printHeaderInfo(nes.rom.ROMheader);
 	printf("ROM HEADER FLAG 6: %d \n", nes.bus.ppu.ROM->ROMheader.flags6);
+
+	// Initialize NES (calls reset internally)
 	nes.initNES();
+
+	// DEBUG: Verify connections right after initNES()
+	std::cout << "initNES() finished\n";
+	if (nes.bus.cpu == nullptr) {
+		std::cerr << "ERROR: nes.bus.cpu is NULL after initNES()\n";
+		return;
+	}
+	try {
+		nes.cpu.readBus(0x0000); // Should not crash if connected properly
+	} catch (...) {
+		std::cerr << "ERROR: CPU bus read failed (likely disconnected)\n";
+		return;
+	}
 
 	std::ofstream outfile("output.txt");
 
 	auto start = std::chrono::high_resolution_clock::now();
-	for (int i = 0;i < 60; i++) {
-		outfile << std::hex <<std::uppercase << nes.bus.cpu->PC << std::endl;
-		printf("count: %d\n", i+1);
-		uint8_t opcode = nes.bus.cpu->readBus(nes.bus.cpu->PC);
-		printf("Opcode: %02X\n", opcode);
-		nes.bus.cpu->printRegisters();
-		nes.cycle();
+	for (int i = 0; i < 60; i++) {
 
+		// DEBUG: Show what we're doing before the cycle
+		std::cout << "Frame " << i + 1 << ": PC = 0x" << std::hex << nes.cpu.PC << "\n";
+
+		// DEBUG: Check opcode fetch
+		try {
+			uint8_t opcode = nes.cpu.readBus(nes.cpu.PC);
+			std::cout << "Opcode: 0x" << std::hex << static_cast<int>(opcode) << "\n";
+		} catch (...) {
+			std::cerr << "Exception while reading opcode at PC!\n";
+			return;
+		}
+
+		nes.cpu.printRegisters();
+
+		// DEBUG: Confirm cycle is safe
+		try {
+			nes.cycle();
+		} catch (...) {
+			std::cerr << "Exception occurred during nes.cycle()!\n";
+			return;
+		}
+
+		outfile << std::hex << std::uppercase << nes.cpu.PC << std::endl;
 	}
+
 	outfile.close();
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed_time = end - start;
-	std::cout << "Elapsed Time" << elapsed_time.count() << "seconds\n";
+	std::cout << "Elapsed Time: " << elapsed_time.count() << " seconds\n";
 }
 
 void Tests::test_Bus() {
@@ -678,9 +721,6 @@ void Tests::test_PPU_registers() {
 	assert(result == 0xC2);
 
 	std::cout << "PPU Register Tests Passed\n";
-
-
-
 }
 
 void Tests::test_pattern_tables(std::string path) {

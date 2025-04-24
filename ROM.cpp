@@ -18,11 +18,11 @@ void NESROM::detect_mapper(const NESHeader& header, std::ifstream &file) {
         	if (header.prgRomSize == 1) mirrored = true;			// let the calling program know to mirror the memory
 
         	// Dynamically allocate memory for PRG ROM and CHR ROM
-        	prgRom = new uint8_t[prgRomSize]();
+        	prgRom = new uint8_t[prgRomSize];
         	file.read(reinterpret_cast<char*>(prgRom), prgRomSize);
 
 
-        	chrRom = new uint8_t[chrRomSize]();
+        	chrRom = new uint8_t[chrRomSize];
             file.read(reinterpret_cast<char*>(chrRom), chrRomSize);
 
             break;
@@ -65,15 +65,24 @@ bool NESROM::load(const std::string& filepath) {
 }
 
 uint8_t NESROM::readMemoryPRG(const uint16_t address) {
-    if (ROMheader.prgRomSize == 1) {
-        // NROM-128: mirror 16KB at 0x8000–0xBFFF and again at 0xC000–0xFFFF
-        return prgRom[(address - 0x8000) % 0x4000];
-    } else if (ROMheader.prgRomSize == 2) {
-        // NROM-256: use full 32KB mapped 0x8000–0xFFFF
-        return prgRom[address - 0x8000];
+    if (ROMheader.prgRomSize == 0 || prgRom == nullptr)
+        return 0;
+
+    uint16_t mappedAddress = 0;
+
+    if (mirrored) {
+        // NROM-128 (16KB mirrored at both $8000–$BFFF and $C000–$FFFF)
+        mappedAddress = address & 0x3FFF;  // mask to 16KB range
     } else {
-        std::cerr << "Invalid PRG ROM size\n";
-        return 0x00;
+        // NROM-256 (32KB)
+        mappedAddress = address - 0x8000;
+    }
+
+    if (mappedAddress < (ROMheader.prgRomSize * 16 * 1024)) {
+        return prgRom[mappedAddress];
+    } else {
+        std::cerr << "Invalid PRG ROM read at address: 0x" << std::hex << address << std::dec << "\n";
+        return 0;
     }
 }
 

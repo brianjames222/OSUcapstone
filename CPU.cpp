@@ -58,14 +58,40 @@ void CPU::printRegisters() const {
 
 // Set the CPU registers as specified by a console reset
 void CPU::reset() {
+    std::cout << "🛠 CPU::reset() called\n";
+
     const uint16_t read_address = 0xFFFC;
+
+    // Step 1: Confirm bus pointer is valid
+    if (bus == nullptr) {
+        std::cerr << "ERROR: CPU::bus is nullptr during reset!\n";
+        return;
+    } else {
+        std::cout << "Bus pointer is valid\n";
+    }
+
+    // Step 2: Try reading reset vector
+    std::cout << "Attempting to read from 0xFFFC and 0xFFFD...\n";
     uint16_t lo = readBus(read_address);
+    std::cout << "Read 0xFFFC (low byte): 0x" << std::hex << int(lo) << "\n";
+
     uint16_t hi = readBus(read_address + 1);
+    std::cout << "Read 0xFFFD (high byte): 0x" << std::hex << int(hi) << "\n";
+
+    // Step 3: Set PC
     PC = (hi << 8) | lo;
+    std::cout << "PC set to 0x" << std::hex << PC << "\n";
+
+    // Step 4: Reset stack and flags
     S = 0xFD;
     P = 0x00;
+    std::cout << "Stack pointer reset to 0xFD, Status set to 0x00\n";
+
     setFlag(I, true);
     setFlag(U, true);
+    std::cout << "⚙Flags I and U set\n";
+
+    std::cout << "CPU::reset() completed successfully\n";
 }
 
 // Read and execute cycles until the next instruction has ran
