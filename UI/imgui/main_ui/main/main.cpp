@@ -269,19 +269,24 @@ int main(int, char**)
             ImGui::Image(reinterpret_cast<ImTextureID>(reinterpret_cast<void *>(static_cast<intptr_t>(textureID))), ImVec2(renderWidth, renderHeight)); // Render the texture with the NES screen size
             ImGui::End();
 
-            // Display the current registers of the system along with control buttons
-            ImGui::Begin("Registers");
-            if (ImGui::Button("Load Rom")) {
-                nes.on = false;
-                auto selection = pfd::open_file("NES files", std::filesystem::current_path(), {"NES Files", "*.nes"}).result();
-                if (!selection.empty()) {
-                    nes.load_rom(selection[0].c_str());
+            // Display settings buttons
+            ImGui::BeginMainMenuBar();
+            if (ImGui::BeginMenu("File")) {
+                if (ImGui::MenuItem("Load ROM")) {
+                    nes.on = false;
+                    auto selection = pfd::open_file("NES files", std::filesystem::current_path(), {"NES Files", "*.nes"}).result();
+                    if (!selection.empty()) {
+                        nes.load_rom(selection[0].c_str());
+                    }
+                    nes.initNES();
                 }
-                nes.initNES();
+                ImGui::EndMenu();
             }
+            ImGui::EndMainMenuBar();
 
+            // Display the current registers, controller input, and additional controls
+            ImGui::Begin("Debug");
             // Pause button
-            ImGui::SameLine();
             if (ImGui::Button("PAUSE")) {
                 nes.end();
                 nes.paused = true;
