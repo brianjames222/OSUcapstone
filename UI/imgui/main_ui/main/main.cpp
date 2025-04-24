@@ -163,9 +163,17 @@ int main(int, char**)
             }
 
             // Render the NES screen
-            ImVec2 defaultSize(800,800);
-            ImGui::SetNextWindowSize(defaultSize, ImGuiCond_FirstUseEver);
-            ImGui::Begin("NES Screen");
+            ImVec2 viewportSize = ImGui::GetMainViewport()->Size;
+            float menuBarHeight = ImGui::GetFrameHeight(); // Offset by menu bar height
+            ImGui::SetNextWindowPos(ImVec2(0, menuBarHeight), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(viewportSize.x, viewportSize.y - menuBarHeight), ImGuiCond_Always);
+
+            ImGui::Begin("NES Screen", nullptr,
+                ImGuiWindowFlags_NoTitleBar |
+                ImGuiWindowFlags_NoResize |
+                ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoCollapse
+            );
             //ImGui::Begin("NES Emulator", nullptr, ImGuiWindowFlags_NoResize;		// don't allow resizing?
             ImVec2 widgetSize = ImGui::GetContentRegionAvail();
 
@@ -323,15 +331,6 @@ int main(int, char**)
                     }
                 }
 
-                // Cycle the NES
-                if (nes.on == true && nes.rom_loaded == true && nes.paused == false) {
-                    //nes.RandomizeFramebuffer();
-                    nes.cycle();
-
-                    // Get the NES framebuffer (assuming it returns 32-bit RGBA data)
-                    uint32_t* pixels = nes.getFramebuffer();
-                }
-
                 // Display registers and buttons
                 ImGui::Text("Registers      Buttons");
                 //ImGui::TextColored(ImVec4(R, G, B, 1.0f), "A: [%02x]", nes.cpu.A);
@@ -347,6 +346,15 @@ int main(int, char**)
                 ImGui::End();
             }
         }
+
+        // Cycle the NES
+                if (nes.on == true && nes.rom_loaded == true && nes.paused == false) {
+                    //nes.RandomizeFramebuffer();
+                    nes.cycle();
+
+                    // Get the NES framebuffer (assuming it returns 32-bit RGBA data)
+                    uint32_t* pixels = nes.getFramebuffer();
+                }
 
         // Rendering
         ImGui::Render();
