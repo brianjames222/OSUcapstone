@@ -213,7 +213,6 @@ int main(int, char**)
             keyboard = SDL_GetKeyboardState(NULL);
             // Handle the Return key
             if (keyboard[SDL_SCANCODE_RETURN]) {
-                printf("Return has been pressed\n");
                 nes.bus.controller1.start = 1;
             } else {
                 nes.bus.controller1.start = 0;
@@ -221,7 +220,6 @@ int main(int, char**)
 
             // Handle the Up arrow key
             if (keyboard[SDL_SCANCODE_W]) {
-                printf("Up arrow has been pressed\n");
                 nes.bus.controller1.up = 1;
             } else {
                 nes.bus.controller1.up = 0;
@@ -229,7 +227,6 @@ int main(int, char**)
 
             // Handle the Down arrow key
             if (keyboard[SDL_SCANCODE_S]) {
-                printf("Down arrow has been pressed\n");
                 nes.bus.controller1.down = 1;
             } else {
                 nes.bus.controller1.down = 0;
@@ -237,7 +234,6 @@ int main(int, char**)
 
             // Handle the Left arrow key
             if (keyboard[SDL_SCANCODE_A]) {
-                printf("Left arrow has been pressed\n");
                 nes.bus.controller1.left = 1;
             } else {
                 nes.bus.controller1.left = 0;
@@ -245,7 +241,6 @@ int main(int, char**)
 
             // Handle the Right arrow key
             if (keyboard[SDL_SCANCODE_D]) {
-                printf("Right arrow has been pressed\n");
                 nes.bus.controller1.right = 1;
             } else {
                 nes.bus.controller1.right = 0;
@@ -253,7 +248,6 @@ int main(int, char**)
 
             // Handle the Control key
             if (keyboard[SDL_SCANCODE_LCTRL]) {
-                printf("Control key has been pressed\n");
                 nes.bus.controller1.select = 1;
             } else {
                 nes.bus.controller1.select = 0;
@@ -261,7 +255,6 @@ int main(int, char**)
 
             // Handle the X key
             if (keyboard[SDL_SCANCODE_M]) {
-                printf("X key has been pressed\n");
                 nes.bus.controller1.a = 1;
             } else {
                 nes.bus.controller1.a = 0;
@@ -269,16 +262,10 @@ int main(int, char**)
 
             // Handle the Z key
             if (keyboard[SDL_SCANCODE_N]) {
-                printf("Z key has been pressed\n");
                 nes.bus.controller1.b = 1;
             } else {
                 nes.bus.controller1.b = 0;
             }
-
-
-
-
-            //if (keyboard[SDLK_RETURN]) printf("return has been pressed");
 
             GLuint textureID;
 
@@ -399,3 +386,4 @@ int main(int, char**)
 
     return 0;
 }
+
